@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.heritage.mapper.HeritageCommentMapper">
+    <resultMap type="HeritageComment" id="HeritageCommentResult">
+        <result property="commentId"    column="comment_id"    />
+        <result property="itemId"       column="item_id"    />
+        <result property="userId"       column="user_id"    />
+        <result property="content"      column="content"    />
+        <result property="createTime"   column="create_time"    />
+        <!-- 映射关联查询的用户信息 -->
+        <result property="nickName"     column="nick_name"    />
+        <result property="avatar"       column="avatar"    />
+    </resultMap>
+
+    <sql id="selectHeritageCommentVo">
+        SELECT
+            c.comment_id, c.item_id, c.user_id, c.content, c.create_time,
+            u.nick_name, u.avatar
+        FROM heritage_comment c
+                 LEFT JOIN sys_user u ON c.user_id = u.user_id
+    </sql>
+
+    <select id="selectHeritageCommentList" parameterType="HeritageComment" resultMap="HeritageCommentResult">
+        <include refid="selectHeritageCommentVo"/>
+        <where>
+            <if test="itemId != null "> and c.item_id = #{itemId}</if>
+            <if test="userId != null "> and c.user_id = #{userId}</if>
+            AND c.del_flag = '0'
+        </where>
+        <!-- 按时间倒序，最新的在上面 -->
+        ORDER BY c.create_time DESC
+    </select>
+
+    <insert id="insertHeritageComment" parameterType="HeritageComment" useGeneratedKeys="true" keyProperty="commentId">
+        INSERT INTO heritage_comment(
+        <if test="itemId != null">item_id,</if>
+        <if test="userId != null">user_id,</if>
+        <if test="content != null">content,</if>
+        create_time,
+        del_flag
+        ) VALUES (
+        <if test="itemId != null">#{itemId},</if>
+        <if test="userId != null">#{userId},</if>
+        <if test="content != null">#{content},</if>
+        sysdate(),
+        '0'
+        )
+    </insert>
+
+</mapper>

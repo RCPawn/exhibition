@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.heritage.mapper.HeritageItemMapper">
+
+    <resultMap type="HeritageItem" id="HeritageItemResult">
+        <result property="itemId"    column="item_id"    />
+        <result property="itemName"    column="item_name"    />
+        <result property="categoryId"    column="category_id"    />
+        <result property="coverImage"    column="cover_image"    />
+        <result property="modelFile"    column="model_file"    />
+        <result property="description"    column="description"    />
+        <result property="history"    column="history"    />
+        <result property="craft"    column="craft"    />
+        <result property="viewCount"    column="view_count"    />
+        <result property="likeCount"    column="like_count"    />
+        <result property="favoriteCount"    column="favorite_count"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="sortOrder"    column="sort_order"    />
+        <result property="remark"    column="remark"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectHeritageItemVo">
+        select item_id, item_name, category_id, cover_image, model_file, description, history, craft, view_count, like_count, favorite_count, status, del_flag, sort_order, remark, create_by, create_time, update_by, update_time from heritage_item
+    </sql>
+
+    <!-- 列表查询 -->
+    <select id="selectHeritageItemList" parameterType="HeritageItem" resultMap="HeritageItemResult">
+        <include refid="selectHeritageItemVo"/>
+        <where>
+            <if test="itemName != null  and itemName != ''"> and item_name like concat('%', #{itemName}, '%')</if>
+            <if test="categoryId != null "> and category_id = #{categoryId}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="createBy != null and createBy != ''"> and create_by = #{createBy}</if>
+            and del_flag = '0'
+        </where>
+        order by create_time desc
+    </select>
+
+    <!-- 详情查询 -->
+    <select id="selectHeritageItemByItemId" parameterType="Long" resultMap="HeritageItemResult">
+        <include refid="selectHeritageItemVo"/>
+        where item_id = #{itemId}
+    </select>
+
+    <!-- ✅ 优化后的新增：确保记录创建人信息 -->
+    <insert id="insertHeritageItem" parameterType="HeritageItem" useGeneratedKeys="true" keyProperty="itemId">
+        insert into heritage_item
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="itemName != null and itemName != ''">item_name,</if>
+            <if test="categoryId != null">category_id,</if>
+            <if test="coverImage != null">cover_image,</if>
+            <if test="modelFile != null">model_file,</if>
+            <if test="description != null">description,</if>
+            <if test="history != null">history,</if>
+            <if test="craft != null">craft,</if>
+            <if test="status != null">status,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="remark != null">remark,</if>
+            <!-- 核心：显式指定这三行 -->
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="itemName != null and itemName != ''">#{itemName},</if>
+            <if test="categoryId != null">#{categoryId},</if>
+            <if test="coverImage != null">#{coverImage},</if>
+            <if test="modelFile != null">#{modelFile},</if>
+            <if test="description != null">#{description},</if>
+            <if test="history != null">#{history},</if>
+            <if test="craft != null">#{craft},</if>
+            <if test="status != null">#{status},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <!-- ✅ 优化后的修改：保护统计字段不被管理员修改覆盖 -->
+    <update id="updateHeritageItem" parameterType="HeritageItem">
+        update heritage_item
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="itemName != null and itemName != ''">item_name = #{itemName},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="coverImage != null">cover_image = #{coverImage},</if>
+            <if test="modelFile != null">model_file = #{modelFile},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="history != null">history = #{history},</if>
+            <if test="craft != null">craft = #{craft},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <!-- 修改时：更新 update_by 和 update_time，不改创建信息 -->
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where item_id = #{itemId}
+    </update>
+
+    <!-- 原子增减方法 -->
+    <update id="incrementViewCount">
+        update heritage_item set view_count = view_count + 1 where item_id = #{itemId}
+    </update>
+
+    <update id="updateItemCount">
+        update heritage_item
+        <set>
+            <if test="type == 1">view_count = view_count + 1</if>
+            <if test="type == 2">
+                like_count = <if test="status == 1">like_count + 1</if><if test="status == 0">CASE WHEN like_count > 0 THEN like_count - 1 ELSE 0 END</if>
+            </if>
+            <if test="type == 3">
+                favorite_count = <if test="status == 1">favorite_count + 1</if><if test="status == 0">CASE WHEN favorite_count > 0 THEN favorite_count - 1 ELSE 0 END</if>
+            </if>
+        </set>
+        where item_id = #{itemId}
+    </update>
+
+    <update id="incrementCommentCount">
+        UPDATE heritage_item SET comment_count = comment_count + 1 WHERE item_id = #{itemId}
+    </update>
+
+    <delete id="deleteHeritageItemByItemId" parameterType="Long">
+        delete from heritage_item where item_id = #{itemId}
+    </delete>
+
+    <delete id="deleteHeritageItemByItemIds" parameterType="String">
+        delete from heritage_item where item_id in
+        <foreach item="itemId" collection="array" open="(" separator="," close=")">
+            #{itemId}
+        </foreach>
+    </delete>
+
+    <!-- 数据看板及业务查询 -->
+    <select id="selectUserCollectionList" parameterType="Long" resultMap="HeritageItemResult">
+        SELECT i.* FROM heritage_item i
+                            LEFT JOIN heritage_user_action a ON i.item_id = a.item_id
+        WHERE a.user_id = #{userId} AND a.action_type = 3 AND i.del_flag = '0'
+        ORDER BY a.create_time DESC
+    </select>
+
+    <select id="selectCategoryStats" resultType="com.ruoyi.heritage.domain.ChartDataVo">
+        SELECT c.category_name as name, COUNT(i.item_id) as value FROM heritage_item i
+                                                                           LEFT JOIN heritage_category c ON i.category_id = c.category_id
+        WHERE i.del_flag = '0' GROUP BY c.category_name
+    </select>
+
+    <select id="selectMostPopularItem" resultMap="HeritageItemResult">
+        SELECT * FROM heritage_item WHERE del_flag = '0' AND model_file IS NOT NULL ORDER BY view_count DESC LIMIT 1
+    </select>
+
+    <select id="sumViewCount" resultType="Long">
+        SELECT COALESCE(SUM(view_count), 0) FROM heritage_item WHERE del_flag = '0'
+    </select>
+
+    <select id="selectResourceStats" resultType="com.ruoyi.heritage.domain.ChartDataVo">
+        SELECT '3D数字模型' as name, COUNT(*) as value FROM heritage_item WHERE model_file IS NOT NULL AND del_flag = '0'
+        UNION ALL
+        SELECT '图文资料' as name, COUNT(*) as value FROM heritage_item WHERE model_file IS NULL AND del_flag = '0'
+    </select>
+
+    <select id="selectInteractionStats" resultType="com.ruoyi.heritage.domain.ChartDataVo">
+        SELECT '点赞总量' as name, SUM(like_count) as value FROM heritage_item WHERE del_flag = '0'
+        UNION ALL
+        SELECT '收藏总量' as name, SUM(favorite_count) as value FROM heritage_item WHERE del_flag = '0'
+        UNION ALL
+        SELECT '评论总量' as name, SUM(comment_count) as value FROM heritage_item WHERE del_flag = '0'
+    </select>
+
+    <select id="selectLatestItems" resultMap="HeritageItemResult">
+        SELECT item_id, item_name, cover_image, create_time FROM heritage_item WHERE del_flag = '0' ORDER BY create_time DESC LIMIT 3
+    </select>
+
+    <select id="selectItemNames" resultType="com.ruoyi.heritage.domain.ChartDataVo">
+        SELECT item_name as name, view_count as value FROM heritage_item WHERE del_flag = '0' ORDER BY view_count DESC LIMIT 20
+    </select>
+
+    <select id="selectTop5Trend" resultType="com.ruoyi.heritage.domain.ChartDataVo">
+        SELECT item_name as name, view_count as value FROM heritage_item WHERE del_flag = '0' ORDER BY view_count DESC LIMIT 5
+    </select>
+
+    <select id="sumTotalInteractions" resultType="Long">
+        SELECT COALESCE(SUM(like_count + favorite_count + comment_count), 0) FROM heritage_item WHERE del_flag = '0'
+    </select>
+</mapper>
