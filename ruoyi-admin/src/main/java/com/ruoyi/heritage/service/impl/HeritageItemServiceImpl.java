@@ -1,16 +1,14 @@
 package com.ruoyi.heritage.service.impl;
 
-import java.util.List;
+import java.util.*;
 
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.SecurityUtils;
-import com.ruoyi.heritage.domain.HeritageUserAction;
-import com.ruoyi.heritage.domain.IndexStatsVo;
+import com.ruoyi.heritage.domain.*;
 import com.ruoyi.heritage.mapper.HeritageUserActionMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.heritage.mapper.HeritageItemMapper;
-import com.ruoyi.heritage.domain.HeritageItem;
 import com.ruoyi.heritage.service.IHeritageItemService;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -180,8 +178,9 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
         Long interactions = heritageItemMapper.sumTotalInteractions();
         stats.setTotalInteractions(interactions != null ? interactions : 0);
 
-        // 2. 分类饼图
+        // 2. 分类饼图 (现在只存大类数据)
         stats.setCategoryPie(heritageItemMapper.selectCategoryStats());
+
 
         // 3. 中间3D模型 (取最火的那个)
         HeritageItem topItem = heritageItemMapper.selectMostPopularItem();

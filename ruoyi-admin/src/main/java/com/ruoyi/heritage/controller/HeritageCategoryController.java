@@ -34,6 +34,16 @@ public class HeritageCategoryController extends BaseController {
     @Autowired
     private IHeritageCategoryService heritageCategoryService;
 
+
+    /**
+     * 获取分类树形下拉列表
+     */
+    @GetMapping("/treeselect")
+    public AjaxResult treeselect(HeritageCategory category) {
+        List<HeritageCategory> categories = heritageCategoryService.selectHeritageCategoryList(category);
+        return AjaxResult.success(heritageCategoryService.buildCategoryTree(categories));
+    }
+
     /**
      * 查询非遗分类列表
      */

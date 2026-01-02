@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.heritage.mapper.HeritageCategoryMapper">
-    
+
     <resultMap type="HeritageCategory" id="HeritageCategoryResult">
         <result property="categoryId"    column="category_id"    />
+        <!-- ✅ 新增 parent_id 映射 -->
+        <result property="parentId"      column="parent_id"      />
         <result property="categoryName"    column="category_name"    />
         <result property="categoryCode"    column="category_code"    />
         <result property="sortOrder"    column="sort_order"    />
@@ -18,18 +20,23 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="updateTime"    column="update_time"    />
     </resultMap>
 
+    <!-- ✅ SQL 片段增加 parent_id -->
     <sql id="selectHeritageCategoryVo">
-        select category_id, category_name, category_code, sort_order, status, del_flag, remark, create_by, create_time, update_by, update_time from heritage_category
+        select category_id, parent_id, category_name, category_code, sort_order, status, del_flag, remark, create_by, create_time, update_by, update_time from heritage_category
     </sql>
 
     <select id="selectHeritageCategoryList" parameterType="HeritageCategory" resultMap="HeritageCategoryResult">
         <include refid="selectHeritageCategoryVo"/>
-        <where>  
+        <where>
             <if test="categoryName != null  and categoryName != ''"> and category_name like concat('%', #{categoryName}, '%')</if>
-            <if test="status != null "> and status = #{status}</if>
+            <!-- ✅ 列表查询增加 parent_id 过滤 -->
+            <if test="parentId != null "> and parent_id = #{parentId}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
         </where>
+        <!-- ✅ 排序逻辑：先按父ID排，再按序号排 -->
+        order by parent_id, sort_order
     </select>
-    
+
     <select id="selectHeritageCategoryByCategoryId" parameterType="Long" resultMap="HeritageCategoryResult">
         <include refid="selectHeritageCategoryVo"/>
         where category_id = #{categoryId}
@@ -38,6 +45,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <insert id="insertHeritageCategory" parameterType="HeritageCategory" useGeneratedKeys="true" keyProperty="categoryId">
         insert into heritage_category
         <trim prefix="(" suffix=")" suffixOverrides=",">
+            <!-- ✅ 插入逻辑增加 parent_id -->
+            <if test="parentId != null">parent_id,</if>
             <if test="categoryName != null and categoryName != ''">category_name,</if>
             <if test="categoryCode != null">category_code,</if>
             <if test="sortOrder != null">sort_order,</if>
@@ -46,10 +55,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="remark != null">remark,</if>
             <if test="createBy != null">create_by,</if>
             <if test="createTime != null">create_time,</if>
-            <if test="updateBy != null">update_by,</if>
-            <if test="updateTime != null">update_time,</if>
-         </trim>
+        </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="parentId != null">#{parentId},</if>
             <if test="categoryName != null and categoryName != ''">#{categoryName},</if>
             <if test="categoryCode != null">#{categoryCode},</if>
             <if test="sortOrder != null">#{sortOrder},</if>
@@ -58,22 +66,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="remark != null">#{remark},</if>
             <if test="createBy != null">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
-            <if test="updateBy != null">#{updateBy},</if>
-            <if test="updateTime != null">#{updateTime},</if>
-         </trim>
+        </trim>
     </insert>
 
     <update id="updateHeritageCategory" parameterType="HeritageCategory">
         update heritage_category
         <trim prefix="SET" suffixOverrides=",">
+            <!-- ✅ 更新逻辑增加 parent_id -->
+            <if test="parentId != null">parent_id = #{parentId},</if>
             <if test="categoryName != null and categoryName != ''">category_name = #{categoryName},</if>
             <if test="categoryCode != null">category_code = #{categoryCode},</if>
             <if test="sortOrder != null">sort_order = #{sortOrder},</if>
             <if test="status != null">status = #{status},</if>
             <if test="delFlag != null">del_flag = #{delFlag},</if>
             <if test="remark != null">remark = #{remark},</if>
-            <if test="createBy != null">create_by = #{createBy},</if>
-            <if test="createTime != null">create_time = #{createTime},</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
         </trim>
@@ -85,7 +91,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteHeritageCategoryByCategoryIds" parameterType="String">
-        delete from heritage_category where category_id in 
+        delete from heritage_category where category_id in
         <foreach item="categoryId" collection="array" open="(" separator="," close=")">
             #{categoryId}
         </foreach>

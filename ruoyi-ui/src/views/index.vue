@@ -229,20 +229,39 @@ const initCharts = () => {
     }]
   });
 
-  // 2. 左中：分类分布 (玫瑰图 - 保持不变)
+// 2. 左中：非遗类目分布 (恢复为单环大类统计)
   const pieChart = echarts.init(pieChartRef.value);
+
   pieChart.setOption({
     ...commonOption,
-    color: ['#36f', '#00d2ff', '#7bffb6', '#f5222d', '#faad14'],
+    color: ['#36f', '#00d2ff', '#7bffb6', '#faad14', '#f5222d'],
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}: {c} ({d}%)'
+    },
     series: [{
+      name: '类目分布',
       type: 'pie',
-      radius: ['20%', '70%'],
+      // radius: '70%', // 如果想要实心饼图
+      radius: ['40%', '70%'], // 环形图更有科技感
       center: ['50%', '50%'],
-      roseType: 'radius',
+      roseType: 'radius', // 加上这个就是南丁格尔玫瑰图，不想要可以删掉
       data: stats.value.categoryPie || [],
-      itemStyle: { borderRadius: 4, borderColor: '#182640', borderWidth: 2 },
-      label: { show: true, color: '#fff', fontSize: 10 },
-      labelLine: { length: 5, length2: 5 }
+      itemStyle: {
+        borderRadius: 5,
+        borderColor: '#182640',
+        borderWidth: 2
+      },
+      label: {
+        show: true,
+        color: '#fff',
+        fontSize: 12,
+        formatter: '{b}\n{d}%'
+      },
+      labelLine: {
+        length: 10,
+        lineStyle: { color: '#409eff' }
+      }
     }]
   });
 

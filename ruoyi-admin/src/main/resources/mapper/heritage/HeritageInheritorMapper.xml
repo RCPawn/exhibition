@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.heritage.mapper.HeritageInheritorMapper">
+    
+    <resultMap type="HeritageInheritor" id="HeritageInheritorResult">
+        <result property="inheritorId"    column="inheritor_id"    />
+        <result property="name"    column="name"    />
+        <result property="avatar"    column="avatar"    />
+        <result property="level"    column="level"    />
+        <result property="categoryId"    column="category_id"    />
+        <result property="introduction"    column="introduction"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectHeritageInheritorVo">
+        select inheritor_id, name, avatar, level, category_id, introduction, status, del_flag, create_by, create_time, update_time from heritage_inheritor
+    </sql>
+
+    <select id="selectHeritageInheritorList" parameterType="HeritageInheritor" resultMap="HeritageInheritorResult">
+        <include refid="selectHeritageInheritorVo"/>
+        <where>  
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="level != null  and level != ''"> and level = #{level}</if>
+            <if test="categoryId != null "> and category_id = #{categoryId}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectHeritageInheritorByInheritorId" parameterType="Long" resultMap="HeritageInheritorResult">
+        <include refid="selectHeritageInheritorVo"/>
+        where inheritor_id = #{inheritorId}
+    </select>
+
+    <insert id="insertHeritageInheritor" parameterType="HeritageInheritor" useGeneratedKeys="true" keyProperty="inheritorId">
+        insert into heritage_inheritor
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">name,</if>
+            <if test="avatar != null">avatar,</if>
+            <if test="level != null and level != ''">level,</if>
+            <if test="categoryId != null">category_id,</if>
+            <if test="introduction != null">introduction,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="avatar != null">#{avatar},</if>
+            <if test="level != null and level != ''">#{level},</if>
+            <if test="categoryId != null">#{categoryId},</if>
+            <if test="introduction != null">#{introduction},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateHeritageInheritor" parameterType="HeritageInheritor">
+        update heritage_inheritor
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="level != null and level != ''">level = #{level},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="introduction != null">introduction = #{introduction},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where inheritor_id = #{inheritorId}
+    </update>
+
+    <delete id="deleteHeritageInheritorByInheritorId" parameterType="Long">
+        delete from heritage_inheritor where inheritor_id = #{inheritorId}
+    </delete>
+
+    <delete id="deleteHeritageInheritorByInheritorIds" parameterType="String">
+        delete from heritage_inheritor where inheritor_id in 
+        <foreach item="inheritorId" collection="array" open="(" separator="," close=")">
+            #{inheritorId}
+        </foreach>
+    </delete>
+
+</mapper>

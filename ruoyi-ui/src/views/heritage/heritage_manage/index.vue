@@ -14,15 +14,28 @@
 
     <!-- 2. 检索表单 -->
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" class="industrial-search-form">
-      <el-form-item label="名称" prop="itemName"><el-input v-model="queryParams.itemName" placeholder="搜索名称" clearable style="width: 200px" /></el-form-item>
+      <el-form-item label="名称" prop="itemName">
+        <el-input v-model="queryParams.itemName" placeholder="搜索名称" clearable style="width: 200px"/>
+      </el-form-item>
       <el-form-item label="类别" prop="categoryId">
-        <el-select v-model="queryParams.categoryId" placeholder="全部类别" clearable style="width: 140px">
-          <el-option v-for="item in categoryOptions" :key="item.categoryId" :label="item.categoryName" :value="item.categoryId" />
-        </el-select>
+        <el-cascader
+            v-model="queryParams.categoryId"
+            :options="categoryOptions"
+            :props="{
+              value: 'categoryId',
+              label: 'categoryName',
+              children: 'children',
+              emitPath: false,
+              checkStrictly: true  /* 搜索时允许只选大类 */
+            }"
+            placeholder="分类筛选"
+            clearable
+            style="width: 200px"
+        />
       </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="状态" clearable style="width: 100px">
-          <el-option v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value"/>
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -40,8 +53,8 @@
         class="industrial-table"
         style="width: 100%"
     >
-      <el-table-column type="selection" width="50" align="center" />
-      <el-table-column type="index" label="序号" align="center" width="60" />
+      <el-table-column type="selection" width="50" align="center"/>
+      <el-table-column type="index" label="序号" align="center" width="60"/>
 
       <el-table-column label="封面" align="center" width="90">
         <template #default="scope">
@@ -55,7 +68,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="所属类别" align="center" prop="categoryId" width="130">
+      <el-table-column label="所属项目" align="center" prop="categoryId" width="150">
         <template #default="scope">
           <el-tag size="small" effect="plain" class="industrial-tag">{{ categoryFormat(scope.row) }}</el-tag>
         </template>
@@ -63,25 +76,36 @@
 
       <el-table-column label="状态" align="center" prop="status" width="90">
         <template #default="scope">
-          <dict-tag :options="sys_normal_disable" :value="scope.row.status" size="small" />
+          <dict-tag :options="sys_normal_disable" :value="scope.row.status" size="small"/>
         </template>
       </el-table-column>
 
       <el-table-column label="数据统计 (览/赞/藏)" align="center" min-width="200">
         <template #default="scope">
           <div class="stat-group">
-            <div class="stat-item"><el-icon><View /></el-icon> {{ scope.row.viewCount || 0 }}</div>
-            <div class="stat-item text-danger"><el-icon><Pointer /></el-icon> {{ scope.row.likeCount || 0 }}</div>
-            <div class="stat-item text-warning"><el-icon><StarFilled /></el-icon> {{ scope.row.favoriteCount || 0 }}</div>
+            <div class="stat-item">
+              <el-icon>
+                <View/>
+              </el-icon>
+              {{ scope.row.viewCount || 0 }}
+            </div>
+            <div class="stat-item text-danger">
+              <el-icon>
+                <Pointer/>
+              </el-icon>
+              {{ scope.row.likeCount || 0 }}
+            </div>
+            <div class="stat-item text-warning">
+              <el-icon>
+                <StarFilled/>
+              </el-icon>
+              {{ scope.row.favoriteCount || 0 }}
+            </div>
           </div>
         </template>
       </el-table-column>
 
-      <el-table-column label="发布人" align="center" prop="createBy" width="110">
-        <template #default="scope">
-          <span class="publisher-text">{{ scope.row.createBy || '系统管理员' }}</span>
-        </template>
-      </el-table-column>
+      <el-table-column label="发布人" align="center" prop="createBy" width="110"/>
 
       <el-table-column label="创建日期" align="center" prop="createTime" width="120">
         <template #default="scope">
@@ -92,8 +116,12 @@
       <el-table-column label="操作" align="center" width="140" fixed="right">
         <template #default="scope">
           <div class="op-group">
-            <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['heritage:heritage_manage:edit']">修改</el-button>
-            <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['heritage:heritage_manage:remove']">删除</el-button>
+            <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
+                       v-hasPermi="['heritage:heritage_manage:edit']">修改
+            </el-button>
+            <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
+                       v-hasPermi="['heritage:heritage_manage:remove']">删除
+            </el-button>
           </div>
         </template>
       </el-table-column>
@@ -101,64 +129,67 @@
 
     <!-- 4. 分页 -->
     <div class="pagination-wrapper">
-      <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
+      <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum"
+                  v-model:limit="queryParams.pageSize" @pagination="getList"/>
     </div>
 
-    <!-- 5. 对话框：修复固定位置逻辑 -->
-    <el-dialog
-        :title="title"
-        v-model="open"
-        width="750px"
-        top="8vh"
-        append-to-body
-        :close-on-click-modal="false"
-        class="industrial-dialog"
-    >
-      <!-- 增加滚动包裹层 -->
+    <!-- 5. 对话框 -->
+    <el-dialog :title="title" v-model="open" width="750px" top="8vh" append-to-body :close-on-click-modal="false">
       <div class="dialog-scroll-wrapper">
         <el-form ref="heritage_manageRef" :model="form" :rules="rules" label-width="100px">
           <el-row :gutter="20">
             <el-col :span="16">
               <el-form-item label="展品名称" prop="itemName">
-                <el-input v-model="form.itemName" />
+                <el-input v-model="form.itemName" placeholder="请输入名称"/>
               </el-form-item>
-            </el-col> <!-- 确保是 el-col -->
-
+            </el-col>
             <el-col :span="8">
               <el-form-item label="显示顺序" prop="sortOrder">
-                <el-input-number v-model="form.sortOrder" />
+                <el-input-number v-model="form.sortOrder" controls-position="right" style="width: 100%"/>
               </el-form-item>
-            </el-col> <!-- 确保是 el-col -->
+            </el-col>
           </el-row>
 
           <el-row :gutter="20">
             <el-col :span="12">
-              <el-form-item label="所属分类" prop="categoryId">
-                <el-select v-model="form.categoryId" style="width: 100%">
-                  <el-option v-for="item in categoryOptions" :key="item.categoryId" :label="item.categoryName" :value="item.categoryId" />
-                </el-select>
+              <!-- 核心修复：树形级联选择器 -->
+              <el-form-item label="类别" prop="categoryId">
+                <el-cascader
+                    v-model="form.categoryId"
+                    :options="categoryOptions"
+                    :props="{
+                      value: 'categoryId',
+                      label: 'categoryName',
+                      children: 'children',
+                      emitPath: false,    /* 只要最后那个ID */
+                      checkStrictly: true /* 允许选择任意一级，不仅仅是最后一级 */
+                    }"
+                    placeholder="分类筛选"
+                    clearable
+                    style="width: 200px"
+                />
               </el-form-item>
-            </el-col> <!-- 确保是 el-col -->
-
+            </el-col>
             <el-col :span="12">
               <el-form-item label="当前状态">
                 <el-radio-group v-model="form.status">
-                  <el-radio v-for="dict in sys_normal_disable" :key="dict.value" :label="parseInt(dict.value)">{{dict.label}}</el-radio>
+                  <el-radio v-for="dict in sys_normal_disable" :key="dict.value" :label="parseInt(dict.value)">
+                    {{ dict.label }}
+                  </el-radio>
                 </el-radio-group>
               </el-form-item>
-            </el-col> <!-- 确保是 el-col -->
+            </el-col>
           </el-row>
 
           <el-form-item label="封面图片">
             <image-upload v-model="form.coverImage" :limit="1"/>
           </el-form-item>
           <el-form-item label="3D模型文件">
-            <file-upload v-model="form.modelFile" :file-type="['glb', 'gltf']" />
+            <file-upload v-model="form.modelFile" :file-type="['glb', 'gltf']"/>
           </el-form-item>
           <el-form-item label="展品简介">
-            <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入内容" />
+            <el-input v-model="form.description" type="textarea" :rows="3"/>
           </el-form-item>
-
           <el-form-item label="历史渊源">
             <editor v-model="form.history" :min-height="150"/>
           </el-form-item>
@@ -168,18 +199,24 @@
 
           <el-row :gutter="20">
             <el-col :span="8">
-              <el-form-item label="浏览数" prop="viewCount"><el-input v-model="form.viewCount" disabled /></el-form-item>
+              <el-form-item label="浏览数">
+                <el-input v-model="form.viewCount" disabled/>
+              </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="点赞数" prop="likeCount"><el-input v-model="form.likeCount" disabled /></el-form-item>
+              <el-form-item label="点赞数">
+                <el-input v-model="form.likeCount" disabled/>
+              </el-form-item>
             </el-col>
             <el-col :span="8">
-              <el-form-item label="收藏数" prop="favoriteCount"><el-input v-model="form.favoriteCount" disabled /></el-form-item>
+              <el-form-item label="收藏数">
+                <el-input v-model="form.favoriteCount" disabled/>
+              </el-form-item>
             </el-col>
           </el-row>
 
-          <el-form-item label="备注" prop="remark">
-            <el-input v-model="form.remark" type="textarea" placeholder="请输入备注" />
+          <el-form-item label="备注">
+            <el-input v-model="form.remark" type="textarea" placeholder="请输入备注"/>
           </el-form-item>
         </el-form>
       </div>
@@ -201,14 +238,15 @@ import {
   addHeritage_manage,
   updateHeritage_manage
 } from "@/api/heritage/heritage_manage"
-import {listCategory} from "@/api/heritage/category";
+import {listCategory} from "@/api/heritage/category"; // 注意：这里确保引用了正确的分类列表接口
 import {Pointer, StarFilled, View} from "@element-plus/icons-vue";
 
 const {proxy} = getCurrentInstance()
 const {sys_normal_disable} = proxy.useDict('sys_normal_disable')
 
 const heritage_manageList = ref([])
-const categoryOptions = ref([])
+const categoryOptions = ref([]) // 这里现在存储树形数据
+const flatCategories = ref([])  // 新增：存储扁平数据，用于表格 label 转换
 const open = ref(false)
 const loading = ref(true)
 const showSearch = ref(true)
@@ -220,13 +258,7 @@ const title = ref("")
 
 const data = reactive({
   form: {},
-  queryParams: {
-    pageNum: 1,
-    pageSize: 10,
-    itemName: null,
-    categoryId: null,
-    status: null,
-  },
+  queryParams: {pageNum: 1, pageSize: 10, itemName: null, categoryId: null, status: null},
   rules: {
     itemName: [{required: true, message: "展品名称不能为空", trigger: "blur"}],
     categoryId: [{required: true, message: "分类不能为空", trigger: "change"}],
@@ -235,6 +267,7 @@ const data = reactive({
 
 const {queryParams, form, rules} = toRefs(data)
 
+/** 查询列表 */
 function getList() {
   loading.value = true
   listHeritage_manage(queryParams.value).then(response => {
@@ -244,9 +277,38 @@ function getList() {
   })
 }
 
+/** 核心修复：加载完整的分类数据并构建树 */
+function getCategoryTree() {
+  // 必须传入大分页，否则子类可能因为分页原因拿不到
+  listCategory({pageNum: 1, pageSize: 100}).then(response => {
+    // 1. 存储扁平列表，用于表格 ID 转文字
+    flatCategories.value = response.rows;
+
+    // 2. 使用若依内置 handleTree 转换为嵌套结构
+    // 确保你的分类表主键是 categoryId，父键是 parentId
+    categoryOptions.value = proxy.handleTree(response.rows, "categoryId", "parentId");
+
+    // 3. 调试：如果还是没箭头，请看控制台打印的数据结构是否正确
+    // console.log('树形结构:', categoryOptions.value);
+  });
+}
+
+/** 核心修复：转换表格中的分类名称 */
+function categoryFormat(row) {
+  if (!row.categoryId || flatCategories.value.length === 0) {
+    return row.categoryId;
+  }
+  // 使用 String() 强制转换，防止后端返回 Long 类型与前端数字对比失败
+  const category = flatCategories.value.find(item =>
+      String(item.categoryId) === String(row.categoryId)
+  );
+
+  return category ? category.categoryName : row.categoryId;
+}
+
 function cancel() {
-  open.value = false
-  reset()
+  open.value = false;
+  reset();
 }
 
 function reset() {
@@ -256,102 +318,84 @@ function reset() {
     categoryId: null,
     coverImage: null,
     modelFile: null,
-    description: null,
-    history: null,
-    craft: null,
-    viewCount: 0,
-    likeCount: 0,
-    favoriteCount: 0,
     status: 0,
-    sortOrder: 0,
-    remark: null
-  }
+    sortOrder: 0
+  };
   proxy.resetForm("heritage_manageRef")
 }
 
 function handleQuery() {
-  queryParams.value.pageNum = 1
-  getList()
+  queryParams.value.pageNum = 1;
+  getList();
 }
 
 function resetQuery() {
-  proxy.resetForm("queryRef")
-  handleQuery()
+  proxy.resetForm("queryRef");
+  handleQuery();
 }
 
 function handleSelectionChange(selection) {
-  ids.value = selection.map(item => item.itemId)
-  single.value = selection.length != 1
-  multiple.value = !selection.length
+  ids.value = selection.map(item => item.itemId);
+  single.value = selection.length != 1;
+  multiple.value = !selection.length;
 }
 
 function handleAdd() {
-  reset()
-  open.value = true
-  title.value = "添加非遗展品"
+  reset();
+  open.value = true;
+  title.value = "添加非遗展品";
 }
 
 function handleUpdate(row) {
-  reset()
-  const _itemId = row.itemId || ids.value
+  reset();
+  const _itemId = row.itemId || ids.value;
   getHeritage_manage(_itemId).then(response => {
-    form.value = response.data
-    open.value = true
-    title.value = "修改非遗展品"
-  })
+    form.value = response.data;
+    open.value = true;
+    title.value = "修改非遗展品";
+  });
 }
 
 function submitForm() {
   proxy.$refs["heritage_manageRef"].validate(valid => {
     if (valid) {
       if (form.value.itemId != null) {
-        updateHeritage_manage(form.value).then(response => {
-          proxy.$modal.msgSuccess("修改成功")
-          open.value = false
-          getList()
-        })
+        updateHeritage_manage(form.value).then(() => {
+          proxy.$modal.msgSuccess("修改成功");
+          open.value = false;
+          getList();
+        });
       } else {
-        addHeritage_manage(form.value).then(response => {
-          proxy.$modal.msgSuccess("新增成功")
-          open.value = false
-          getList()
-        })
+        addHeritage_manage(form.value).then(() => {
+          proxy.$modal.msgSuccess("新增成功");
+          open.value = false;
+          getList();
+        });
       }
     }
-  })
+  });
 }
 
 function handleDelete(row) {
   const _itemIds = row.itemId || ids.value
-  proxy.$modal.confirm('是否确认删除数据项？').then(function () {
-    return delHeritage_manage(_itemIds)
-  }).then(() => {
-    getList()
-    proxy.$modal.msgSuccess("删除成功")
-  }).catch(() => {
-  })
-}
-
-function handleExport() {
-  proxy.download('heritage/heritage_manage/export', {...queryParams.value}, `heritage_manage_${new Date().getTime()}.xlsx`)
-}
-
-function getCategoryList() {
-  listCategory({pageNum: 1, pageSize: 100}).then(response => {
-    categoryOptions.value = response.rows;
+  proxy.$modal.confirm('确定删除？').then(() => delHeritage_manage(_itemIds)).then(() => {
+    getList();
+    proxy.$modal.msgSuccess("删除成功");
   });
 }
 
-function categoryFormat(row) {
-  const category = categoryOptions.value.find(item => item.categoryId === row.categoryId);
-  return category ? category.categoryName : row.categoryId;
+function handleExport() {
+  proxy.download('heritage/heritage_manage/export', {...queryParams.value}, `heritage_${new Date().getTime()}.xlsx`)
 }
 
-getCategoryList();
-getList();
+onMounted(() => {
+  getCategoryTree(); // 初始加载分类树
+  getList();
+});
 </script>
 
 <style scoped lang="scss">
+/* 保持你的工业风 CSS */
 .header-section {
   display: flex;
   justify-content: space-between;
@@ -366,6 +410,7 @@ getList();
     letter-spacing: -1px;
     margin: 0;
   }
+
   .page-subtitle {
     font-size: 13px;
     color: #999;
@@ -373,17 +418,49 @@ getList();
   }
 }
 
-.industrial-add-btn { background: #000 !important; color: #fff !important; border: none !important; border-radius: 0; font-weight: 900; height: 42px; padding: 0 20px; }
-.industrial-export-btn { background: #fff !important; color: #000 !important; border: 1.5px solid #000 !important; border-radius: 0; font-weight: 900; height: 42px; padding: 0 20px; }
-.industrial-search-form { background: #fcfcfc; padding: 15px; margin-bottom: 20px; border: 1px solid #eee; }
+.industrial-add-btn {
+  background: #000 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 0;
+  font-weight: 900;
+  height: 42px;
+  padding: 0 20px;
+}
+
+.industrial-export-btn {
+  background: #fff !important;
+  color: #000 !important;
+  border: 1.5px solid #000 !important;
+  border-radius: 0;
+  font-weight: 900;
+  height: 42px;
+  padding: 0 20px;
+}
+
+.industrial-search-form {
+  background: #fcfcfc;
+  padding: 15px;
+  margin-bottom: 20px;
+  border: 1px solid #eee;
+}
 
 .industrial-table {
-  border-radius: 0; border: 1px solid #ebeef5;
+  border-radius: 0;
+  border: 1px solid #ebeef5;
+
   :deep(.el-table__header) th {
-    background-color: #fcfcfc !important; color: #000 !important; font-weight: 900 !important;
-    font-size: 13px; height: 50px; text-transform: uppercase;
+    background-color: #fcfcfc !important;
+    color: #000 !important;
+    font-weight: 900 !important;
+    font-size: 13px;
+    height: 50px;
+    text-transform: uppercase;
   }
-  :deep(.el-table__row) { height: 75px; }
+
+  :deep(.el-table__row) {
+    height: 75px;
+  }
 }
 
 .item-name-bold {
@@ -393,34 +470,73 @@ getList();
   text-align: center;
 }
 
-.stat-group { display: flex; justify-content: space-around; align-items: center; }
-.stat-item {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-family: 'D-DIN', sans-serif; font-weight: 600; font-size: 14px; color: #666;
+.stat-group {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
 }
 
-.text-danger { color: #F56C6C; }
-.text-warning { color: #E6A23C; }
-.op-group { display: flex; justify-content: center; gap: 12px; }
-.industrial-tag { border-radius: 0; border: 1px solid #ddd; color: #333; font-weight: 600; }
-.time-text { font-size: 12px; color: #999; }
+.stat-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'D-DIN', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: #666;
+}
 
-.pagination-wrapper { margin-top: 40px; display: flex; justify-content: center; }
-:deep(.pagination-container) { background: transparent !important; }
+.text-danger {
+  color: #F56C6C;
+}
 
-/* 核心修复：对话框内部滚动容器 */
+.text-warning {
+  color: #E6A23C;
+}
+
+.op-group {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.industrial-tag {
+  border-radius: 0;
+  border: 1px solid #ddd;
+  color: #333;
+  font-weight: 600;
+}
+
+.time-text {
+  font-size: 12px;
+  color: #999;
+}
+
+.pagination-wrapper {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+:deep(.pagination-container) {
+  background: transparent !important;
+}
+
 .dialog-scroll-wrapper {
-  max-height: 65vh; /* 这里的 65vh 确保对话框在不同分辨率下都不会溢出视口 */
+  max-height: 65vh;
   overflow-y: auto;
   padding: 0 20px;
 
-  /* 自定义滚动条样式，使其符合工业风 */
-  &::-webkit-scrollbar { width: 4px; }
-  &::-webkit-scrollbar-thumb { background: #eee; border-radius: 4px; }
-  &::-webkit-scrollbar-thumb:hover { background: #ccc; }
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #eee;
+    border-radius: 4px;
+  }
 }
 
-/* 消除 el-dialog 默认的 body padding，让滚动区域更饱满 */
 :deep(.el-dialog__body) {
   padding: 20px 0 10px 0 !important;
 }

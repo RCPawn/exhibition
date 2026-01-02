@@ -41,4 +41,6 @@ public class IndexStatsVo {
     // 5. 热门藏品 Top 5 (新增这个字段)
     private List<ChartDataVo> top5Items;
 
+    private Map<String, Object> categoryHierarchy;
+
 }

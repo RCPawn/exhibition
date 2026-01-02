@@ -35,7 +35,12 @@
         <include refid="selectHeritageItemVo"/>
         <where>
             <if test="itemName != null  and itemName != ''"> and item_name like concat('%', #{itemName}, '%')</if>
-            <if test="categoryId != null "> and category_id = #{categoryId}</if>
+            <if test="categoryId != null ">
+                and (
+                category_id = #{categoryId}
+                or category_id in (select category_id from heritage_category where parent_id = #{categoryId})
+                )
+            </if>
             <if test="status != null "> and status = #{status}</if>
             <if test="createBy != null and createBy != ''"> and create_by = #{createBy}</if>
             and del_flag = '0'
@@ -149,10 +154,16 @@
         ORDER BY a.create_time DESC
     </select>
 
+    <!-- 统计大类分布：通过子类 ID 向上关联父类并聚合 -->
     <select id="selectCategoryStats" resultType="com.ruoyi.heritage.domain.ChartDataVo">
-        SELECT c.category_name as name, COUNT(i.item_id) as value FROM heritage_item i
-                                                                           LEFT JOIN heritage_category c ON i.category_id = c.category_id
-        WHERE i.del_flag = '0' GROUP BY c.category_name
+        SELECT
+            p.category_name as name,
+            COUNT(i.item_id) as value
+        FROM heritage_item i
+                 INNER JOIN heritage_category c ON i.category_id = c.category_id
+                 INNER JOIN heritage_category p ON c.parent_id = p.category_id
+        WHERE i.del_flag = '0'
+        GROUP BY p.category_name
     </select>
 
     <select id="selectMostPopularItem" resultMap="HeritageItemResult">
@@ -192,4 +203,5 @@
     <select id="sumTotalInteractions" resultType="Long">
         SELECT COALESCE(SUM(like_count + favorite_count + comment_count), 0) FROM heritage_item WHERE del_flag = '0'
     </select>
+
 </mapper>
