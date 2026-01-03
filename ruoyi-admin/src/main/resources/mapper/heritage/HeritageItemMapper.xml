@@ -42,19 +42,38 @@
                 )
             </if>
             <if test="status != null "> and status = #{status}</if>
-            <if test="createBy != null and createBy != ''"> and create_by = #{createBy}</if>
             and del_flag = '0'
         </where>
         order by create_time desc
     </select>
 
-    <!-- 详情查询 -->
+    <!-- 查询用户收藏的展品列表 -->
+    <select id="selectUserCollectionList" resultMap="HeritageItemResult">
+        SELECT i.*
+        FROM heritage_item i
+                 LEFT JOIN heritage_user_action a ON i.item_id = a.item_id
+        WHERE a.user_id = #{userId}
+          AND a.action_type = 3
+          AND i.del_flag = '0'
+        ORDER BY a.create_time DESC
+    </select>
+
+    <select id="selectMyHeritageItemList" parameterType="HeritageItem" resultMap="HeritageItemResult">
+        <include refid="selectHeritageItemVo"/>
+        <where>
+            <if test="itemName != null and itemName != ''"> and item_name like concat('%', #{itemName}, '%')</if>
+            <if test="categoryId != null "> and category_id = #{categoryId}</if>
+            and create_by = #{createBy}
+            and del_flag = '0'
+        </where>
+        order by create_time desc
+    </select>
+
     <select id="selectHeritageItemByItemId" parameterType="Long" resultMap="HeritageItemResult">
         <include refid="selectHeritageItemVo"/>
         where item_id = #{itemId}
     </select>
 
-    <!-- ✅ 优化后的新增：确保记录创建人信息 -->
     <insert id="insertHeritageItem" parameterType="HeritageItem" useGeneratedKeys="true" keyProperty="itemId">
         insert into heritage_item
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -68,10 +87,8 @@
             <if test="status != null">status,</if>
             <if test="sortOrder != null">sort_order,</if>
             <if test="remark != null">remark,</if>
-            <!-- 核心：显式指定这三行 -->
-            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createBy != null">create_by,</if>
             <if test="createTime != null">create_time,</if>
-            <if test="updateTime != null">update_time,</if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="itemName != null and itemName != ''">#{itemName},</if>
@@ -84,13 +101,11 @@
             <if test="status != null">#{status},</if>
             <if test="sortOrder != null">#{sortOrder},</if>
             <if test="remark != null">#{remark},</if>
-            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createBy != null">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
-            <if test="updateTime != null">#{updateTime},</if>
         </trim>
     </insert>
 
-    <!-- ✅ 优化后的修改：保护统计字段不被管理员修改覆盖 -->
     <update id="updateHeritageItem" parameterType="HeritageItem">
         update heritage_item
         <trim prefix="SET" suffixOverrides=",">
@@ -102,21 +117,15 @@
             <if test="history != null">history = #{history},</if>
             <if test="craft != null">craft = #{craft},</if>
             <if test="status != null">status = #{status},</if>
-            <if test="delFlag != null">del_flag = #{delFlag},</if>
             <if test="sortOrder != null">sort_order = #{sortOrder},</if>
             <if test="remark != null">remark = #{remark},</if>
-            <!-- 修改时：更新 update_by 和 update_time，不改创建信息 -->
-            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
         </trim>
         where item_id = #{itemId}
     </update>
 
-    <!-- 原子增减方法 -->
-    <update id="incrementViewCount">
-        update heritage_item set view_count = view_count + 1 where item_id = #{itemId}
-    </update>
-
+    <!-- 核心统一更新方法：处理浏览、点赞、收藏 -->
     <update id="updateItemCount">
         update heritage_item
         <set>
@@ -146,32 +155,21 @@
         </foreach>
     </delete>
 
-    <!-- 数据看板及业务查询 -->
-    <select id="selectUserCollectionList" parameterType="Long" resultMap="HeritageItemResult">
-        SELECT i.* FROM heritage_item i
-                            LEFT JOIN heritage_user_action a ON i.item_id = a.item_id
-        WHERE a.user_id = #{userId} AND a.action_type = 3 AND i.del_flag = '0'
-        ORDER BY a.create_time DESC
-    </select>
-
-    <!-- 统计大类分布：通过子类 ID 向上关联父类并聚合 -->
+    <!-- 数据看板统计逻辑 -->
     <select id="selectCategoryStats" resultType="com.ruoyi.heritage.domain.ChartDataVo">
-        SELECT
-            p.category_name as name,
-            COUNT(i.item_id) as value
+        SELECT p.category_name as name, COUNT(i.item_id) as value
         FROM heritage_item i
                  INNER JOIN heritage_category c ON i.category_id = c.category_id
                  INNER JOIN heritage_category p ON c.parent_id = p.category_id
-        WHERE i.del_flag = '0'
-        GROUP BY p.category_name
-    </select>
-
-    <select id="selectMostPopularItem" resultMap="HeritageItemResult">
-        SELECT * FROM heritage_item WHERE del_flag = '0' AND model_file IS NOT NULL ORDER BY view_count DESC LIMIT 1
+        WHERE i.del_flag = '0' GROUP BY p.category_name
     </select>
 
     <select id="sumViewCount" resultType="Long">
         SELECT COALESCE(SUM(view_count), 0) FROM heritage_item WHERE del_flag = '0'
+    </select>
+
+    <select id="sumTotalInteractions" resultType="Long">
+        SELECT COALESCE(SUM(like_count + favorite_count + comment_count), 0) FROM heritage_item WHERE del_flag = '0'
     </select>
 
     <select id="selectResourceStats" resultType="com.ruoyi.heritage.domain.ChartDataVo">
@@ -200,8 +198,8 @@
         SELECT item_name as name, view_count as value FROM heritage_item WHERE del_flag = '0' ORDER BY view_count DESC LIMIT 5
     </select>
 
-    <select id="sumTotalInteractions" resultType="Long">
-        SELECT COALESCE(SUM(like_count + favorite_count + comment_count), 0) FROM heritage_item WHERE del_flag = '0'
+    <select id="selectMostPopularItem" resultMap="HeritageItemResult">
+        SELECT * FROM heritage_item WHERE del_flag = '0' AND model_file IS NOT NULL ORDER BY view_count DESC LIMIT 1
     </select>
 
 </mapper>

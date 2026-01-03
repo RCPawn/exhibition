@@ -47,7 +47,7 @@ public class HeritageCategoryController extends BaseController {
     /**
      * 查询非遗分类列表
      */
-    @PreAuthorize("@ss.hasPermi('heritage:category:list')")
+//    @PreAuthorize("@ss.hasPermi('heritage:category:list')")
     @GetMapping("/list")
     public TableDataInfo list(HeritageCategory heritageCategory) {
         startPage();

@@ -42,3 +42,11 @@ export function delCategory(categoryId) {
     method: 'delete'
   })
 }
+
+// 查询分类树（无权限限制版本）
+export function treeselect() {
+    return request({
+        url: '/heritage/category/treeselect',
+        method: 'get'
+    })
+}

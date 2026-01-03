@@ -3,8 +3,8 @@
     <!-- 1. 顶部标题与操作区 -->
     <div class="header-section">
       <div class="title-group">
-        <h2 class="page-title">传承人管理 / INHERITOR</h2>
-        <p class="page-subtitle">管理非遗技艺核心传承人档案及其所属项目层级</p>
+        <h2 class="page-title">传承人管理（数据来源于豆包）</h2>
+        <p class="page-subtitle">管理非遗传承人档案及其所属项目层级</p>
       </div>
       <div class="header-actions">
         <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd" v-hasPermi="['heritage:inheritor:add']">新增传承人</el-button>
@@ -60,26 +60,26 @@
       <el-table-column type="selection" width="50" align="center" />
       <el-table-column type="index" label="序号" align="center" width="65" />
 
-      <el-table-column label="肖像" align="center" width="100">
+      <el-table-column label="肖像" align="center" width="300">
         <template #default="scope">
           <image-preview :src="scope.row.avatar" :width="50" :height="50" class="table-avatar"/>
         </template>
       </el-table-column>
 
-      <el-table-column label="姓名" align="center" prop="name" width="110">
+      <el-table-column label="姓名" align="center" prop="name" width="300">
         <template #default="scope">
           <span class="item-name-bold">{{ scope.row.name }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="称号级别" align="center" prop="level" width="120">
+      <el-table-column label="称号级别" align="center" prop="level" width="300">
         <template #default="scope">
           <dict-tag :options="heritage_level" :value="scope.row.level" />
         </template>
       </el-table-column>
 
       <!-- 核心修复：显示分类名称 -->
-      <el-table-column label="所属非遗项目" align="center" prop="categoryId" min-width="180">
+      <el-table-column label="所属非遗项目" align="center" prop="categoryId" min-width="300">
         <template #default="scope">
           <el-tag size="small" effect="plain" class="industrial-tag">
             {{ categoryFormat(scope.row.categoryId) }}
@@ -87,19 +87,19 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="状态" align="center" prop="status" width="90">
+<!--      <el-table-column label="状态" align="center" prop="status" width="250">
         <template #default="scope">
           <dict-tag :options="sys_normal_disable" :value="scope.row.status" size="small" />
         </template>
-      </el-table-column>
+      </el-table-column>-->
 
-      <el-table-column label="创建日期" align="center" prop="createTime" width="120">
+      <el-table-column label="创建日期" align="center" prop="createTime" width="300">
         <template #default="scope">
           <span class="time-text">{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="center" width="140" fixed="right">
+      <el-table-column label="操作" align="center" width="200" fixed="right">
         <template #default="scope">
           <div class="op-group">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['heritage:inheritor:edit']">修改</el-button>
@@ -158,7 +158,7 @@
                     children: 'children',
                     emitPath: false
                   }"
-                    placeholder="选择具体技艺小类"
+                    placeholder="选择具体非遗小类"
                     filterable
                     style="width: 100%"
                 />
@@ -194,7 +194,7 @@
 
 <script setup name="Inheritor">
 import { listInheritor, getInheritor, delInheritor, addInheritor, updateInheritor } from "@/api/heritage/inheritor"
-import { listCategory } from "@/api/heritage/category";
+import { listCategory, treeselect } from "@/api/heritage/category";
 
 const { proxy } = getCurrentInstance()
 const { heritage_level, sys_normal_disable } = proxy.useDict('heritage_level', 'sys_normal_disable')
@@ -234,11 +234,15 @@ function getList() {
   })
 }
 
-/** 核心改进：加载分类树并保存一份扁平数据 */
+/** 获取分类数据：同时获取树形和扁平数据 */
 const getCategoryTree = async () => {
-  listCategory({ pageNum: 1, pageSize: 100 }).then(res => {
+  // 1. 获取扁平数据，用于表格 label 转换 (确保获取所有数据，防止分页导致显示ID)
+  listCategory({ pageNum: 1, pageSize: 200 }).then(res => {
     flatCategories.value = res.rows;
-    categoryOptions.value = proxy.handleTree(res.rows, "categoryId");
+  });
+  // 2. 获取树形数据，用于修改框的级联选择器（后端构建，无需前端 handleTree）
+  treeselect().then(res => {
+    categoryOptions.value = res.data;
   });
 };
 

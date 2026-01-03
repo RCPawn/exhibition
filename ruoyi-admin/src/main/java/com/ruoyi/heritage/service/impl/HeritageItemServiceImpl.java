@@ -25,49 +25,55 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
     @Autowired
     private HeritageUserActionMapper actionMapper;
 
-    // 在实现类中调用 mapper
+    /**
+     * 增加浏览量
+     */
     @Override
     public int addViewCount(Long itemId) {
-        return heritageItemMapper.incrementViewCount(itemId);
-    }
-
-    @Override
-    public int addLikeCount(Long itemId) {
-        return heritageItemMapper.incrementLikeCount(itemId);
-    }
-
-    @Override
-    public int addFavoriteCount(Long itemId) {
-        return heritageItemMapper.incrementFavoriteCount(itemId);
+        // type=1 (浏览), status=1 (增加)
+        return heritageItemMapper.updateItemCount(itemId, 1, 1);
     }
 
     /**
-     * 切换点赞/收藏状态 (核心业务逻辑)
+     * 增加点赞数 (简单增加，不走切换逻辑时使用)
      */
     @Override
-    @Transactional(rollbackFor = Exception.class) // 报错自动回滚，保证数据一致性
+    public int addLikeCount(Long itemId) {
+        // type=2 (点赞), status=1 (增加)
+        return heritageItemMapper.updateItemCount(itemId, 2, 1);
+    }
+
+    /**
+     * 增加收藏数 (简单增加，不走切换逻辑时使用)
+     */
+    @Override
+    public int addFavoriteCount(Long itemId) {
+        // type=3 (收藏), status=1 (增加)
+        return heritageItemMapper.updateItemCount(itemId, 3, 1);
+    }
+
+    /**
+     * 切换点赞/收藏状态 (长期方案核心逻辑)
+     */
+    @Override
+    @Transactional
     public int toggleAction(Long itemId, Integer type) {
-        // 1. 获取当前登录用户的ID (若依内置工具类)
         Long userId = SecurityUtils.getUserId();
 
-        // 2. 构造查询条件
         HeritageUserAction query = new HeritageUserAction();
         query.setUserId(userId);
         query.setItemId(itemId);
-        query.setActionType(type);
+        query.setActionType(type); // 前端传来的 type 必须是 2(点赞) 或 3(收藏)
 
-        // 3. 检查是否已经有点赞/收藏记录
         int count = actionMapper.selectCountByAction(query);
 
         if (count == 0) {
-            // 场景 A：用户还没点过 -> 增加记录，数量 +1
+            // 还没点过 -> 插入记录，数量 +1
             actionMapper.insertAction(query);
-            // 这里 status 传 1
             return heritageItemMapper.updateItemCount(itemId, type, 1);
         } else {
-            // 场景 B：用户已经点过了 -> 删除记录，数量 -1
+            // 已经点过 -> 删除记录，数量 -1
             actionMapper.deleteAction(query);
-            // 这里 status 传 0
             return heritageItemMapper.updateItemCount(itemId, type, 0);
         }
     }
@@ -152,11 +158,19 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
         return heritageItemMapper.deleteHeritageItemByItemId(itemId);
     }
 
+    /**
+     * 查询当前登录用户的收藏列表
+     */
     @Override
     public List<HeritageItem> selectUserCollectionList() {
         // 获取当前登录用户ID
         Long userId = SecurityUtils.getUserId();
         return heritageItemMapper.selectUserCollectionList(userId);
+    }
+
+    @Override
+    public List<HeritageItem> selectUserPublishList(HeritageItem heritageItem) {
+        return heritageItemMapper.selectMyHeritageItemList(heritageItem);
     }
 
     /**
@@ -198,6 +212,5 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
 
         return stats;
     }
-
 
 }

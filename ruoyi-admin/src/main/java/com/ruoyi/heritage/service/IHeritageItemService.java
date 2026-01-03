@@ -83,4 +83,6 @@ public interface IHeritageItemService {
      * @return 统计大屏VO对象
      */
     IndexStatsVo getDashboardData();
+
+    List<HeritageItem> selectUserPublishList(HeritageItem heritageItem);
 }

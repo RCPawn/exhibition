@@ -3,6 +3,7 @@ package com.ruoyi.heritage.controller;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
+import com.ruoyi.common.utils.SecurityUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,7 +58,7 @@ public class HeritageItemController extends BaseController {
     /**
      * 查询非遗展品列表
      */
-    @PreAuthorize("@ss.hasPermi('heritage:heritage_manage:list')")
+//    @PreAuthorize("@ss.hasPermi('heritage:heritage_manage:list')")
     @GetMapping("/list")
     public TableDataInfo list(HeritageItem heritageItem) {
         startPage();
@@ -80,7 +81,7 @@ public class HeritageItemController extends BaseController {
     /**
      * 获取非遗展品详细信息
      */
-    @PreAuthorize("@ss.hasPermi('heritage:heritage_manage:query')")
+//    @PreAuthorize("@ss.hasPermi('heritage:heritage_manage:query')")
     @GetMapping(value = "/{itemId}")
     public AjaxResult getInfo(@PathVariable("itemId") Long itemId) {
         return success(heritageItemService.selectHeritageItemByItemId(itemId));
@@ -114,6 +115,61 @@ public class HeritageItemController extends BaseController {
     @DeleteMapping("/{itemIds}")
     public AjaxResult remove(@PathVariable Long[] itemIds) {
         return toAjax(heritageItemService.deleteHeritageItemByItemIds(itemIds));
+    }
+
+    // 普通用户个人中心专用 api
+
+    // 1. 获取列表接口 (无需特定权限字符，登录即可)
+    @GetMapping("/myList")
+    public TableDataInfo myList(HeritageItem heritageItem) {
+        startPage();
+        // 强制锁定查询条件：只能查自己
+        heritageItem.setCreateBy(SecurityUtils.getUsername());
+        List<HeritageItem> list = heritageItemService.selectUserPublishList(heritageItem);
+        return getDataTable(list);
+    }
+
+    // 2. 获取详情接口 (无需特定权限字符)
+    @GetMapping("/myInfo/{itemId}")
+    public AjaxResult getMyInfo(@PathVariable("itemId") Long itemId) {
+        HeritageItem item = heritageItemService.selectHeritageItemByItemId(itemId);
+        // 安全校验：如果查出来的展品不是我的，禁止查看
+        if (!item.getCreateBy().equals(SecurityUtils.getUsername())) {
+            return error("您无权访问该资源");
+        }
+        return success(item);
+    }
+
+    // 3. 用户发布接口 (无需特定权限字符)
+    @PostMapping("/myAdd")
+    public AjaxResult myAdd(@RequestBody HeritageItem heritageItem) {
+        heritageItem.setCreateBy(SecurityUtils.getUsername()); // 强制归属
+        heritageItem.setStatus(1); // 强制设置为“审核中”
+        return toAjax(heritageItemService.insertHeritageItem(heritageItem));
+    }
+
+    // 4. 用户删除接口
+    @DeleteMapping("/myDel/{itemId}")
+    public AjaxResult myRemove(@PathVariable Long itemId) {
+        HeritageItem item = heritageItemService.selectHeritageItemByItemId(itemId);
+        // 安全检查：只有本人才能删除
+        if (!item.getCreateBy().equals(SecurityUtils.getUsername())) {
+            return error("您无权删除他人的作品");
+        }
+        return toAjax(heritageItemService.deleteHeritageItemByItemId(itemId));
+    }
+
+    // 4. 用户修改接口
+    @PutMapping("/myEdit")
+    public AjaxResult myEdit(@RequestBody HeritageItem heritageItem) {
+        HeritageItem original = heritageItemService.selectHeritageItemByItemId(heritageItem.getItemId());
+        // 核心：防止越权修改别人的数据
+        if (!original.getCreateBy().equals(SecurityUtils.getUsername())) {
+            return error("非本人发布，禁止修改");
+        }
+        // 修改后再次强制进入“审核中”状态
+        heritageItem.setStatus(1);
+        return toAjax(heritageItemService.updateHeritageItem(heritageItem));
     }
 
     /**

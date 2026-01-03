@@ -1,66 +1,91 @@
 <template>
-  <div class="login">
-    <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
-      <h3 class="title">{{ title }}</h3>
-      <el-form-item prop="username">
-        <el-input
-          v-model="loginForm.username"
-          type="text"
-          size="large"
-          auto-complete="off"
-          placeholder="账号"
-        >
-          <template #prefix><svg-icon icon-class="user" class="el-input__icon input-icon" /></template>
-        </el-input>
-      </el-form-item>
-      <el-form-item prop="password">
-        <el-input
-          v-model="loginForm.password"
-          type="password"
-          size="large"
-          auto-complete="off"
-          placeholder="密码"
-          @keyup.enter="handleLogin"
-        >
-          <template #prefix><svg-icon icon-class="password" class="el-input__icon input-icon" /></template>
-        </el-input>
-      </el-form-item>
-      <el-form-item prop="code" v-if="captchaEnabled">
-        <el-input
-          v-model="loginForm.code"
-          size="large"
-          auto-complete="off"
-          placeholder="验证码"
-          style="width: 63%"
-          @keyup.enter="handleLogin"
-        >
-          <template #prefix><svg-icon icon-class="validCode" class="el-input__icon input-icon" /></template>
-        </el-input>
-        <div class="login-code">
-          <img :src="codeUrl" @click="getCode" class="login-code-img"/>
+  <div class="login-page">
+    <div class="login-wrapper">
+      <!-- 左侧：视觉展示区 -->
+      <div class="brand-side">
+        <div class="brand-content">
+          <div class="badge">SYSTEM ACCESS</div>
+          <h1 class="brand-title">
+            BAI<br />HERITAGE
+          </h1>
+          <div class="brand-divider"></div>
+          <p class="brand-desc">
+            白族非遗智能展示与管理平台<br />
+          </p>
+          <!-- 装饰性元素：极简白族雷纹装饰 -->
+          <div class="pattern-decor"></div>
         </div>
-      </el-form-item>
-      <el-checkbox v-model="loginForm.rememberMe" style="margin:0px 0px 25px 0px;">记住密码</el-checkbox>
-      <el-form-item style="width:100%;">
-        <el-button
-          :loading="loading"
-          size="large"
-          type="primary"
-          style="width:100%;"
-          @click.prevent="handleLogin"
-        >
-          <span v-if="!loading">登 录</span>
-          <span v-else>登 录 中...</span>
-        </el-button>
-        <div style="float: right;" v-if="register">
-          <router-link class="link-type" :to="'/register'">立即注册</router-link>
-        </div>
-      </el-form-item>
-    </el-form>
-    <!--  底部  -->
-    <div class="el-login-footer">
-      <span>{{ footerContent }}</span>
+      </div>
+
+      <!-- 右侧：登录表单区 -->
+      <div class="form-side">
+        <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
+          <div class="form-header">
+            <h3 class="title">身份准入 / LOGIN</h3>
+            <p class="subtitle">请输入凭证以进入数字资源控制中心</p>
+          </div>
+
+          <el-form-item prop="username">
+            <el-input
+                v-model="loginForm.username"
+                type="text"
+                size="large"
+                placeholder="账号"
+            >
+              <template #prefix><el-icon><User /></el-icon></template>
+            </el-input>
+          </el-form-item>
+
+          <el-form-item prop="password">
+            <el-input
+                v-model="loginForm.password"
+                type="password"
+                size="large"
+                placeholder="密码"
+                @keyup.enter="handleLogin"
+            >
+              <template #prefix><el-icon><Lock /></el-icon></template>
+            </el-input>
+          </el-form-item>
+
+          <el-form-item prop="code" v-if="captchaEnabled">
+            <el-input
+                v-model="loginForm.code"
+                size="large"
+                placeholder="验证码"
+                style="width: 60%"
+                @keyup.enter="handleLogin"
+            >
+              <template #prefix><el-icon><CircleCheck /></el-icon></template>
+            </el-input>
+            <div class="login-code">
+              <img :src="codeUrl" @click="getCode" class="login-code-img"/>
+            </div>
+          </el-form-item>
+
+          <div class="form-options">
+            <el-checkbox v-model="loginForm.rememberMe">保持登录状态</el-checkbox>
+            <router-link v-if="register" class="reg-link" :to="'/register'">新用户注册</router-link>
+          </div>
+
+          <el-form-item style="width:100%; margin-top: 10px;">
+            <button
+                :disabled="loading"
+                class="poizon-btn"
+                @click.prevent="handleLogin"
+            >
+              <span v-if="!loading">授权进入</span>
+              <span v-else>正在同步数据...</span>
+            </button>
+          </el-form-item>
+        </el-form>
+      </div>
     </div>
+
+    <!--  底部  -->
+<!--    <div class="el-login-footer">
+      <span>{{ footerContent }}</span>
+    </div>-->
   </div>
 </template>
 
@@ -69,10 +94,11 @@ import { getCodeImg } from "@/api/login"
 import Cookies from "js-cookie"
 import { encrypt, decrypt } from "@/utils/jsencrypt"
 import useUserStore from '@/store/modules/user'
-import defaultSettings from '@/settings'
+// import defaultSettings from '@/settings'
+import { User, Lock, CircleCheck } from '@element-plus/icons-vue'
 
-const title = import.meta.env.VITE_APP_TITLE
-const footerContent = defaultSettings.footerContent
+// const title = import.meta.env.VITE_APP_TITLE
+// const footerContent = defaultSettings.footerContent
 const userStore = useUserStore()
 const route = useRoute()
 const router = useRouter()
@@ -94,44 +120,31 @@ const loginRules = {
 
 const codeUrl = ref("")
 const loading = ref(false)
-// 验证码开关
 const captchaEnabled = ref(true)
-// 注册开关
-const register = ref(false)
+const register = ref(true)
 const redirect = ref(undefined)
 
 watch(route, (newRoute) => {
-    redirect.value = newRoute.query && newRoute.query.redirect
+  redirect.value = newRoute.query && newRoute.query.redirect
 }, { immediate: true })
 
 function handleLogin() {
   proxy.$refs.loginRef.validate(valid => {
     if (valid) {
       loading.value = true
-      // 勾选了需要记住密码设置在 cookie 中设置记住用户名和密码
       if (loginForm.value.rememberMe) {
         Cookies.set("username", loginForm.value.username, { expires: 30 })
         Cookies.set("password", encrypt(loginForm.value.password), { expires: 30 })
         Cookies.set("rememberMe", loginForm.value.rememberMe, { expires: 30 })
       } else {
-        // 否则移除
         Cookies.remove("username")
         Cookies.remove("password")
         Cookies.remove("rememberMe")
       }
-      // 调用action的登录方法
       userStore.login(loginForm.value).then(() => {
-        const query = route.query
-        const otherQueryParams = Object.keys(query).reduce((acc, cur) => {
-          if (cur !== "redirect") {
-            acc[cur] = query[cur]
-          }
-          return acc
-        }, {})
-        router.push({ path: redirect.value || "/", query: otherQueryParams })
+        router.push({ path: redirect.value || "/" })
       }).catch(() => {
         loading.value = false
-        // 重新获取验证码
         if (captchaEnabled.value) {
           getCode()
         }
@@ -166,66 +179,210 @@ getCookie()
 </script>
 
 <style lang='scss' scoped>
-.login {
+.login-page {
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
-  background-image: url("../assets/images/login-background.jpg");
-  background-size: cover;
+  background-color: #f0f0f0;
+  // 数字化网格背景
+  background-image: linear-gradient(#e0e0e0 1px, transparent 1px),
+  linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
+  background-size: 40px 40px;
+  overflow: hidden;
+  position: relative;
 }
-.title {
-  margin: 0px auto 30px auto;
-  text-align: center;
-  color: #707070;
+
+.login-wrapper {
+  display: flex;
+  width: 950px;
+  height: 550px;
+  background: #fff;
+  border: 3px solid #000;
+  box-shadow: 20px 20px 0px #000; // 核心：硬核块状投影
+  z-index: 2;
+}
+
+/* 左侧：视觉宣传 */
+.brand-side {
+  flex: 1.2;
+  background: #000;
+  color: #fff;
+  padding: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+
+  .badge {
+    display: inline-block;
+    border: 1px solid #fff;
+    padding: 2px 10px;
+    font-size: 10px;
+    font-weight: 900;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+  }
+
+  .brand-title {
+    font-size: 80px;
+    line-height: 0.9;
+    font-weight: 900;
+    letter-spacing: -4px;
+    margin-bottom: 30px;
+    font-family: "Impact", sans-serif;
+  }
+
+  .brand-divider {
+    width: 60px;
+    height: 8px;
+    background: #ffd700; // 经典的白族金装饰色
+    margin-bottom: 30px;
+  }
+
+  .brand-desc {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+
+  // 背景装饰性文字
+  &::after {
+    content: "ARCHIVE";
+    position: absolute;
+    font-size: 150px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.03);
+    bottom: -30px;
+    right: -20px;
+    transform: rotate(-10deg);
+  }
+}
+
+/* 右侧：表单逻辑 */
+.form-side {
+  flex: 1;
+  padding: 50px 45px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #fff;
+
+  .form-header {
+    margin-bottom: 40px;
+    .title {
+      font-size: 24px;
+      font-weight: 900;
+      color: #000;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      font-size: 12px;
+      color: #999;
+    }
+  }
 }
 
 .login-form {
-  border-radius: 6px;
-  background: #ffffff;
-  width: 400px;
-  padding: 25px 25px 5px 25px;
-  z-index: 1;
-  .el-input {
-    height: 40px;
-    input {
-      height: 40px;
+  :deep(.el-input) {
+    .el-input__wrapper {
+      border-radius: 0 !important;
+      border: 1.5px solid #eee;
+      box-shadow: none !important;
+      padding: 5px 15px;
+      transition: all 0.2s;
+      &.is-focus {
+        border-color: #000;
+        background-color: #f9f9f9;
+      }
+    }
+    .el-input__icon {
+      color: #000;
+      font-size: 18px;
     }
   }
-  .input-icon {
-    height: 39px;
-    width: 14px;
-    margin-left: 0px;
+}
+
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+
+  :deep(.el-checkbox__label) {
+    font-size: 13px;
+    color: #666;
+  }
+  :deep(.el-checkbox__input.is-checked .el-checkbox__inner) {
+    background-color: #000;
+    border-color: #000;
+  }
+
+  .reg-link {
+    font-size: 13px;
+    color: #000;
+    font-weight: 700;
+    text-decoration: underline;
   }
 }
-.login-tip {
-  font-size: 13px;
-  text-align: center;
-  color: #bfbfbf;
-}
+
+/* 验证码 */
 .login-code {
-  width: 33%;
-  height: 40px;
+  width: 35%;
+  height: 44px;
   float: right;
+  border: 1.5px solid #000;
   img {
+    width: 100%;
+    height: 100%;
     cursor: pointer;
-    vertical-align: middle;
   }
 }
-.el-login-footer {
-  height: 40px;
-  line-height: 40px;
-  position: fixed;
-  bottom: 0;
+
+/* 按钮优化：得物黑金风格 */
+.poizon-btn {
   width: 100%;
-  text-align: center;
+  height: 50px;
+  background: #000;
   color: #fff;
-  font-family: Arial;
-  font-size: 12px;
-  letter-spacing: 1px;
+  border: none;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+
+  &:hover {
+    background: #333;
+    transform: translate(-3px, -3px);
+    box-shadow: 6px 6px 0px #ffd700; // 悬浮时露出金色光泽
+  }
+
+  &:active {
+    transform: translate(0, 0);
+    box-shadow: none;
+  }
+
+  &:disabled {
+    background: #999;
+    cursor: not-allowed;
+  }
 }
-.login-code-img {
-  height: 40px;
-  padding-left: 12px;
+
+.el-login-footer {
+  position: fixed;
+  bottom: 20px;
+  font-size: 11px;
+  color: #888;
+  letter-spacing: 1px;
+  z-index: 10;
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 900px) {
+  .brand-side { display: none; }
+  .login-wrapper { width: 400px; }
 }
 </style>

@@ -12,17 +12,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-public class HeritageCommentServiceImpl implements IHeritageCommentService
-{
+public class HeritageCommentServiceImpl implements IHeritageCommentService {
     @Autowired
     private HeritageCommentMapper heritageCommentMapper;
-    
+
     @Autowired
     private HeritageItemMapper heritageItemMapper; // 注入主表 Mapper
 
     @Override
-    public List<HeritageComment> selectHeritageCommentList(HeritageComment heritageComment)
-    {
+    public List<HeritageComment> selectHeritageCommentList(HeritageComment heritageComment) {
         return heritageCommentMapper.selectHeritageCommentList(heritageComment);
     }
 
@@ -31,14 +29,13 @@ public class HeritageCommentServiceImpl implements IHeritageCommentService
      */
     @Override
     @Transactional // 开启事务
-    public int insertHeritageComment(HeritageComment heritageComment)
-    {
+    public int insertHeritageComment(HeritageComment heritageComment) {
         // 1. 获取当前登录用户ID (若依封装工具类)
         heritageComment.setUserId(SecurityUtils.getUserId());
-        
+
         // 2. 插入评论
         int rows = heritageCommentMapper.insertHeritageComment(heritageComment);
-        
+
         // 3. 只有插入成功，才去增加主表的统计数据
         if (rows > 0) {
             // 这里假设你在 HeritageItemMapper 增加了一个 incrementCommentCount 方法
