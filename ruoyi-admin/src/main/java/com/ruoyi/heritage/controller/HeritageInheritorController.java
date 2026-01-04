@@ -116,46 +116,4 @@ public class HeritageInheritorController extends BaseController {
         return getDataTable(list);
     }
 
-
-    /**
-     * 获取非遗知识图谱数据
-     */
-    @GetMapping("/getKnowledgeGraph")
-    public AjaxResult getKnowledgeGraph() {
-        List<Map<String, Object>> nodes = new ArrayList<>();
-        List<Map<String, Object>> links = new ArrayList<>();
-
-        // 1. 获取所有分类
-        List<HeritageCategory> categories = heritageCategoryService.selectHeritageCategoryList(new HeritageCategory());
-        for (HeritageCategory cat : categories) {
-            Map<String, Object> node = new HashMap<>();
-            node.put("id", "cat_" + cat.getCategoryId());
-            node.put("name", cat.getCategoryName());
-            node.put("category", 0); // 对应 ECharts categories 的索引 0
-            node.put("symbolSize", 60); // 中心节点大一些
-            nodes.add(node);
-        }
-
-        // 2. 获取所有传承人
-        List<HeritageInheritor> inheritors = heritageInheritorService.selectHeritageInheritorList(new HeritageInheritor());
-        for (HeritageInheritor master : inheritors) {
-            Map<String, Object> node = new HashMap<>();
-            node.put("id", "master_" + master.getInheritorId());
-            node.put("name", master.getName());
-            node.put("category", 1); // 对应 ECharts categories 的索引 1
-            node.put("symbolSize", 40);
-            nodes.add(node);
-
-            // 3. 建立连线：人 -> 分类
-            Map<String, Object> link = new HashMap<>();
-            link.put("source", "cat_" + master.getCategoryId());
-            link.put("target", "master_" + master.getInheritorId());
-            links.add(link);
-        }
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("nodes", nodes);
-        result.put("links", links);
-        return AjaxResult.success(result);
-    }
 }

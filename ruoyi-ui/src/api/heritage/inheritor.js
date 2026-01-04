@@ -1,14 +1,5 @@
 import request from '@/utils/request'
 
-// 获取知识图谱数据
-export function getKnowledgeGraph() {
-    return request({
-        url: '/heritage/inheritor/getKnowledgeGraph',
-        method: 'get'
-    })
-}
-
-
 // 查询非遗传承人列表
 export function listInheritor(query) {
   return request({
