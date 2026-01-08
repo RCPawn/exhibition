@@ -1,13 +1,14 @@
+<!--
 <template>
   <div class="data-screen-container" v-loading="loading" element-loading-background="rgba(24, 38, 64, 0.9)">
 
-    <!-- 背景层 -->
+    &lt;!&ndash; 背景层 &ndash;&gt;
     <div class="screen-bg">
       <div class="indigo-glow"></div>
       <div class="grid-texture"></div>
     </div>
 
-    <!-- 顶部 -->
+    &lt;!&ndash; 顶部 &ndash;&gt;
     <header class="screen-header">
       <div class="header-line left"></div>
       <div class="header-title">
@@ -19,10 +20,10 @@
 
     <main class="screen-body">
 
-      <!-- === 左侧面板 === -->
+      &lt;!&ndash; === 左侧面板 === &ndash;&gt;
       <div class="side-column">
 
-        <!-- 1. 数字化资源构成 (真实数据) -->
+        &lt;!&ndash; 1. 数字化资源构成 (真实数据) &ndash;&gt;
         <div class="data-panel">
           <div class="panel-title">数字化资源构成</div>
           <div class="panel-body">
@@ -31,7 +32,7 @@
           <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
         </div>
 
-        <!-- 2. 非遗类目分布 (保留) -->
+        &lt;!&ndash; 2. 非遗类目分布 (保留) &ndash;&gt;
         <div class="data-panel">
           <div class="panel-title">非遗类目分布</div>
           <div class="panel-body">
@@ -40,12 +41,12 @@
           <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
         </div>
 
-        <!-- 3. 最新收录 (改为列表展示) -->
+        &lt;!&ndash; 3. 最新收录 (改为列表展示) &ndash;&gt;
         <div class="data-panel">
           <div class="panel-title">最新收录展品</div>
           <div class="panel-body latest-list">
             <div class="latest-item" v-for="(item, index) in stats.latestItems" :key="item.itemId || index">
-              <!-- 封面图 -->
+              &lt;!&ndash; 封面图 &ndash;&gt;
               <div class="item-img">
                 <img :src="getAssetUrl(item.coverImage)" alt="cover" />
               </div>
@@ -60,7 +61,7 @@
         </div>
       </div>
 
-      <!-- === 中间舞台 === -->
+      &lt;!&ndash; === 中间舞台 === &ndash;&gt;
       <div class="center-column">
         <div class="hud-stats">
           <div class="stat-box">
@@ -94,10 +95,10 @@
         </div>
       </div>
 
-      <!-- === 右侧面板 === -->
+      &lt;!&ndash; === 右侧面板 === &ndash;&gt;
       <div class="side-column">
 
-        <!-- 4. 用户交互分析 (改为横向柱图) -->
+        &lt;!&ndash; 4. 用户交互分析 (改为横向柱图) &ndash;&gt;
         <div class="data-panel">
           <div class="panel-title">全站交互行为</div>
           <div class="panel-body">
@@ -106,31 +107,31 @@
           <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
         </div>
 
-        <!-- 5. 热门藏品 Top 5 (真实数据版) -->
+        &lt;!&ndash; 5. 热门藏品 Top 5 (真实数据版) &ndash;&gt;
         <div class="data-panel">
           <div class="panel-title">热门展品 Top 5</div>
           <div class="panel-body ranking-list">
-            <!-- 遍历 stats.top5Items -->
+            &lt;!&ndash; 遍历 stats.top5Items &ndash;&gt;
             <div class="rank-item" v-for="(item, index) in stats.top5Items" :key="index">
-              <!-- 序号颜色逻辑 -->
+              &lt;!&ndash; 序号颜色逻辑 &ndash;&gt;
               <div class="rank-idx" :class="'top-'+(index+1)">{{ index + 1 }}</div>
 
               <div class="rank-info">
                 <span class="r-name">{{ item.name }}</span>
-                <!-- 进度条逻辑：当前值 / 第一名的值 * 100 -->
+                &lt;!&ndash; 进度条逻辑：当前值 / 第一名的值 * 100 &ndash;&gt;
                 <div class="r-bar-bg">
                   <div class="r-bar" :style="{ width: getPercent(item.value) + '%' }"></div>
                 </div>
               </div>
 
-              <!-- 数值：显示真实浏览量 -->
+              &lt;!&ndash; 数值：显示真实浏览量 &ndash;&gt;
               <div class="rank-val">{{ item.value }}</div>
             </div>
           </div>
           <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
         </div>
 
-        <!-- 6. 词云 (改为气泡图展示) -->
+        &lt;!&ndash; 6. 词云 (改为气泡图展示) &ndash;&gt;
         <div class="data-panel">
           <div class="panel-title">非遗热词云</div>
           <div class="panel-body">
@@ -197,7 +198,7 @@ const initCharts = () => {
   resourceChart.setOption({
     ...commonOption,
     color: ['#00d2ff', '#36f', '#8fa0c0'],
-    // --- 修改点 1：图例优化 ---
+    // -&#45;&#45; 修改点 1：图例优化 -&#45;&#45;
     legend: {
       show: true,
       top: '5%',       // 距离顶部 5%，留出一点呼吸感
@@ -210,7 +211,7 @@ const initCharts = () => {
     series: [{
       type: 'pie',
       radius: ['50%', '70%'],
-      // --- 修改点 2：圆心上移 ---
+      // -&#45;&#45; 修改点 2：圆心上移 -&#45;&#45;
       // X轴 50% (保持左右居中)，Y轴 55% (视觉重心最佳位置)
       center: ['50%', '55%'],
       data: stats.value.resourceComposition || [],
@@ -220,7 +221,7 @@ const initCharts = () => {
       // 中间仪表盘文字同步上移
       type: 'gauge',
       radius: '60%',
-      // --- 修改点 3：保持一致 ---
+      // -&#45;&#45; 修改点 3：保持一致 -&#45;&#45;
       center: ['50%', '55%'],
       startAngle: 0, endAngle: 0,
       pointer: { show: false }, axisLine: { show: false }, axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false },
@@ -510,5 +511,533 @@ $primary: #409eff;
 @media (max-width: 1200px) {
   .screen-body { grid-template-columns: 1fr 1fr; overflow-y: auto; }
   .center-column { grid-column: 1 / -1; height: 450px; order: -1; }
+}
+</style>
+-->
+<template>
+  <div class="data-screen-container">
+
+    <!-- 背景层 -->
+    <div class="screen-bg">
+      <div class="indigo-glow"></div>
+      <div class="grid-texture"></div>
+    </div>
+
+    <!-- 顶部 -->
+    <header class="screen-header">
+      <div class="header-line left"></div>
+      <div class="header-title">
+        <span class="cn">白族非遗 · 数字孪生仪表盘</span>
+      </div>
+      <div class="header-line right"></div>
+      <div class="header-time">{{ currentTime }}</div>
+    </header>
+
+    <!-- 主体内容 -->
+    <main class="screen-body" v-loading="loading" element-loading-background="rgba(24, 38, 64, 0.8)">
+
+      <!-- === 左侧面板 (3等分) === -->
+      <div class="side-column">
+        <!-- 面板1 -->
+        <div class="data-panel">
+          <div class="panel-title">数字化资源构成</div>
+          <div class="panel-body">
+            <!-- chart-wrapper 用于限制 ECharts 高度，防止撑开父级 -->
+            <div class="chart-wrapper">
+              <div ref="resourceChartRef" class="chart-instance"></div>
+            </div>
+          </div>
+          <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+        </div>
+
+        <!-- 面板2 -->
+        <div class="data-panel">
+          <div class="panel-title">非遗类目分布</div>
+          <div class="panel-body">
+            <div class="chart-wrapper">
+              <div ref="pieChartRef" class="chart-instance"></div>
+            </div>
+          </div>
+          <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+        </div>
+
+        <!-- 面板3 -->
+        <div class="data-panel">
+          <div class="panel-title">最新收录展品</div>
+          <div class="panel-body latest-list">
+            <div class="latest-item" v-for="(item, index) in stats.latestItems" :key="item.itemId || index">
+              <div class="item-img">
+                <img :src="getAssetUrl(item.coverImage)" alt="cover" />
+              </div>
+              <div class="item-info">
+                <div class="i-name">{{ item.itemName }}</div>
+                <div class="i-date">{{ parseTime(item.createTime, '{y}-{m}-{d}') }}</div>
+              </div>
+              <div class="i-status">NEW</div>
+            </div>
+          </div>
+          <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+        </div>
+      </div>
+
+      <!-- === 中间舞台 === -->
+      <div class="center-column">
+        <!-- 统计数字 -->
+        <div class="hud-stats">
+          <div class="stat-box">
+            <div class="label">非遗展品总数</div>
+            <div class="value">{{ stats.totalItems || 0 }}</div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-box">
+            <div class="label">累计浏览热度</div>
+            <div class="value">{{ stats.totalViews || 0 }}</div>
+          </div>
+        </div>
+
+        <!-- 3D模型 -->
+        <div class="center-stage">
+          <model-viewer
+              v-if="stats.centerModelUrl"
+              :src="getAssetUrl(stats.centerModelUrl)"
+              auto-rotate
+              camera-controls
+              rotation-per-second="20deg"
+              shadow-intensity="1.5"
+              environment-image="neutral"
+              class="dashboard-viewer"
+          >
+          </model-viewer>
+          <div class="stage-ring"></div>
+          <div class="model-name-card">
+            <h3>{{ stats.centerModelName || '数据加载中...' }}</h3>
+            <p>🔥全站热度最高🔥</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- === 右侧面板 (3等分) === -->
+      <div class="side-column">
+        <!-- 面板4 -->
+        <div class="data-panel">
+          <div class="panel-title">全站交互行为</div>
+          <div class="panel-body">
+            <div class="chart-wrapper">
+              <div ref="interactionChartRef" class="chart-instance"></div>
+            </div>
+          </div>
+          <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+        </div>
+
+        <!-- 面板5 -->
+        <div class="data-panel">
+          <div class="panel-title">热门展品 Top 5</div>
+          <div class="panel-body ranking-list">
+            <div class="rank-item" v-for="(item, index) in stats.top5Items" :key="index">
+              <div class="rank-idx" :class="'top-'+(index+1)">{{ index + 1 }}</div>
+              <div class="rank-info">
+                <span class="r-name">{{ item.name }}</span>
+                <div class="r-bar-bg">
+                  <div class="r-bar" :style="{ width: getPercent(item.value) + '%' }"></div>
+                </div>
+              </div>
+              <div class="rank-val">{{ item.value }}</div>
+            </div>
+          </div>
+          <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+        </div>
+
+        <!-- 面板6 -->
+        <div class="data-panel">
+          <div class="panel-title">非遗热词云</div>
+          <div class="panel-body">
+            <div class="chart-wrapper">
+              <div ref="wordCloudRef" class="chart-instance"></div>
+            </div>
+          </div>
+          <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, onUnmounted, nextTick, onActivated } from 'vue';
+import * as echarts from 'echarts';
+import request from '@/utils/request';
+import { parseTime } from "@/utils/ruoyi";
+
+// === 状态 ===
+const loading = ref(true);
+const stats = ref({});
+const currentTime = ref('');
+let timer = null;
+
+// === Dom Refs ===
+const resourceChartRef = ref(null);
+const pieChartRef = ref(null);
+const interactionChartRef = ref(null);
+const wordCloudRef = ref(null);
+
+let charts = [];
+
+// === 辅助函数 ===
+const getPercent = (val) => {
+  if (!stats.value.top5Items || stats.value.top5Items.length === 0) return 0;
+  const maxVal = stats.value.top5Items[0].value;
+  return maxVal === 0 ? 0 : (val / maxVal) * 100;
+};
+const getAssetUrl = (url) => import.meta.env.VITE_APP_BASE_API + url;
+
+const updateTime = () => {
+  const now = new Date();
+  currentTime.value = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+};
+
+const handleResize = () => {
+  charts.forEach(c => c && c.resize());
+};
+
+// === ECharts 初始化 ===
+const commonOption = {
+  backgroundColor: 'transparent',
+  textStyle: { fontFamily: 'Microsoft YaHei, sans-serif' },
+  tooltip: { trigger: 'item', backgroundColor: 'rgba(20, 30, 50, 0.9)', borderColor: '#409eff', textStyle: { color: '#fff' } }
+};
+
+const initCharts = () => {
+  charts.forEach(c => c.dispose());
+  charts = [];
+
+  if (!resourceChartRef.value) return;
+
+  // 1. 资源构成
+  const resourceChart = echarts.init(resourceChartRef.value);
+  resourceChart.setOption({
+    ...commonOption,
+    color: ['#00d2ff', '#36f', '#8fa0c0'],
+    legend: { show: true, top: '0%', left: 'center', icon: 'rect', itemWidth: 10, itemHeight: 8, textStyle: { color: '#a0cfff', fontSize: 10 } },
+    series: [{
+      type: 'pie', radius: ['45%', '65%'], center: ['50%', '60%'], // 缩小半径适配小屏
+      data: stats.value.resourceComposition || [],
+      itemStyle: { borderRadius: 2, borderColor: '#182640', borderWidth: 2 }, label: { show: false },
+    }, {
+      type: 'gauge', radius: '55%', center: ['50%', '60%'], startAngle: 0, endAngle: 0,
+      pointer: { show: false }, axisLine: { show: false }, axisTick: { show: false }, splitLine: { show: false }, axisLabel: { show: false },
+      detail: { show: true, formatter: '资源', fontSize: 12, color: '#fff', offsetCenter: [0, 0] }, data: [{ value: 0 }]
+    }]
+  });
+  charts.push(resourceChart);
+
+  // 2. 类目分布
+  const pieChart = echarts.init(pieChartRef.value);
+  pieChart.setOption({
+    ...commonOption,
+    color: ['#36f', '#00d2ff', '#7bffb6', '#faad14', '#f5222d'],
+    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+    series: [{
+      name: '类目分布', type: 'pie', radius: ['35%', '65%'], center: ['50%', '50%'],
+      data: stats.value.categoryPie || [],
+      itemStyle: { borderRadius: 4, borderColor: '#182640', borderWidth: 2 },
+      label: { show: true, color: '#fff', fontSize: 10, formatter: '{b}\n{d}%' }, // 字体变小
+      labelLine: { length: 5, length2: 5, lineStyle: { color: '#409eff' } }
+    }]
+  });
+  charts.push(pieChart);
+
+  // 3. 交互行为
+  const interactionChart = echarts.init(interactionChartRef.value);
+  const interactData = stats.value.interactionStats || [];
+  interactionChart.setOption({
+    ...commonOption,
+    grid: { top: 10, right: 20, bottom: 20, left: 50 }, // 边距缩小
+    xAxis: { show: false },
+    yAxis: { type: 'category', data: interactData.map(i => i.name), axisLabel: { color: '#fff', fontSize: 10 }, axisLine: { show: false }, axisTick: { show: false } },
+    series: [{
+      type: 'bar', data: interactData.map(i => i.value), barWidth: 8,
+      itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{offset: 0, color: '#36f'}, {offset: 1, color: '#00d2ff'}]), borderRadius: 10 },
+      label: { show: true, position: 'right', color: '#fff', fontSize: 10 }, showBackground: true, backgroundStyle: { color: 'rgba(255,255,255,0.05)', borderRadius: 10 }
+    }]
+  });
+  charts.push(interactionChart);
+
+  // 4. 词云
+  const wordCloud = echarts.init(wordCloudRef.value);
+  wordCloud.setOption({
+    ...commonOption,
+    grid: { top: 5, right: 5, bottom: 5, left: 5 },
+    xAxis: { show: false, min: 0, max: 100 },
+    yAxis: { show: false, min: 0, max: 100 },
+    series: [{
+      type: 'scatter', symbolSize: function (data) { return Math.sqrt(data[2]) * 6; }, // 气泡变小
+      data: (stats.value.wordCloud || []).map((item, idx) => ({
+        name: item.name, value: [Math.random() * 100, Math.random() * 100, item.value || (Math.random() * 50 + 10)],
+        itemStyle: { color: ['#409eff', '#e6a23c', '#67c23a', '#f56c6c', '#00d2ff'][idx % 5] }
+      })),
+      label: { show: true, formatter: p => p.name, color: '#fff', fontSize: 10, textShadowBlur: 2, textShadowColor: '#000' },
+      itemStyle: { opacity: 0.8 }
+    }]
+  });
+  charts.push(wordCloud);
+};
+
+const getData = () => {
+  request({ url: '/heritage/stats/dashboard', method: 'get' }).then(res => {
+    stats.value = res.data;
+    loading.value = false;
+    nextTick(() => initCharts());
+  });
+};
+
+onMounted(() => {
+  getData();
+  timer = setInterval(updateTime, 1000);
+  updateTime();
+  window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+  clearInterval(timer);
+  window.removeEventListener('resize', handleResize);
+  charts.forEach(c => c.dispose());
+});
+
+onActivated(() => {
+  if (charts.length > 0) handleResize();
+  else if (!loading.value) initCharts();
+});
+</script>
+
+<style lang="scss" scoped>
+$bg-color: #182640;
+$border-color: rgba(255, 255, 255, 0.15);
+$primary: #409eff;
+
+/* --- 1. 容器：铺满剩余空间，严禁滚动 --- */
+.data-screen-container {
+  width: 100%;
+  /*
+     核心：若依框架通常有 header(50px) + tags(34px) = 84px。
+     设置 calc(100vh - 84px) 保证刚好占满可视区域
+  */
+  height: calc(100vh - 84px);
+  background-color: $bg-color;
+  position: relative;
+  overflow: hidden; /* 强制不显示滚动条 */
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 背景 */
+.screen-bg {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  .indigo-glow {
+    width: 100%; height: 100%;
+    background: radial-gradient(circle at 50% 50%, #243452 0%, #0f1521 100%);
+  }
+  .grid-texture {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+  }
+}
+
+/* 顶部：使用 vh 相对高度或较小的固定高度 */
+.screen-header {
+  height: 6vh; /* 响应式高度 */
+  min-height: 40px;
+  max-height: 60px;
+  display: flex; justify-content: center; align-items: center;
+  position: relative; z-index: 10; gap: 20px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.3), transparent);
+
+  .header-line { width: 8vw; height: 2px; background: linear-gradient(90deg, transparent, $primary, transparent); }
+  .header-title {
+    text-align: center;
+    .cn { font-size: 24px; font-weight: 700; letter-spacing: 4px; text-shadow: 0 0 10px rgba(64,158,255,0.6); }
+  }
+  .header-time { position: absolute; right: 20px; color: #a0cfff; font-family: monospace; font-size: 14px; }
+}
+
+/* --- 2. 主体：Grid布局实现自适应 --- */
+.screen-body {
+  flex: 1; /* 占满剩余高度 */
+  display: grid;
+  /* 左右 27%，中间剩余 */
+  grid-template-columns: 27% 1fr 27%;
+  gap: 15px;
+  /* 内边距也用相对单位 */
+  padding: 10px 20px 20px;
+  z-index: 2;
+  overflow: hidden; /* 内部也不许滚动 */
+
+  .side-column {
+    display: grid;
+    /* 核心：三行等分 (1fr 1fr 1fr)。无论屏幕多矮，它都会自动压扁，不会溢出 */
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 15px;
+    height: 100%; /* 占满父级高度 */
+    min-height: 0; /* 防止 grid item 内容撑开高度 */
+  }
+
+  /* 面板通用样式 */
+  .data-panel {
+    position: relative;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid $border-color;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+    width: 100%;
+    height: 100%; /* 占满 Grid 单元格 */
+    min-height: 0; /* 允许 Flex 子元素收缩 */
+
+    .panel-title {
+      flex: 0 0 auto; /* 标题高度固定 */
+      font-size: 14px; color: #fff; font-weight: bold; border-left: 3px solid $primary;
+      padding-left: 10px; margin-bottom: 8px; display: flex; align-items: center;
+    }
+
+    .panel-body {
+      flex: 1; /* 内容占满剩余空间 */
+      min-height: 0; /* 关键：允许内部元素比内容更小，触发滚动或缩放 */
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 限制图表容器，配合 flex:1 实现自动缩放 */
+    .chart-wrapper {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* 四角装饰 */
+    .corner {
+      position: absolute; width: 6px; height: 6px; border-color: #a0cfff; border-style: solid;
+      &.tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+      &.tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+      &.bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+      &.br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+    }
+  }
+
+  /* 强行让 chart 占满 wrapper */
+  .chart-instance { width: 100%; height: 100%; }
+}
+
+/* 列表样式：自适应高度，溢出滚动 */
+.latest-list {
+  overflow-y: auto; /* 只有这里允许内部滚动 */
+  /* 自定义滚动条 */
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+
+  .latest-item {
+    display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    .item-img {
+      width: 36px; height: 36px; border-radius: 4px; overflow: hidden; margin-right: 8px; border: 1px solid rgba(255,255,255,0.1);
+      img { width: 100%; height: 100%; object-fit: cover; }
+    }
+    .item-info { flex: 1;
+      .i-name { font-size: 12px; color: #fff; margin-bottom: 2px; }
+      .i-date { font-size: 10px; color: #8fa0c0; }
+    }
+    .i-status { font-size: 10px; background: rgba(0, 210, 255, 0.2); color: #00d2ff; padding: 1px 4px; border-radius: 2px; }
+  }
+}
+
+/* 中间列 */
+.center-column {
+  display: flex; flex-direction: column;
+  height: 100%; min-height: 0;
+
+  .hud-stats {
+    flex: 0 0 auto; /* 固定高度 */
+    display: flex; justify-content: center; gap: 30px; margin-bottom: 10px;
+    .stat-box {
+      text-align: center;
+      .value { font-size: 32px; font-weight: 700; color: #fff; text-shadow: 0 0 10px rgba(0,0,0,0.5); font-family: 'Impact', sans-serif; }
+      .label { font-size: 12px; color: #a0cfff; letter-spacing: 1px; margin-bottom: 2px; }
+    }
+    .stat-divider { width: 1px; height: 30px; background: rgba(255,255,255,0.2); margin-top: 10px; }
+  }
+
+  .center-stage {
+    flex: 1; width: 100%; position: relative; min-height: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+
+    .dashboard-viewer { width: 100%; height: 100%; z-index: 5; outline: none; }
+
+    .stage-ring {
+      position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%) rotateX(70deg);
+      width: 40vh; height: 40vh; /* 使用 vh 保持比例 */
+      max-width: 300px; max-height: 300px;
+      border: 2px solid rgba(64,158,255,0.3); border-radius: 50%;
+      box-shadow: 0 0 40px rgba(64,158,255,0.2); animation: pulse 4s infinite;
+    }
+    .model-name-card {
+      position: absolute; bottom: 20px; text-align: center; pointer-events: none;
+      h3 { font-size: 22px; color: #fff; margin: 0; letter-spacing: 2px; }
+      p { font-size: 12px; color: #a0cfff; margin: 4px 0 0; }
+    }
+  }
+}
+
+/* 排行榜 */
+.ranking-list {
+  overflow-y: auto;
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+
+  .rank-item {
+    display: flex; align-items: center; margin-bottom: 8px;
+    .rank-idx {
+      width: 18px; height: 18px; line-height: 18px; text-align: center; font-size: 10px;
+      background: rgba(255,255,255,0.1); margin-right: 8px; border-radius: 2px;
+      &.top-1 { background: #f56c6c; color: #fff; }
+      &.top-2 { background: #e6a23c; color: #fff; }
+      &.top-3 { background: #409eff; color: #fff; }
+    }
+    .rank-info { flex: 1; margin-right: 10px;
+      .r-name { font-size: 11px; display: block; margin-bottom: 2px; color: #ddd; }
+      .r-bar-bg { height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px;
+        .r-bar { height: 100%; background: linear-gradient(90deg, #409eff, #36cfc9); border-radius: 2px; }
+      }
+    }
+    .rank-val { font-size: 11px; color: #fff; font-weight: bold; }
+  }
+}
+
+@keyframes pulse { 0% { box-shadow: 0 0 20px rgba(64,158,255,0.1); opacity: 0.5; } 50% { box-shadow: 0 0 50px rgba(64,158,255,0.4); opacity: 1; } 100% { box-shadow: 0 0 20px rgba(64,158,255,0.1); opacity: 0.5; } }
+
+/* --- 3. 笔记本屏幕（小屏）特别优化 --- */
+@media (max-width: 1400px), (max-height: 800px) {
+  .screen-header {
+    height: 40px; /* 压缩顶部 */
+    .header-title .cn { font-size: 18px; }
+    .header-time { font-size: 12px; }
+  }
+
+  .screen-body {
+    padding: 5px 15px 15px; /* 减少边距 */
+    gap: 10px;
+    .side-column { gap: 10px; }
+  }
+
+  .data-panel {
+    padding: 8px; /* 减少内边距 */
+    .panel-title { font-size: 12px; margin-bottom: 5px; }
+  }
+
+  .hud-stats .stat-box .value { font-size: 24px; }
+  .center-stage .model-name-card h3 { font-size: 18px; }
 }
 </style>

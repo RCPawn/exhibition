@@ -24,12 +24,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectHeritageInheritorList" parameterType="HeritageInheritor" resultMap="HeritageInheritorResult">
         <include refid="selectHeritageInheritorVo"/>
-        <where>  
+        <where>
             <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
             <if test="level != null  and level != ''"> and level = #{level}</if>
-            <if test="categoryId != null "> and category_id = #{categoryId}</if>
             <if test="status != null  and status != ''"> and status = #{status}</if>
+
+            <!-- 核心修复点：将等值匹配改为“层级包含匹配” -->
+            <if test="categoryId != null ">
+                AND (
+                category_id = #{categoryId}
+                OR category_id IN (SELECT category_id FROM heritage_category WHERE parent_id = #{categoryId})
+                )
+            </if>
         </where>
+        order by create_time desc
     </select>
     
     <select id="selectHeritageInheritorByInheritorId" parameterType="Long" resultMap="HeritageInheritorResult">

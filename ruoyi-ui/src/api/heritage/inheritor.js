@@ -42,3 +42,11 @@ export function delInheritor(inheritorId) {
     method: 'delete'
   })
 }
+
+// 根据分类ID查询非遗传承人列表 (前台图谱专用)
+export function listInheritorByCategory(categoryId) {
+    return request({
+        url: '/heritage/inheritor/listByCategory/' + categoryId,
+        method: 'get'
+    })
+}
