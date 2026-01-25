@@ -1,6 +1,7 @@
 package com.ruoyi.heritage.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
@@ -58,6 +59,8 @@ public class HeritageItem extends BaseEntity {
     @Excel(name = "状态", readConverterExp = "0=正常,1下架")
     private Integer status;
 
+    private String rejectReason;
+
     /** 删除标志 */
     private String delFlag;
 
@@ -73,6 +76,14 @@ public class HeritageItem extends BaseEntity {
     /** 当前用户是否收藏 */
     @JsonProperty("isCollected") // 核心修复：强制 JSON 字段名为 isCollected
     private boolean isCollected = false;
+
+    public void setRejectReason(String rejectReason) {
+        this.rejectReason = rejectReason;
+    }
+
+    public String getRejectReason() {
+        return rejectReason;
+    }
 
     public void setItemId(Long itemId) {
         this.itemId = itemId;

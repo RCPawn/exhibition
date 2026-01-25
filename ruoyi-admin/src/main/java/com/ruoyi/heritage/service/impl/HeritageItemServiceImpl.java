@@ -37,20 +37,20 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
     /**
      * 增加点赞数 (简单增加，不走切换逻辑时使用)
      */
-    @Override
+    /*@Override
     public int addLikeCount(Long itemId) {
         // type=2 (点赞), status=1 (增加)
         return heritageItemMapper.updateItemCount(itemId, 2, 1);
-    }
+    }*/
 
     /**
      * 增加收藏数 (简单增加，不走切换逻辑时使用)
      */
-    @Override
+    /*@Override
     public int addFavoriteCount(Long itemId) {
         // type=3 (收藏), status=1 (增加)
         return heritageItemMapper.updateItemCount(itemId, 3, 1);
-    }
+    }*/
 
     /**
      * 切换点赞/收藏状态 (长期方案核心逻辑)

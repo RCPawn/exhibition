@@ -36,9 +36,18 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="当前状态" align="center" prop="status" width="100">
+      <el-table-column label="当前状态" align="center" prop="status">
         <template #default="scope">
-          <dict-tag :options="sys_normal_disable" :value="scope.row.status" size="small" />
+          <!-- 如果是被驳回状态(2)，增加气泡显示原因 -->
+          <el-tooltip
+              v-if="scope.row.status === 2"
+              :content="'驳回原因：' + (scope.row.rejectReason || '内容不合规')"
+              placement="top"
+          >
+            <dict-tag :options="heritage_audit_status" :value="scope.row.status" style="cursor: help" />
+          </el-tooltip>
+
+          <dict-tag v-else :options="heritage_audit_status" :value="scope.row.status" />
         </template>
       </el-table-column>
       <el-table-column label="数据统计 (览/赞/藏)" align="center" min-width="220">
@@ -115,13 +124,13 @@
                 />
               </el-form-item>
             </el-col>
-            <el-col :span="12">
+<!--            <el-col :span="12">
               <el-form-item label="当前状态">
                 <el-radio-group v-model="form.status">
                   <el-radio v-for="dict in sys_normal_disable" :key="dict.value" :label="parseInt(dict.value)">{{dict.label}}</el-radio>
                 </el-radio-group>
               </el-form-item>
-            </el-col>
+            </el-col>-->
           </el-row>
 
           <el-form-item label="封面图片">
@@ -180,7 +189,7 @@ import useUserStore from "@/store/modules/user";
 import {Pointer, StarFilled, View} from "@element-plus/icons-vue";
 
 const { proxy } = getCurrentInstance();
-const { sys_normal_disable } = proxy.useDict('sys_normal_disable');
+const { heritage_audit_status } = proxy.useDict('heritage_audit_status');
 const userStore = useUserStore();
 
 const myPublishList = ref([]);

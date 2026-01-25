@@ -516,7 +516,8 @@ const queryParams = reactive({
   itemName: undefined,
   categoryId: undefined,
   orderByColumn: 'sort_order',
-  isAsc: 'asc'
+  isAsc: 'asc',
+  status: 0
 });
 
 // --- 方法 ---
@@ -540,6 +541,7 @@ const handleResize = () => {
 
 const getList = async () => {
   loading.value = true;
+  // queryParams.value.status = 0;
   try {
     const res = await listHeritage_manage(queryParams);
     heritageList.value = res.rows;

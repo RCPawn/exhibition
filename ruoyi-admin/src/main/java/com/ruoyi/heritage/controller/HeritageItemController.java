@@ -3,6 +3,7 @@ package com.ruoyi.heritage.controller;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
+import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.SecurityUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,26 @@ import com.ruoyi.common.core.page.TableDataInfo;
 public class HeritageItemController extends BaseController {
     @Autowired
     private IHeritageItemService heritageItemService;
+
+    /**
+     * 展品审核 (管理员专用)
+     */
+    @PreAuthorize("@ss.hasPermi('heritage:heritage_manage:audit')") // 定义一个专门的审核权限
+    @Log(title = "展品审核", businessType = BusinessType.UPDATE)
+    @PutMapping("/audit")
+    public AjaxResult audit(@RequestBody HeritageItem heritageItem) {
+        // 1. 设置更新者信息
+        heritageItem.setUpdateBy(SecurityUtils.getUsername());
+        heritageItem.setUpdateTime(DateUtils.getNowDate());
+
+        // 2. 如果是通过审核(status=0)，清空之前的驳回原因
+        if ("0".equals(heritageItem.getStatus())) {
+            heritageItem.setRejectReason("");
+        }
+
+        // 3. 调用原有的 update 方法即可，实现逻辑复用
+        return toAjax(heritageItemService.updateHeritageItem(heritageItem));
+    }
 
     /**
      * 展品交互统计 (前台调用)

@@ -29,7 +29,7 @@
       </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="状态" clearable style="width: 100px">
-          <el-option v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value"/>
+          <el-option v-for="dict in heritage_audit_status" :key="dict.value" :label="dict.label" :value="dict.value"/>
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -59,7 +59,7 @@
       </el-table-column>
       <el-table-column label="状态" align="center" prop="status" width="90">
         <template #default="scope">
-          <dict-tag :options="sys_normal_disable" :value="scope.row.status" size="small"/>
+          <dict-tag :options="heritage_audit_status" :value="scope.row.status" size="small"/>
         </template>
       </el-table-column>
       <el-table-column label="数据统计 (览/赞/藏)" align="center" min-width="220">
@@ -113,7 +113,7 @@
             <el-col :span="12">
               <el-form-item label="当前状态">
                 <el-radio-group v-model="form.status">
-                  <el-radio v-for="dict in sys_normal_disable" :key="dict.value" :label="parseInt(dict.value)">{{ dict.label }}</el-radio>
+                  <el-radio v-for="dict in heritage_audit_status" :key="dict.value" :label="parseInt(dict.value)">{{ dict.label }}</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-col>
@@ -147,7 +147,7 @@ import { listCategory, treeselect } from "@/api/heritage/category";
 import { Pointer, StarFilled, View } from "@element-plus/icons-vue";
 
 const { proxy } = getCurrentInstance();
-const { sys_normal_disable } = proxy.useDict('sys_normal_disable');
+const { heritage_audit_status } = proxy.useDict('heritage_audit_status');
 
 const heritage_manageList = ref([]);
 const categoryOptions = ref([]);

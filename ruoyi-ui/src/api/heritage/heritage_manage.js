@@ -88,3 +88,12 @@ export function delMyPublish(itemId) {
         method: 'delete'
     })
 }
+
+// 展品审核
+export function auditHeritage(data) {
+    return request({
+        url: '/heritage/heritage_manage/audit',
+        method: 'put',
+        data: data
+    })
+}

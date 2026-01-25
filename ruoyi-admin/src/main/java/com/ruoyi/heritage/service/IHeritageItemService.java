@@ -17,12 +17,11 @@ public interface IHeritageItemService {
     // 在实现类中调用 mapper
     int addViewCount(Long itemId);
 
-    int addLikeCount(Long itemId);
+    /*int addLikeCount(Long itemId);
 
-    int addFavoriteCount(Long itemId);
+    int addFavoriteCount(Long itemId);*/
 
     @Transactional
-        // 开启事务
     int toggleAction(Long itemId, Integer type);
 
     /**
