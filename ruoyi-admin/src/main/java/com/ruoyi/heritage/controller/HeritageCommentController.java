@@ -33,7 +33,7 @@ public class HeritageCommentController extends BaseController {
     /**
      * 新增评论
      */
-    @PreAuthorize("@ss.hasPermi('heritage:comment:add')") // 权限控制，或者去掉变成公开接口
+    //@PreAuthorize("@ss.hasPermi('heritage:comment:add')") // 权限控制，或者去掉变成公开接口
     @Log(title = "非遗评论", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody HeritageComment heritageComment) {

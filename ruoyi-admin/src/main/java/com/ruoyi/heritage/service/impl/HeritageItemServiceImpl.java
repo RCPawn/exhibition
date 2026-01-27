@@ -1,7 +1,9 @@
 package com.ruoyi.heritage.service.impl;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
+import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.heritage.domain.*;
@@ -24,6 +26,9 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
     private HeritageItemMapper heritageItemMapper;
     @Autowired
     private HeritageUserActionMapper actionMapper;
+    @Autowired
+    private RedisCache redisCache; // 若依自带的 Redis 工具类
+
 
     /**
      * 增加浏览量
@@ -70,10 +75,14 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
         if (count == 0) {
             // 还没点过 -> 插入记录，数量 +1
             actionMapper.insertAction(query);
+            // 操作成功后，清除大屏缓存，强制下次查询走数据库
+            redisCache.deleteObject("heritage:stats:dashboard");
             return heritageItemMapper.updateItemCount(itemId, type, 1);
         } else {
             // 已经点过 -> 删除记录，数量 -1
             actionMapper.deleteAction(query);
+            // 操作成功后，清除大屏缓存，强制下次查询走数据库
+            redisCache.deleteObject("heritage:stats:dashboard");
             return heritageItemMapper.updateItemCount(itemId, type, 0);
         }
     }
@@ -121,7 +130,14 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
         // 3. 更新时间在新增时通常也要初始化
         heritageItem.setUpdateTime(DateUtils.getNowDate());
 
-        return heritageItemMapper.insertHeritageItem(heritageItem);
+        // 执行新增操作
+        int result = heritageItemMapper.insertHeritageItem(heritageItem);
+
+        if (result > 0) {
+            redisCache.deleteObject("heritage:stats:dashboard");
+        }
+
+        return result;
     }
 
     /**
@@ -133,7 +149,12 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
     @Override
     public int updateHeritageItem(HeritageItem heritageItem) {
         heritageItem.setUpdateTime(DateUtils.getNowDate());
-        return heritageItemMapper.updateHeritageItem(heritageItem);
+        // 执行修改操作
+        int result = heritageItemMapper.updateHeritageItem(heritageItem);
+        if (result > 0) {
+            redisCache.deleteObject("heritage:stats:dashboard");
+        }
+        return result;
     }
 
     /**
@@ -144,7 +165,13 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
      */
     @Override
     public int deleteHeritageItemByItemIds(Long[] itemIds) {
-        return heritageItemMapper.deleteHeritageItemByItemIds(itemIds);
+        // 执行批量删除操作
+        int result = heritageItemMapper.deleteHeritageItemByItemIds(itemIds);
+        if (result > 0) {
+            redisCache.deleteObject("heritage:stats:dashboard");
+        }
+
+        return result;
     }
 
     /**
@@ -155,7 +182,13 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
      */
     @Override
     public int deleteHeritageItemByItemId(Long itemId) {
-        return heritageItemMapper.deleteHeritageItemByItemId(itemId);
+        // 执行删除操作
+        int result = heritageItemMapper.deleteHeritageItemByItemId(itemId);
+
+        if (result > 0) {
+            redisCache.deleteObject("heritage:stats:dashboard");
+        }
+        return result;
     }
 
     /**
@@ -178,6 +211,19 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
      */
     @Override
     public IndexStatsVo getDashboardData() {
+        // 1. 定义缓存的 Key
+        String cacheKey = "heritage:stats:dashboard";
+
+        // 2. 从 Redis 中获取数据
+        IndexStatsVo cachedStats = redisCache.getCacheObject(cacheKey);
+
+        // 3. 判断缓存是否存在
+        if (cachedStats != null) {
+            // 如果缓存命中了，直接返回，不走后面的数据库查询
+            return cachedStats;
+        }
+
+        // 4. 如果缓存不存在，执行原本的数据库查询逻辑
         IndexStatsVo stats = new IndexStatsVo();
 
         // 1. 基础指标 (全部改为查数据库)
@@ -209,6 +255,10 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
         stats.setLatestItems(heritageItemMapper.selectLatestItems());
         stats.setWordCloud(heritageItemMapper.selectItemNames());
         stats.setTop5Items(heritageItemMapper.selectTop5Trend());
+
+        // 5. 将查询出的结果存入 Redis，并设置过期时间（例如：10分钟）
+        // 建议不要设太长，保证大屏数据有准实时性
+        redisCache.setCacheObject(cacheKey, stats, 10, TimeUnit.MINUTES);
 
         return stats;
     }

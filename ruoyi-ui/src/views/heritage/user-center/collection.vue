@@ -78,7 +78,7 @@ const getList = async () => {
 };
 
 const handleDetail = (id) => {
-  router.push("/exhibit/detail/" + id);
+  router.push("/display/detail/" + id);
 };
 
 onMounted(() => {
@@ -104,7 +104,6 @@ onMounted(() => {
 
 .page-header {
   margin-bottom: 30px;
-  border-bottom: 2px solid #000;
   padding-bottom: 15px;
   display: flex;
   align-items: baseline;

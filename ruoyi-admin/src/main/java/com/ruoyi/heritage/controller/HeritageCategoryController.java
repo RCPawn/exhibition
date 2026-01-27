@@ -70,7 +70,7 @@ public class HeritageCategoryController extends BaseController {
     /**
      * 获取非遗分类详细信息
      */
-    @PreAuthorize("@ss.hasPermi('heritage:category:query')")
+    // @PreAuthorize("@ss.hasPermi('heritage:category:query')")
     @GetMapping(value = "/{categoryId}")
     public AjaxResult getInfo(@PathVariable("categoryId") Long categoryId) {
         return success(heritageCategoryService.selectHeritageCategoryByCategoryId(categoryId));

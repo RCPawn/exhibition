@@ -45,7 +45,7 @@ public class HeritageInheritorController extends BaseController {
     /**
      * 查询非遗传承人列表
      */
-    @PreAuthorize("@ss.hasPermi('heritage:inheritor:list')")
+    // @PreAuthorize("@ss.hasPermi('heritage:inheritor:list')")
     @GetMapping("/list")
     public TableDataInfo list(HeritageInheritor heritageInheritor) {
         startPage();
@@ -68,7 +68,7 @@ public class HeritageInheritorController extends BaseController {
     /**
      * 获取非遗传承人详细信息
      */
-    @PreAuthorize("@ss.hasPermi('heritage:inheritor:query')")
+    // @PreAuthorize("@ss.hasPermi('heritage:inheritor:query')")
     @GetMapping(value = "/{inheritorId}")
     public AjaxResult getInfo(@PathVariable("inheritorId") Long inheritorId) {
         return success(heritageInheritorService.selectHeritageInheritorByInheritorId(inheritorId));

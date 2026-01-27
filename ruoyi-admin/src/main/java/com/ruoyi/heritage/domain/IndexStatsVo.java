@@ -4,13 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class IndexStatsVo {
+public class IndexStatsVo implements Serializable {
+    private static final long serialVersionUID = 1L;
     // 核心数字
     private long totalItems;      // 总展品
     private long totalViews;      // 总浏览

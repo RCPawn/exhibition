@@ -568,7 +568,7 @@ const filterByCategory = (id) => {
 };
 
 const goToDetail = (id) => {
-  router.push("/exhibit/detail/" + id);
+  router.push("/display/detail/" + id);
 };
 
 onMounted(() => {
