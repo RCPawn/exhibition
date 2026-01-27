@@ -307,7 +307,6 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 0 35px;
-  border-bottom: 2px solid #000;
   background: #fff;
   z-index: 2500;
 

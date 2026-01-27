@@ -2,6 +2,7 @@ package com.ruoyi.heritage.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.ruoyi.common.utils.DateUtils;
@@ -23,30 +24,46 @@ public class HeritageCategoryServiceImpl implements IHeritageCategoryService {
     private HeritageCategoryMapper heritageCategoryMapper;
 
     /**
-     * 构建前端所需要的树结构
+     * 构建前端所需要的树结构 (高性能版 O(N))
      */
     @Override
     public List<HeritageCategory> buildCategoryTree(List<HeritageCategory> categories) {
-        List<HeritageCategory> returnList = new ArrayList<HeritageCategory>();
-        List<Long> tempList = categories.stream().map(HeritageCategory::getCategoryId).collect(Collectors.toList());
+        // 1. 边界检查
+        if (categories == null || categories.isEmpty()) {
+            return new ArrayList<>();
+        }
 
+        // 2. 空间换时间：将 List 转为 Map，Key 为 ID，Value 为对象引用
+        Map<Long, HeritageCategory> categoryMap = categories.stream()
+                .collect(Collectors.toMap(HeritageCategory::getCategoryId, category -> category));
+
+        // 3. 存放顶级节点的集合
+        List<HeritageCategory> returnList = new ArrayList<>();
+
+        // 4. 遍历列表，组装父子关系
         for (HeritageCategory category : categories) {
-            // 如果是顶级节点（parentId = 0），则开始递归寻找子节点
-            if (!tempList.contains(category.getParentId())) {
-                recursionFn(categories, category);
+            // 从 Map 中查找当前节点的父节点
+            HeritageCategory parent = categoryMap.get(category.getParentId());
+
+            // 如果父节点在当前列表中存在，则将当前节点添加到父节点的 children 中
+            if (parent != null) {
+                if (parent.getChildren() == null) {
+                    parent.setChildren(new ArrayList<>());
+                }
+                parent.getChildren().add(category);
+            } else {
+                // 如果父节点不在当前列表中（或者 parentId 为 0/null），则当前节点为顶级节点
                 returnList.add(category);
             }
         }
-        if (returnList.isEmpty()) {
-            returnList = categories;
-        }
+
         return returnList;
     }
 
     /**
      * 递归列表
      */
-    private void recursionFn(List<HeritageCategory> list, HeritageCategory t) {
+    /*private void recursionFn(List<HeritageCategory> list, HeritageCategory t) {
         // 得到子节点列表
         List<HeritageCategory> childList = getChildList(list, t);
         t.setChildren(childList);
@@ -55,7 +72,7 @@ public class HeritageCategoryServiceImpl implements IHeritageCategoryService {
                 recursionFn(list, tChild);
             }
         }
-    }
+    }*/
 
     /**
      * 得到子节点列表

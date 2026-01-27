@@ -1,10 +1,8 @@
 <template>
   <div class="genealogy-container" v-loading="loading" element-loading-background="rgba(242, 240, 235, 1)">
-    <!-- 1. 沉浸式背景 -->
     <div class="paper-bg"></div>
     <div class="vignette-overlay"></div>
 
-    <!-- 🌟 场景 A: 【绝对原版】3D 书本核心入口区 -->
     <div class="book-stage" :class="{ 'stage-zoom-in': isEntering }">
       <div class="header-section" :class="{ 'fade-out': isEntering }">
         <h1 class="main-title">
@@ -26,8 +24,11 @@
             interaction-prompt="none"
             auto-rotate
             camera-orbit="45deg 60deg 2.8m"
+            loading="eager"
             class="industrial-model"
         >
+          <div slot="progress-bar" style="display: none;"></div>
+
           <div class="hotspot-hint" slot="hotspot-center" data-position="0 0.1 0">
             <div class="hint-dot"></div>
             <span class="hint-text">点击查阅</span>
@@ -36,20 +37,15 @@
       </div>
     </div>
 
-    <!-- 🌟 场景 B: 【原版】翻书转场特效 -->
     <div class="page-turn-overlay" v-if="isEntering && !showDeck">
       <div class="page-leaf"></div>
     </div>
 
-    <!-- 🌟 场景 C: 数字化卷宗控制台 -->
     <transition name="fade-slow" @after-enter="initGraphOnEnter">
       <div class="archive-deck" v-if="showDeck">
-        <!-- ✅ 修改：导航文案全面去英文 -->
         <nav class="deck-nav">
           <div class="nav-left" @click="handleCloseDeck">
-            <el-icon>
-              <ArrowLeft/>
-            </el-icon>
+            <el-icon><ArrowLeft/></el-icon>
             <span>返回封面 / BACK</span>
           </div>
           <div class="nav-center">非遗谱系关联网络</div>
@@ -68,39 +64,32 @@
             </div>
           </aside>
 
-          <!-- 轴二：可视化图谱 -->
           <section class="axis-graph">
             <div ref="graphRef" class="graph-canvas"></div>
-            <!-- ✅ 修改：图例去英文 -->
             <div class="graph-legend">
               <div class="l-item"><span class="dot cat"></span> 技艺项目</div>
               <div class="l-item"><span class="dot master"></span> 核心传承人</div>
             </div>
           </section>
 
-          <!-- 轴三：节点详细档案 (重点优化区) -->
-          <transition name="fade">
-            <aside class="axis-detail" v-if="selectedNode">
-              <!-- ✅ 修改：减小顶部空间，移除标识边框，标识中文化 -->
-              <div class="detail-header">
-                <div class="node-type-plain">{{ selectedNode.category === 0 ? '技艺项目' : '传承人' }}</div>
-                <div class="name-row">
-                  <h2 class="node-name">{{ selectedNode.name }}</h2>
-                  <dict-tag v-if="selectedNode.category === 1" :options="heritage_level" :value="selectedNode.level"
-                            class="level-tag"/>
-                </div>
+          <aside class="axis-detail" v-if="selectedNode">
+            <div class="detail-header">
+              <div class="node-type-plain">{{ selectedNode.category === 0 ? '技艺项目' : '传承人' }}</div>
+              <div class="name-row">
+                <h2 class="node-name">{{ selectedNode.name }}</h2>
+                <dict-tag v-if="selectedNode.category === 1" :options="heritage_level" :value="selectedNode.level"
+                          class="level-tag"/>
               </div>
+            </div>
 
-              <div class="detail-content">
-                <div class="info-group">
-                  <!-- ✅ 修改：去英文 -->
-                  <label>档案摘要</label>
-                  <div class="p-intro" v-html="selectedNode.intro || '正在检索数字化历史档案...'"></div>
-                </div>
+            <div class="detail-content">
+              <div class="info-group">
+                <label>档案摘要</label>
+                <div class="p-intro" v-html="selectedNode.intro || '正在检索数字化历史档案...'"></div>
               </div>
-              <div class="watermark">{{ selectedNode.name }}</div>
-            </aside>
-          </transition>
+            </div>
+            <div class="watermark">{{ selectedNode.name }}</div>
+          </aside>
         </main>
       </div>
     </transition>
@@ -108,16 +97,16 @@
 </template>
 
 <script setup name="HeritageGenealogy">
-import {ref, onMounted, computed, getCurrentInstance, nextTick, onUnmounted} from 'vue'
-import {useRouter} from 'vue-router'
-import {treeselect} from "@/api/heritage/category"
-import {listInheritor} from "@/api/heritage/inheritor"
+import { ref, onMounted, computed, getCurrentInstance, nextTick, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { treeselect } from "@/api/heritage/category"
+import { listInheritor } from "@/api/heritage/inheritor"
 import * as echarts from 'echarts'
-import {ArrowLeft, Pointer} from '@element-plus/icons-vue'
+import { ArrowLeft } from '@element-plus/icons-vue'
 
-const {proxy} = getCurrentInstance()
+const { proxy } = getCurrentInstance()
 const router = useRouter()
-const {heritage_level} = proxy.useDict('heritage_level')
+const { heritage_level } = proxy.useDict('heritage_level')
 
 const loading = ref(true)
 const isEntering = ref(false)
@@ -180,16 +169,16 @@ function handleCloseDeck() {
 
 const handleSelectCategory = async (cat) => {
   activeCatId.value = cat.categoryId
-  selectedNode.value = {name: cat.categoryName, category: 0, intro: '请在左侧点击节点查看详细传承档案。'}
-  const nodes = [{id: 'root', name: cat.categoryName, category: 0, symbolSize: 70}]
+  selectedNode.value = { name: cat.categoryName, category: 0, intro: '请在左侧点击节点查看详细传承档案。' }
+  const nodes = [{ id: 'root', name: cat.categoryName, category: 0, symbolSize: 70 }]
   const links = []
   if (cat.children) {
     cat.children.forEach(child => {
-      nodes.push({id: `c_${child.categoryId}`, name: child.categoryName, category: 0, symbolSize: 45})
-      links.push({source: 'root', target: `c_${child.categoryId}`})
+      nodes.push({ id: `c_${child.categoryId}`, name: child.categoryName, category: 0, symbolSize: 45 })
+      links.push({ source: 'root', target: `c_${child.categoryId}` })
     })
   }
-  const res = await listInheritor({categoryId: cat.categoryId})
+  const res = await listInheritor({ categoryId: cat.categoryId })
   if (res.rows) {
     res.rows.forEach(master => {
       nodes.push({
@@ -200,7 +189,7 @@ const handleSelectCategory = async (cat) => {
         level: master.level,
         intro: master.introduction
       })
-      links.push({source: `c_${master.categoryId}`, target: `m_${master.inheritorId}`})
+      links.push({ source: `c_${master.categoryId}`, target: `m_${master.inheritorId}` })
     })
   }
   renderGraph(nodes, links)
@@ -214,11 +203,11 @@ const renderGraph = (nodes, links) => {
     animationDuration: 1500,
     series: [{
       type: 'graph', layout: 'force', data: nodes, links: links, roam: true,
-      label: {show: true, position: 'bottom', color: '#000', fontWeight: 'bold', fontSize: 13},
-      force: {repulsion: 2000, gravity: 0.1, edgeLength: 150},
-      lineStyle: {color: '#000', width: 1.5, curveness: 0.1},
-      itemStyle: {color: (p) => p.data.category === 0 ? '#000' : '#FFD700', borderColor: '#000', borderWidth: 2},
-      emphasis: {focus: 'adjacency', lineStyle: {width: 5}}
+      label: { show: true, position: 'bottom', color: '#000', fontWeight: 'bold', fontSize: 13 },
+      force: { repulsion: 2000, gravity: 0.1, edgeLength: 150 },
+      lineStyle: { color: '#000', width: 1.5, curveness: 0.1 },
+      itemStyle: { color: (p) => p.data.category === 0 ? '#000' : '#FFD700', borderColor: '#000', borderWidth: 2 },
+      emphasis: { focus: 'adjacency', lineStyle: { width: 5 } }
     }]
   })
   myChart.on('click', (params) => {
@@ -234,7 +223,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
-/* --- 样式完全还原原始满意版 --- */
 $bg-color: #F2F0EB;
 $primary-blue: #1A4A7F;
 $wood-brown: #5D4037;
@@ -342,6 +330,9 @@ $accent: #FFD700;
 .industrial-model {
   width: 100%;
   height: 100%;
+  /* 隐藏加载进度条的关键 CSS 变量 */
+  --progress-bar-height: 0px;
+  --progress-bar-color: transparent;
   --poster-color: transparent;
 }
 
@@ -371,17 +362,6 @@ $accent: #FFD700;
   border-radius: 4px;
 }
 
-.instruction {
-  margin-top: 1rem;
-  color: #1A4A7F;
-  font-size: 0.9rem;
-  opacity: 0.6;
-
-  &.fade-out {
-    opacity: 0;
-  }
-}
-
 .page-turn-overlay {
   position: absolute;
   top: 0;
@@ -394,12 +374,8 @@ $accent: #FFD700;
 }
 
 @keyframes pageFlip {
-  0% {
-    width: 0;
-  }
-  100% {
-    width: 100%;
-  }
+  0% { width: 0; }
+  100% { width: 100%; }
 }
 
 .archive-deck {
@@ -425,10 +401,7 @@ $accent: #FFD700;
       display: flex;
       align-items: center;
       gap: 8px;
-
-      &:hover {
-        color: #999;
-      }
+      &:hover { color: #999; }
     }
   }
 
@@ -448,17 +421,8 @@ $accent: #FFD700;
         transition: all 0.3s;
         border-bottom: 1px solid #eee;
 
-        .index {
-          font-size: 10px;
-          color: #bbb;
-          display: block;
-        }
-
-        .label {
-          font-size: 16px;
-          font-weight: 900;
-        }
-
+        .index { font-size: 10px; color: #bbb; display: block; }
+        .label { font-size: 16px; font-weight: 900; }
         &.active {
           background: #000;
           color: #fff;
@@ -470,12 +434,7 @@ $accent: #FFD700;
     .axis-graph {
       flex: 1;
       position: relative;
-
-      .graph-canvas {
-        width: 100%;
-        height: 100%;
-      }
-
+      .graph-canvas { width: 100%; height: 100%; }
       .graph-legend {
         position: absolute;
         bottom: 30px;
@@ -484,22 +443,9 @@ $accent: #FFD700;
         font-weight: 900;
         display: flex;
         gap: 20px;
-
-        .dot {
-          display: inline-block;
-          width: 8px;
-          height: 8px;
-          border: 1px solid #000;
-          margin-right: 5px;
-        }
-
-        .dot.cat {
-          background: #000;
-        }
-
-        .dot.master {
-          background: $accent;
-        }
+        .dot { display: inline-block; width: 8px; height: 8px; border: 1px solid #000; margin-right: 5px; }
+        .dot.cat { background: #000; }
+        .dot.master { background: $accent; }
       }
     }
 
@@ -507,7 +453,7 @@ $accent: #FFD700;
       width: 380px;
       border-left: 1px solid #000;
       padding: 30px;
-      position: relative; // ✅ 修复：顶部空间缩小
+      position: relative;
       background: #fff;
       display: flex;
       flex-direction: column;
@@ -519,20 +465,9 @@ $accent: #FFD700;
         margin-bottom: 25px;
         border-bottom: 4px solid $accent;
         padding-bottom: 8px;
-
-        .node-name {
-          font-size: 32px;
-          font-weight: 900;
-          margin: 0;
-          color: #000;
-        }
-
-        .level-tag {
-          margin-top: 5px;
-        }
+        .node-name { font-size: 32px; font-weight: 900; margin: 0; color: #000; }
       }
 
-      // ✅ 修复：去方框化的标识
       .node-type-plain {
         font-size: 11px;
         color: #999;
@@ -548,24 +483,9 @@ $accent: #FFD700;
         max-height: 550px;
         overflow-y: auto;
         padding-right: 5px;
-
-        :deep(p) {
-          margin-bottom: 15px;
-        }
-
-        :deep(img) {
-          width: 100%;
-          border-radius: 2px;
-          margin: 10px 0;
-        }
-
-        &::-webkit-scrollbar {
-          width: 2px;
-        }
-
-        &::-webkit-scrollbar-thumb {
-          background: #eee;
-        }
+        :deep(p) { margin-bottom: 15px; }
+        &::-webkit-scrollbar { width: 2px; }
+        &::-webkit-scrollbar-thumb { background: #eee; }
       }
 
       .info-group label {
@@ -592,13 +512,14 @@ $accent: #FFD700;
 }
 
 @keyframes pulse {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.5;
-  }
-  100% {
-    transform: scale(0.8);
-    opacity: 0.5;
+  0% { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(1.1); opacity: 0.8; }
+}
+
+/* 强制隐藏 model-viewer 内部进度条 */
+:deep(model-viewer#heritage-book) {
+  &::part(default-progress-bar) {
+    display: none !important;
   }
 }
 </style>

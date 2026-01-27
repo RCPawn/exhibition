@@ -39,7 +39,7 @@
           <div class="stage-ring"></div>
 
           <div class="model-label">
-            <span class="badge">TOP ASSET</span>
+            <span class="badge">热度最高</span>
             <h3>{{ stats.centerModelName }}</h3>
           </div>
         </div>
@@ -51,8 +51,6 @@
         <div class="stat-item"><span class="num">{{ stats.totalItems }}</span><span class="lab">核心门类</span></div>
         <div class="stat-divider"></div>
         <div class="stat-item"><span class="num">{{ stats.totalViews }}</span><span class="lab">数据采集</span></div>
-        <div class="stat-divider"></div>
-        <div class="stat-item"><span class="num">24/7</span><span class="lab">云端同步</span></div>
       </div>
     </footer>
   </div>
@@ -186,7 +184,7 @@ onMounted(getStats);
       }
       .badge {
         background: #000;
-        color: #ffd700;
+        color: #fff;
         padding: 2px 10px;
         font-size: 10px;
         font-weight: 900;

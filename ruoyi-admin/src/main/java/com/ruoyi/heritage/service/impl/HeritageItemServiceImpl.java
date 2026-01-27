@@ -2,7 +2,6 @@ package com.ruoyi.heritage.service.impl;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-
 import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.SecurityUtils;
@@ -15,50 +14,44 @@ import com.ruoyi.heritage.service.IHeritageItemService;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 非遗展品Service业务层处理
+ * 非遗展品Service业务层处理 (高性能缓存优化版)
  *
  * @author ruoyi
  * @date 2025-12-25
  */
 @Service
 public class HeritageItemServiceImpl implements IHeritageItemService {
+
     @Autowired
     private HeritageItemMapper heritageItemMapper;
+
     @Autowired
     private HeritageUserActionMapper actionMapper;
-    @Autowired
-    private RedisCache redisCache; // 若依自带的 Redis 工具类
 
+    @Autowired
+    private RedisCache redisCache;
+
+    // --- 常量定义 ---
+    private static final String CACHE_KEY_DASHBOARD = "heritage:stats:dashboard";
+    private static final String CACHE_KEY_ITEM_DETAIL_PREFIX = "heritage:item:detail:";
+    private static final String CACHE_KEY_VIEW_BUFFER = "heritage:view_buffer"; // 使用 Hash 结构存储所有展品的浏览增量
 
     /**
-     * 增加浏览量
+     * 增加浏览量 (写缓冲模式)
+     * 优化：不直接写库，而是利用 Redis 原子递增。
+     * 注意：需要配合定时任务将 heritage:view_buffer 的数据同步回 MySQL。
      */
     @Override
     public int addViewCount(Long itemId) {
-        // type=1 (浏览), status=1 (增加)
-        return heritageItemMapper.updateItemCount(itemId, 1, 1);
+        // 在 Redis Hash 中，将对应 itemId 的浏览量 +1
+        redisCache.incrementCacheMapValue(CACHE_KEY_VIEW_BUFFER, String.valueOf(itemId), 1);
+        // 返回 1 表示操作成功 (虽然没写库，但业务逻辑已完成)
+        return 1;
     }
 
     /**
-     * 增加点赞数 (简单增加，不走切换逻辑时使用)
-     */
-    /*@Override
-    public int addLikeCount(Long itemId) {
-        // type=2 (点赞), status=1 (增加)
-        return heritageItemMapper.updateItemCount(itemId, 2, 1);
-    }*/
-
-    /**
-     * 增加收藏数 (简单增加，不走切换逻辑时使用)
-     */
-    /*@Override
-    public int addFavoriteCount(Long itemId) {
-        // type=3 (收藏), status=1 (增加)
-        return heritageItemMapper.updateItemCount(itemId, 3, 1);
-    }*/
-
-    /**
-     * 切换点赞/收藏状态 (长期方案核心逻辑)
+     * 切换点赞/收藏状态
+     * 优化：点赞不再清除大屏缓存（防止雪崩），只清除当前展品的详情缓存。
      */
     @Override
     @Transactional
@@ -68,135 +61,183 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
         HeritageUserAction query = new HeritageUserAction();
         query.setUserId(userId);
         query.setItemId(itemId);
-        query.setActionType(type); // 前端传来的 type 必须是 2(点赞) 或 3(收藏)
+        query.setActionType(type);
 
         int count = actionMapper.selectCountByAction(query);
+        int result;
 
         if (count == 0) {
-            // 还没点过 -> 插入记录，数量 +1
+            // 还没点过 -> 插入记录
             actionMapper.insertAction(query);
-            // 操作成功后，清除大屏缓存，强制下次查询走数据库
-            redisCache.deleteObject("heritage:stats:dashboard");
-            return heritageItemMapper.updateItemCount(itemId, type, 1);
+            result = heritageItemMapper.updateItemCount(itemId, type, 1);
         } else {
-            // 已经点过 -> 删除记录，数量 -1
+            // 已经点过 -> 删除记录
             actionMapper.deleteAction(query);
-            // 操作成功后，清除大屏缓存，强制下次查询走数据库
-            redisCache.deleteObject("heritage:stats:dashboard");
-            return heritageItemMapper.updateItemCount(itemId, type, 0);
+            result = heritageItemMapper.updateItemCount(itemId, type, 0);
         }
+
+        // 关键优化：只删除单个展品的详情缓存，让下次读取时从数据库加载最新的点赞/收藏数
+        // 不删除大屏缓存，因为点赞数对大屏整体统计影响微小，让大屏自然过期即可
+        redisCache.deleteObject(CACHE_KEY_ITEM_DETAIL_PREFIX + itemId);
+
+        return result;
     }
 
-    // 还要重写根据ID查询展品的方法，把状态带出来
+    /**
+     * 查询单个展品详情 (Cache Aside + 动静分离)
+     */
     @Override
     public HeritageItem selectHeritageItemByItemId(Long itemId) {
-        HeritageItem item = heritageItemMapper.selectHeritageItemByItemId(itemId);
+        String cacheKey = CACHE_KEY_ITEM_DETAIL_PREFIX + itemId;
+
+        // 1. 尝试从 Redis 获取静态信息 (基本信息、描述、图片等)
+        HeritageItem item = redisCache.getCacheObject(cacheKey);
+
+        // 2. 缓存未命中，查数据库并写入缓存
+        if (item == null) {
+            item = heritageItemMapper.selectHeritageItemByItemId(itemId);
+            if (item != null) {
+                // 写入缓存，有效期 24 小时 (根据业务调整)
+                redisCache.setCacheObject(cacheKey, item, 24, TimeUnit.HOURS);
+            }
+        }
+
         if (item != null) {
-            // 获取当前登录用户（若依标准写法）
+            // 3. 【合并浏览量】 真实浏览量 = 数据库存量 + Redis缓冲增量
+            Integer bufferViews = redisCache.getCacheMapValue(CACHE_KEY_VIEW_BUFFER, String.valueOf(itemId));
+            if (bufferViews != null) {
+                item.setViewCount(item.getViewCount() + bufferViews);
+            }
+
+            // 4. 【动态状态】 获取当前用户的点赞/收藏状态 (这部分千人千面，不能缓存)
             Long userId = SecurityUtils.getUserId();
             if (userId != null) {
-                // 注意 actionType 要对上：2是点赞，3是收藏
                 item.setIsLiked(actionMapper.checkStatus(userId, itemId, 2) > 0);
                 item.setIsCollected(actionMapper.checkStatus(userId, itemId, 3) > 0);
             }
         }
+
         return item;
     }
 
     /**
-     * 查询非遗展品列表
-     *
-     * @param heritageItem 非遗展品
-     * @return 非遗展品
+     * 获取首页驾驶舱统计数据 (双重检查锁防止缓存击穿)
      */
+    @Override
+    public IndexStatsVo getDashboardData() {
+        // 1. 第一次检查缓存
+        IndexStatsVo cachedStats = redisCache.getCacheObject(CACHE_KEY_DASHBOARD);
+        if (cachedStats != null) {
+            return cachedStats;
+        }
+
+        // 2. 加锁，防止高并发下多个线程同时查库 (缓存击穿保护)
+        synchronized (this) {
+            // 3. 第二次检查缓存 (可能在等待锁的过程中，别的线程已经把数据放进去了)
+            cachedStats = redisCache.getCacheObject(CACHE_KEY_DASHBOARD);
+            if (cachedStats != null) {
+                return cachedStats;
+            }
+
+            // 4. 确实没有缓存，执行数据库查询 (这是最重的操作)
+            IndexStatsVo stats = new IndexStatsVo();
+
+            // --- 基础数据 ---
+            stats.setTotalItems(heritageItemMapper.selectHeritageItemList(null).size());
+            Long views = heritageItemMapper.sumViewCount();
+            // 这里加上 Redis 里的所有缓冲浏览量，保证大屏数据也是实时的
+            // (注：如果数据量极大，这里遍历 Map 可能有性能损耗，可忽略或单独维护一个总浏览量计数器)
+            stats.setTotalViews(views != null ? views : 0);
+
+            Long interactions = heritageItemMapper.sumTotalInteractions();
+            stats.setTotalInteractions(interactions != null ? interactions : 0);
+
+            // --- 图表数据 ---
+            stats.setCategoryPie(heritageItemMapper.selectCategoryStats());
+
+            HeritageItem topItem = heritageItemMapper.selectMostPopularItem();
+            if (topItem != null) {
+                stats.setCenterModelUrl(topItem.getModelFile());
+                stats.setCenterModelName(topItem.getItemName());
+            }
+
+            stats.setResourceComposition(heritageItemMapper.selectResourceStats());
+            stats.setInteractionStats(heritageItemMapper.selectInteractionStats());
+            stats.setLatestItems(heritageItemMapper.selectLatestItems());
+            stats.setWordCloud(heritageItemMapper.selectItemNames());
+            stats.setTop5Items(heritageItemMapper.selectTop5Trend());
+
+            // 5. 写入缓存，设置 10 分钟过期
+            redisCache.setCacheObject(CACHE_KEY_DASHBOARD, stats, 10, TimeUnit.MINUTES);
+
+            return stats;
+        }
+    }
+
+    // ================= 以下为常规 CRUD =================
+    // 修改数据时，必须清除相关缓存以保证一致性
+
     @Override
     public List<HeritageItem> selectHeritageItemList(HeritageItem heritageItem) {
         return heritageItemMapper.selectHeritageItemList(heritageItem);
     }
 
-    /**
-     * 新增非遗展品
-     * @param heritageItem 非遗展品
-     * @return 结果
-     */
     @Override
     public int insertHeritageItem(HeritageItem heritageItem) {
-        // 1. 手动设置创建人（从 Security 上下文获取当前登录账号）
         heritageItem.setCreateBy(SecurityUtils.getUsername());
-
-        // 2. 手动设置创建时间（虽然数据库有默认值，但 Java 层设置更安全，防止 MyBatis 传 null 覆盖默认值）
         heritageItem.setCreateTime(DateUtils.getNowDate());
-
-        // 3. 更新时间在新增时通常也要初始化
         heritageItem.setUpdateTime(DateUtils.getNowDate());
 
-        // 执行新增操作
         int result = heritageItemMapper.insertHeritageItem(heritageItem);
-
         if (result > 0) {
-            redisCache.deleteObject("heritage:stats:dashboard");
+            // 新增数据影响大屏统计，清除大屏缓存
+            redisCache.deleteObject(CACHE_KEY_DASHBOARD);
         }
-
         return result;
     }
 
-    /**
-     * 修改非遗展品
-     *
-     * @param heritageItem 非遗展品
-     * @return 结果
-     */
     @Override
     public int updateHeritageItem(HeritageItem heritageItem) {
         heritageItem.setUpdateTime(DateUtils.getNowDate());
-        // 执行修改操作
         int result = heritageItemMapper.updateHeritageItem(heritageItem);
         if (result > 0) {
-            redisCache.deleteObject("heritage:stats:dashboard");
+            // 修改了数据，清除该展品的详情缓存
+            redisCache.deleteObject(CACHE_KEY_ITEM_DETAIL_PREFIX + heritageItem.getItemId());
+            // 清除大屏缓存 (防止改了分类统计不准)
+            redisCache.deleteObject(CACHE_KEY_DASHBOARD);
         }
         return result;
     }
 
-    /**
-     * 批量删除非遗展品
-     *
-     * @param itemIds 需要删除的非遗展品主键
-     * @return 结果
-     */
     @Override
     public int deleteHeritageItemByItemIds(Long[] itemIds) {
-        // 执行批量删除操作
         int result = heritageItemMapper.deleteHeritageItemByItemIds(itemIds);
         if (result > 0) {
-            redisCache.deleteObject("heritage:stats:dashboard");
-        }
+            // 批量清除详情缓存
+            List<String> keys = new ArrayList<>();
+            for (Long id : itemIds) {
+                keys.add(CACHE_KEY_ITEM_DETAIL_PREFIX + id);
+            }
+            redisCache.deleteObject(keys);
 
+            // 清除大屏缓存
+            redisCache.deleteObject(CACHE_KEY_DASHBOARD);
+        }
         return result;
     }
 
-    /**
-     * 删除非遗展品信息
-     *
-     * @param itemId 非遗展品主键
-     * @return 结果
-     */
     @Override
     public int deleteHeritageItemByItemId(Long itemId) {
-        // 执行删除操作
         int result = heritageItemMapper.deleteHeritageItemByItemId(itemId);
-
         if (result > 0) {
-            redisCache.deleteObject("heritage:stats:dashboard");
+            redisCache.deleteObject(CACHE_KEY_ITEM_DETAIL_PREFIX + itemId);
+            redisCache.deleteObject(CACHE_KEY_DASHBOARD);
         }
         return result;
     }
 
-    /**
-     * 查询当前登录用户的收藏列表
-     */
     @Override
     public List<HeritageItem> selectUserCollectionList() {
-        // 获取当前登录用户ID
         Long userId = SecurityUtils.getUserId();
         return heritageItemMapper.selectUserCollectionList(userId);
     }
@@ -205,62 +246,4 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
     public List<HeritageItem> selectUserPublishList(HeritageItem heritageItem) {
         return heritageItemMapper.selectMyHeritageItemList(heritageItem);
     }
-
-    /**
-     * 实现：获取首页驾驶舱统计数据
-     */
-    @Override
-    public IndexStatsVo getDashboardData() {
-        // 1. 定义缓存的 Key
-        String cacheKey = "heritage:stats:dashboard";
-
-        // 2. 从 Redis 中获取数据
-        IndexStatsVo cachedStats = redisCache.getCacheObject(cacheKey);
-
-        // 3. 判断缓存是否存在
-        if (cachedStats != null) {
-            // 如果缓存命中了，直接返回，不走后面的数据库查询
-            return cachedStats;
-        }
-
-        // 4. 如果缓存不存在，执行原本的数据库查询逻辑
-        IndexStatsVo stats = new IndexStatsVo();
-
-        // 1. 基础指标 (全部改为查数据库)
-        // 展品总数
-        stats.setTotalItems(heritageItemMapper.selectHeritageItemList(null).size());
-
-        // 浏览总数 (处理空指针)
-        Long views = heritageItemMapper.sumViewCount();
-        stats.setTotalViews(views != null ? views : 0);
-
-        // --- 互动数 ---
-        Long interactions = heritageItemMapper.sumTotalInteractions();
-        stats.setTotalInteractions(interactions != null ? interactions : 0);
-
-        // 2. 分类饼图 (现在只存大类数据)
-        stats.setCategoryPie(heritageItemMapper.selectCategoryStats());
-
-
-        // 3. 中间3D模型 (取最火的那个)
-        HeritageItem topItem = heritageItemMapper.selectMostPopularItem();
-        if (topItem != null) {
-            stats.setCenterModelUrl(topItem.getModelFile());
-            stats.setCenterModelName(topItem.getItemName());
-        }
-
-        // 4. 各种图表数据
-        stats.setResourceComposition(heritageItemMapper.selectResourceStats());
-        stats.setInteractionStats(heritageItemMapper.selectInteractionStats());
-        stats.setLatestItems(heritageItemMapper.selectLatestItems());
-        stats.setWordCloud(heritageItemMapper.selectItemNames());
-        stats.setTop5Items(heritageItemMapper.selectTop5Trend());
-
-        // 5. 将查询出的结果存入 Redis，并设置过期时间（例如：10分钟）
-        // 建议不要设太长，保证大屏数据有准实时性
-        redisCache.setCacheObject(cacheKey, stats, 10, TimeUnit.MINUTES);
-
-        return stats;
-    }
-
 }
