@@ -43,54 +43,70 @@
 
     <transition name="fade-slow" @after-enter="initGraphOnEnter">
       <div class="archive-deck" v-if="showDeck">
+        <!-- 顶部标题栏 -->
         <nav class="deck-nav">
           <div class="nav-left" @click="handleCloseDeck">
             <el-icon><ArrowLeft/></el-icon>
-            <span>返回封面 / BACK</span>
+            <span>返回封面</span>
           </div>
-          <div class="nav-center">非遗谱系关联网络</div>
-          <div class="nav-right">数据状态：已同步</div>
+          <div class="nav-center">白族非遗传承谱系</div>
+          <div class="nav-right">数据已同步</div>
         </nav>
 
-        <main class="deck-body">
-          <aside class="axis-nav">
-            <div class="nav-item"
-                 v-for="(cat, index) in categoryTree"
-                 :key="cat.categoryId"
-                 :class="{ active: activeCatId === cat.categoryId }"
-                 @click="handleSelectCategory(cat)">
-              <span class="index">0{{ index + 1 }}</span>
-              <span class="label">{{ cat.categoryName }}</span>
-            </div>
-          </aside>
+        <!-- 主图区 -->
+        <section class="graph-container" ref="graphRef">
+          <!-- ECharts 图谱将渲染于此 -->
+        </section>
+        
+        <!-- 颜色图例（在graph-container外部，避免被overflow: hidden裁剪） -->
+        <div class="color-legend">
+          <div class="legend-title">图例说明</div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #1A4A7F;"></span>
+            <span>顶级非遗分类</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #2E86AB;"></span>
+            <span>非遗子分类</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background: #C62828;"></span>
+            <span>传承人</span>
+          </div>
+        </div>
 
-          <section class="axis-graph">
-            <div ref="graphRef" class="graph-canvas"></div>
-            <div class="graph-legend">
-              <div class="l-item"><span class="dot cat"></span> 技艺项目</div>
-              <div class="l-item"><span class="dot master"></span> 核心传承人</div>
+        <!-- 底部悬浮导航 -->
+        <div class="bottom-nav">
+          <div class="nav-inner">
+            <div
+                class="nav-tab"
+                v-for="(cat, index) in categoryTree"
+                :key="cat.categoryId"
+                :class="{ active: activeCatId === cat.categoryId }"
+                @click="handleSelectCategory(cat)"
+            >
+              <span class="tab-index">0{{ index + 1 }}</span>
+              <span class="tab-label">{{ cat.categoryName }}</span>
             </div>
-          </section>
+          </div>
+        </div>
 
-          <aside class="axis-detail" v-if="selectedNode">
-            <div class="detail-header">
-              <div class="node-type-plain">{{ selectedNode.category === 0 ? '技艺项目' : '传承人' }}</div>
-              <div class="name-row">
-                <h2 class="node-name">{{ selectedNode.name }}</h2>
-                <dict-tag v-if="selectedNode.category === 1" :options="heritage_level" :value="selectedNode.level"
-                          class="level-tag"/>
-              </div>
+        <!-- 悬浮信息卡片 -->
+        <transition name="tooltip-fade">
+          <div class="node-tooltip" v-if="tooltipData" :style="tooltipStyle">
+            <div class="tooltip-header">
+              <span class="tooltip-type">{{ tooltipData.category === 0 ? '技艺项目' : (tooltipData.category === 1 ? '子分类' : '传承人') }}</span>
+              <dict-tag
+                  v-if="tooltipData.category === 2 && tooltipData.level"
+                  :options="heritage_level"
+                  :value="tooltipData.level"
+                  class="level-badge"
+              />
             </div>
-
-            <div class="detail-content">
-              <div class="info-group">
-                <label>档案摘要</label>
-                <div class="p-intro" v-html="selectedNode.intro || '正在检索数字化历史档案...'"></div>
-              </div>
-            </div>
-            <div class="watermark">{{ selectedNode.name }}</div>
-          </aside>
-        </main>
+            <h3 class="tooltip-name">{{ tooltipData.name }}</h3>
+            <div class="tooltip-intro" v-html="tooltipData.intro || '暂无详细描述'"></div>
+          </div>
+        </transition>
       </div>
     </transition>
   </div>
@@ -113,9 +129,11 @@ const isEntering = ref(false)
 const showDeck = ref(false)
 const categoryTree = ref([])
 const activeCatId = ref(null)
-const selectedNode = ref(null)
 const graphRef = ref(null)
 let myChart = null
+
+const tooltipData = ref(null)
+const tooltipStyle = ref({})
 
 let startX = 0, startY = 0, startTime = 0
 const modelSrc = computed(() => import.meta.env.VITE_APP_BASE_API + "/profile/model/book.glb")
@@ -156,12 +174,13 @@ const initGraphOnEnter = () => {
   })
 }
 
-function handleCloseDeck() {
+const handleCloseDeck = () => {
   showDeck.value = false
   if (myChart) {
-    myChart.dispose();
+    myChart.dispose()
     myChart = null
   }
+  tooltipData.value = null
   setTimeout(() => {
     isEntering.value = false
   }, 500)
@@ -169,51 +188,146 @@ function handleCloseDeck() {
 
 const handleSelectCategory = async (cat) => {
   activeCatId.value = cat.categoryId
-  selectedNode.value = { name: cat.categoryName, category: 0, intro: '请在左侧点击节点查看详细传承档案。' }
-  const nodes = [{ id: 'root', name: cat.categoryName, category: 0, symbolSize: 70 }]
+
+  // 阿里巴巴矢量图标库的SVG path
+  // 皇冠 -> 顶级分类，非遗标 -> 子分类，人像 -> 传承人
+  const nodes = [{
+    id: 'root',
+    name: cat.categoryName,
+    category: 0,
+    symbolSize: 80,
+    intro: '技艺分类'
+  }]
   const links = []
+
   if (cat.children) {
     cat.children.forEach(child => {
-      nodes.push({ id: `c_${child.categoryId}`, name: child.categoryName, category: 0, symbolSize: 45 })
+      nodes.push({
+        id: `c_${child.categoryId}`,
+        name: child.categoryName,
+        category: 1,
+        symbolSize: 55,
+        intro: '子分类'
+      })
       links.push({ source: 'root', target: `c_${child.categoryId}` })
     })
   }
+
   const res = await listInheritor({ categoryId: cat.categoryId })
   if (res.rows) {
     res.rows.forEach(master => {
       nodes.push({
         id: `m_${master.inheritorId}`,
         name: master.name,
-        category: 1,
-        symbolSize: 55,
+        category: 2,
+        symbolSize: 65,
         level: master.level,
-        intro: master.introduction
+        intro: master.introduction || '这位传承人致力于非遗技艺的传承与保护'
       })
       links.push({ source: `c_${master.categoryId}`, target: `m_${master.inheritorId}` })
     })
   }
+
   renderGraph(nodes, links)
 }
 
 const renderGraph = (nodes, links) => {
   if (!graphRef.value) return
   if (myChart) myChart.dispose()
-  myChart = echarts.init(graphRef.value)
+
+  myChart = echarts.init(graphRef.value, null, { renderer: 'canvas' })
+
   myChart.setOption({
     animationDuration: 1500,
+    animationEasingUpdate: 'quinticInOut',
     series: [{
-      type: 'graph', layout: 'force', data: nodes, links: links, roam: true,
-      label: { show: true, position: 'bottom', color: '#000', fontWeight: 'bold', fontSize: 13 },
-      force: { repulsion: 2000, gravity: 0.1, edgeLength: 150 },
-      lineStyle: { color: '#000', width: 1.5, curveness: 0.1 },
-      itemStyle: { color: (p) => p.data.category === 0 ? '#000' : '#FFD700', borderColor: '#000', borderWidth: 2 },
-      emphasis: { focus: 'adjacency', lineStyle: { width: 5 } }
+      type: 'graph',
+      layout: 'force',
+      data: nodes,
+      links: links,
+      roam: true,
+      draggable: true,
+      label: {
+        show: true,
+        position: 'bottom',
+        color: '#333',
+        fontWeight: '600',
+        fontSize: 14,
+        textBorderColor: '#fff',
+        textBorderWidth: 3,
+      },
+      force: {
+        repulsion: 2500,
+        gravity: 0.08,
+        edgeLength: 180,
+        layoutAnimation: true
+      },
+      lineStyle: {
+        color: '#999',
+        width: 2,
+        curveness: 0.3,
+        opacity: 0.6
+      },
+      itemStyle: {
+        color: (params) => {
+          const colors = ['#1A4A7F', '#2E86AB', '#C62828']
+          return colors[params?.data?.category] || '#999'
+        },
+        borderColor: '#fff',
+        borderWidth: 3,
+        shadowBlur: 20,
+        shadowColor: 'rgba(0,0,0,0.15)'
+      },
+      emphasis: {
+        focus: 'adjacency',
+        lineStyle: { width: 4, opacity: 1 },
+        itemStyle: {
+          shadowBlur: 25,
+          shadowColor: 'rgba(0,0,0,0.25)'
+        }
+      },
+
     }]
   })
-  myChart.on('click', (params) => {
-    selectedNode.value = params.data
+
+  // 鼠标悬浮显示信息（优化事件处理）
+  myChart.on('mouseover', function(params) {
+    if (params.dataType === 'node' && params.data) {
+      tooltipData.value = params.data
+      updateTooltipPosition(params.event)
+    }
   })
-  myChart.resize()
+
+  myChart.on('mouseout', function(params) {
+    if (params.dataType === 'node') {
+      // 延迟隐藏，避免快速移动时闪烁
+      setTimeout(() => {
+        if (!myChart || myChart.isDisposed()) return
+        tooltipData.value = null
+      }, 100)
+    }
+  })
+
+  myChart.on('mousemove', function(params) {
+    if (params.dataType === 'node' && tooltipData.value) {
+      updateTooltipPosition(params.event)
+    }
+  })
+
+  window.addEventListener('resize', () => myChart?.resize())
+}
+
+const updateTooltipPosition = (event) => {
+  const container = graphRef.value?.getBoundingClientRect()
+  if (!container) return
+
+  const x = event.offsetX || (event.clientX - container.left)
+  const y = event.offsetY || (event.clientY - container.top)
+
+  tooltipStyle.value = {
+    left: `${x + 20}px`,
+    top: `${y - 20}px`
+  }
 }
 
 onMounted(initData)
@@ -223,7 +337,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
-$bg-color: #F2F0EB;
+$bg-color: #ffffff;
 $primary-blue: #1A4A7F;
 $wood-brown: #5D4037;
 $seal-red: #C62828;
@@ -233,7 +347,7 @@ $accent: #FFD700;
   position: relative;
   width: 100%;
   height: calc(100vh - 84px);
-  background-color: $bg-color;
+  background-color: #ffffff;
   overflow: hidden;
   font-family: "Songti SC", "SimSun", serif;
   perspective: 2000px;
@@ -242,7 +356,6 @@ $accent: #FFD700;
 .paper-bg {
   position: absolute;
   inset: 0;
-  background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png');
   opacity: 0.8;
   z-index: 0;
 }
@@ -394,6 +507,8 @@ $accent: #FFD700;
     padding: 0 40px;
     font-weight: 900;
     font-size: 12px;
+    background: #fafafa;
+    border-bottom: 1px solid #eee;
 
     .nav-left {
       cursor: pointer;
@@ -403,112 +518,214 @@ $accent: #FFD700;
       gap: 8px;
       &:hover { color: #999; }
     }
+
+    .nav-center {
+      font-size: 16px;
+      letter-spacing: 2px;
+    }
   }
 
-  .deck-body {
+  .graph-container {
     flex: 1;
-    display: flex;
+    position: relative;
     overflow: hidden;
+    background: radial-gradient(circle at center, #fff 0%, #f5f5f5 100%);
+  }
 
-    .axis-nav {
-      width: 260px;
-      border-right: 1px solid #eee;
-      background: #fafafa;
+  .color-legend {
+    position: absolute;
+    bottom: 90px;
+    right: 40px;
+    z-index: 999;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border: 1px solid rgba(0,0,0,0.08);
+    min-width: 160px;
+      
+    .legend-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #222;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f0f0f0;
+      letter-spacing: 1px;
+    }
+      
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: #444;
+      font-weight: 600;
+        
+      &:last-child {
+        margin-bottom: 0;
+      }
+        
+      .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      }
+    }
+      
+    // 小屏幕适配
+    @media (max-width: 768px) {
+      bottom: 80px;
+      right: 20px;
+      padding: 12px 16px;
+      min-width: 140px;
+        
+      .legend-title {
+        font-size: 12px;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+      }
+        
+      .legend-item {
+        gap: 8px;
+        margin-bottom: 6px;
+        font-size: 12px;
+          
+        .legend-dot {
+          width: 10px;
+          height: 10px;
+        }
+      }
+    }
+  }
 
-      .nav-item {
-        padding: 30px 40px;
+  .bottom-nav {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+
+    .nav-inner {
+      display: flex;
+      gap: 12px;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      padding: 12px 20px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      border: 1px solid rgba(0,0,0,0.08);
+
+      .nav-tab {
+        padding: 12px 24px;
         cursor: pointer;
-        transition: all 0.3s;
-        border-bottom: 1px solid #eee;
+        transition: all 0.3s ease;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
 
-        .index { font-size: 10px; color: #bbb; display: block; }
-        .label { font-size: 16px; font-weight: 900; }
+        .tab-index {
+          font-size: 10px;
+          color: #ccc;
+          font-weight: 900;
+        }
+
+        .tab-label {
+          font-size: 14px;
+          font-weight: 700;
+          color: #666;
+        }
+
+        &:hover {
+          background: #f5f5f5;
+
+          .tab-label {
+            color: #333;
+          }
+        }
+
         &.active {
           background: #000;
-          color: #fff;
-          border-left: 5px solid $accent;
+
+          .tab-index {
+            color: rgba(255,255,255,0.5);
+          }
+
+          .tab-label {
+            color: #fff;
+          }
+        }
+      }
+    }
+  }
+
+  .node-tooltip {
+    position: absolute;
+    z-index: 200;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    min-width: 280px;
+    max-width: 350px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    border: 1px solid #eee;
+    pointer-events: none;
+
+    .tooltip-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #f0f0f0;
+
+      .tooltip-type {
+        font-size: 11px;
+        color: #999;
+        font-weight: 900;
+        letter-spacing: 2px;
+      }
+
+      .level-badge {
+        :deep(.el-tag) {
+          font-size: 11px;
         }
       }
     }
 
-    .axis-graph {
-      flex: 1;
-      position: relative;
-      .graph-canvas { width: 100%; height: 100%; }
-      .graph-legend {
-        position: absolute;
-        bottom: 30px;
-        left: 30px;
-        font-size: 11px;
-        font-weight: 900;
-        display: flex;
-        gap: 20px;
-        .dot { display: inline-block; width: 8px; height: 8px; border: 1px solid #000; margin-right: 5px; }
-        .dot.cat { background: #000; }
-        .dot.master { background: $accent; }
-      }
+    .tooltip-name {
+      font-size: 20px;
+      font-weight: 900;
+      color: #000;
+      margin: 0 0 12px 0;
     }
 
-    .axis-detail {
-      width: 380px;
-      border-left: 1px solid #000;
-      padding: 30px;
-      position: relative;
-      background: #fff;
-      display: flex;
-      flex-direction: column;
-
-      .name-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 25px;
-        border-bottom: 4px solid $accent;
-        padding-bottom: 8px;
-        .node-name { font-size: 32px; font-weight: 900; margin: 0; color: #000; }
-      }
-
-      .node-type-plain {
-        font-size: 11px;
-        color: #999;
-        font-weight: 900;
-        margin-bottom: 5px;
-        letter-spacing: 2px;
-      }
-
-      .p-intro {
-        font-size: 15px;
-        line-height: 2.2;
-        color: #444;
-        max-height: 550px;
-        overflow-y: auto;
-        padding-right: 5px;
-        :deep(p) { margin-bottom: 15px; }
-        &::-webkit-scrollbar { width: 2px; }
-        &::-webkit-scrollbar-thumb { background: #eee; }
-      }
-
-      .info-group label {
-        display: block;
-        font-size: 11px;
-        font-weight: 900;
-        color: #ccc;
-        margin-bottom: 12px;
-        letter-spacing: 1px;
-      }
-
-      .watermark {
-        position: absolute;
-        bottom: 80px;
-        right: -20px;
-        font-size: 80px;
-        font-weight: 900;
-        color: rgba(0, 0, 0, 0.02);
-        transform: rotate(90deg);
-        pointer-events: none;
-      }
+    .tooltip-intro {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.8;
+      margin: 0;
     }
   }
+}
+
+.tooltip-fade-enter-active,
+.tooltip-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.tooltip-fade-enter-from,
+.tooltip-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 
 @keyframes pulse {

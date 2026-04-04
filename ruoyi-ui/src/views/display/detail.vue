@@ -1,22 +1,19 @@
 <template>
   <div class="trinity-detail-container" v-loading="loading">
-    <!-- 顶部导航 -->
-    <header class="minimal-nav">
-      <div class="nav-back-block" @click="router.back()">
-        <el-icon><ArrowLeft /></el-icon>
-        <span>返回展厅</span>
-      </div>
-
-      <div class="nav-status">
-        <transition name="el-fade-in">
-          <span v-if="isCollected" class="collected-status-tag">已收藏展品</span>
-        </transition>
-      </div>
-    </header>
-
     <main class="trinity-main">
       <!-- 第一轴：3D 展示区 -->
       <section class="axis-3d">
+        <!-- 【修复点 1】将原本突兀的顶部栏重构为悬浮控件，消除后台“双导航栏”的错觉 -->
+        <div class="floating-nav">
+          <div class="nav-back-block" @click="router.back()">
+            <el-icon><ArrowLeft /></el-icon>
+            <span>返回 / BACK</span>
+          </div>
+          <transition name="el-fade-in">
+            <span v-if="isCollected" class="collected-status-tag">★ 已收藏展品</span>
+          </transition>
+        </div>
+
         <model-viewer
             v-if="form.modelFile"
             :src="getAssetUrl(form.modelFile)"
@@ -25,15 +22,16 @@
             shadow-intensity="1.5"
             environment-image="neutral"
             exposure="1"
-            camera-orbit="0deg 75deg 280%"
+            camera-orbit="0deg 75deg 250%"
             min-camera-orbit="auto auto 150%"
-            max-camera-orbit="auto auto 400%"
+            max-camera-orbit="auto auto 500%"
             class="viewer-instance"
         >
           <div slot="poster" class="model-loading">
             <div class="spinner"></div>
             <p class="loading-text">SYNCING DATA</p>
           </div>
+          <div slot="progress-bar" style="display: none;"></div>
         </model-viewer>
 
         <div v-else class="no-model-state">
@@ -58,7 +56,6 @@
       <section class="axis-info">
         <div class="scroll-wrapper">
           <div class="hero-title-box">
-            <!-- 修改点：使用 categoryFormat 函数根据 ID 获取名称 -->
             <span class="category-label">/ {{ categoryFormat(form.categoryId) }}</span>
             <h1 class="main-title">{{ form.itemName }}</h1>
           </div>
@@ -66,28 +63,23 @@
           <!-- 控制台 -->
           <div class="power-console">
             <div class="stats-container">
-              <div class="stat-item">
+              <div class="stat-item view-stat">
+                <span class="emoji">👁️</span>
                 <span class="num">{{ form.viewCount || 0 }}</span>
-                <span class="lab">浏览</span>
               </div>
-              <div class="stat-divider"></div>
-
-              <div class="stat-item">
-                <span class="num">{{ form.likeCount || 0 }}</span>
-                <span class="lab">点赞</span>
-              </div>
-              <button class="elegant-action-btn like-btn" :class="{ 'is-active': isLiked }" @click="handleAction(2)">
-                <el-icon class="icon"><Pointer /></el-icon>
+              
+              <button class="action-btn like-btn" :class="{ 'is-active': isLiked }" @click="handleAction(2)">
+                <svg viewBox="0 0 24 24" class="heart-icon">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+                <span class="count">{{ form.likeCount || 0 }}</span>
               </button>
 
-              <div class="stat-divider"></div>
-
-              <div class="stat-item">
-                <span class="num">{{ form.favoriteCount || 0 }}</span>
-                <span class="lab">收藏</span>
-              </div>
-              <button class="elegant-action-btn collect-btn" :class="{ 'is-active': isCollected }" @click="handleAction(3)">
-                <el-icon class="icon"><StarFilled v-if="isCollected" /><Star v-else /></el-icon>
+              <button class="action-btn collect-btn" :class="{ 'is-active': isCollected }" @click="handleAction(3)">
+                <svg viewBox="0 0 24 24" class="star-icon">
+                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                </svg>
+                <span class="count">{{ form.favoriteCount || 0 }}</span>
               </button>
             </div>
           </div>
@@ -160,7 +152,7 @@ import { ref, onMounted, getCurrentInstance } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getHeritage_manage, updateHeritageCount } from "@/api/heritage/heritage_manage";
 import { listComment, addComment } from "@/api/heritage/comment";
-import { listCategory } from "@/api/heritage/category"; // 引入分类列表API
+import { listCategory } from "@/api/heritage/category";
 import { ArrowLeft, Star, StarFilled, Pointer, View } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import defAva from '@/assets/images/profile.jpg';
@@ -169,12 +161,11 @@ const { proxy } = getCurrentInstance();
 const route = useRoute();
 const router = useRouter();
 
-// --- 状态定义 ---
 const loading = ref(true);
 const commentLoading = ref(false);
 const submitting = ref(false);
 const form = ref({});
-const categoryOptions = ref([]); // 存放全部分类
+const categoryOptions = ref([]);
 
 const isLiked = ref(false);
 const isCollected = ref(false);
@@ -183,7 +174,6 @@ const newComment = ref('');
 const commentList = ref([]);
 const totalComments = ref(0);
 
-// --- 工具函数 ---
 const getAssetUrl = (url) => {
   if (!url) return '';
   if (url.startsWith('http') || url.startsWith('blob')) return url;
@@ -195,19 +185,14 @@ const getAvatarUrl = (url) => {
   return import.meta.env.VITE_APP_BASE_API + url;
 };
 
-/** 【新增】格式化分类：根据 categoryId 匹配列表中的名称 */
 function categoryFormat(categoryId) {
   if (!categoryId || categoryOptions.value.length === 0) return 'GENERAL';
   const category = categoryOptions.value.find(item => String(item.categoryId) === String(categoryId));
   return category ? category.categoryName : 'GENERAL';
 }
 
-// --- 核心逻辑 ---
-
-/** 获取全部分类列表（用于前端匹配） */
 const getCategoryList = async () => {
   try {
-    // 传一个较大的 pageSize 确保拿全分类
     const res = await listCategory({ pageNum: 1, pageSize: 100 });
     categoryOptions.value = res.rows;
   } catch (err) {
@@ -215,7 +200,6 @@ const getCategoryList = async () => {
   }
 };
 
-/** 加载详情 */
 const loadDetail = async () => {
   const id = route.params.id;
   if (!id) return;
@@ -234,7 +218,6 @@ const loadDetail = async () => {
   }
 };
 
-/** 加载评论列表 */
 const loadComments = async () => {
   const id = route.params.id;
   if(!id) return;
@@ -250,7 +233,6 @@ const loadComments = async () => {
   }
 };
 
-/** 提交评论 */
 const handlePostComment = async () => {
   if (!newComment.value.trim()) {
     ElMessage.warning("请输入评论内容");
@@ -267,7 +249,6 @@ const handlePostComment = async () => {
   }
 };
 
-/** 点赞/收藏 */
 const handleAction = async (type) => {
   const id = route.params.id;
   try {
@@ -283,63 +264,27 @@ const handleAction = async (type) => {
 };
 
 onMounted(() => {
-  getCategoryList(); // 先获取列表用于匹配
+  getCategoryList();
   loadDetail();
   loadComments();
 });
 </script>
+
 <style lang="scss" scoped>
-/* 容器布局锁死 */
+/* 【修复点 2】锁定容器绝对边界，移除破坏若依布局的 margin: -20px，防止挤压左侧菜单 */
 .trinity-detail-container {
+  position: relative;
+  width: 100%;
   height: calc(100vh - 84px);
   display: flex;
   flex-direction: column;
   background: #fff;
   overflow: hidden;
-  margin: -20px;
-}
-
-/* 导航条 */
-.minimal-nav {
-  height: 68px;
-  flex-shrink: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 35px;
-  background: #fff;
-  z-index: 2500;
-
-  .nav-back-block {
-    background: #000;
-    color: #fff;
-    height: 40px;
-    padding: 0 22px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: 2px;
-    margin-top: 2px;
-    transition: background 0.2s;
-    &:hover { background: #333; }
-  }
-
-  .nav-status .collected-status-tag {
-    background: #ffd700;
-    color: #000;
-    font-size: 10px;
-    padding: 5px 14px;
-    font-weight: 900;
-    letter-spacing: 1.5px;
-    box-shadow: 4px 4px 0 #000;
-  }
 }
 
 .trinity-main {
   flex: 1;
+  width: 100%;
   display: flex;
   overflow: hidden;
 
@@ -351,6 +296,48 @@ onMounted(() => {
     display: flex;
     align-items: center;
     justify-content: center;
+
+    /* 悬浮控制组件 */
+    .floating-nav {
+      position: absolute;
+      top: 25px;
+      left: 25px;
+      right: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      z-index: 100;
+      pointer-events: none; /* 让空白处鼠标穿透，不影响 3D 旋转 */
+
+      .nav-back-block {
+        pointer-events: auto; /* 按钮恢复点击 */
+        background: #000;
+        color: #fff;
+        height: 38px;
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        transition: background 0.2s;
+        &:hover { background: #333; }
+      }
+
+      .collected-status-tag {
+        pointer-events: auto;
+        background: #ffd700;
+        color: #000;
+        font-size: 10px;
+        padding: 6px 14px;
+        font-weight: 900;
+        letter-spacing: 1.5px;
+        box-shadow: 4px 4px 0 #000;
+      }
+    }
+
     .viewer-instance { width: 100%; height: 100%; outline: none; }
 
     .model-loading {
@@ -418,7 +405,6 @@ onMounted(() => {
       }
     }
 
-    /* 评论项美化 */
     .comment-scroller {
       .comment-item {
         margin-bottom: 30px;
@@ -435,48 +421,182 @@ onMounted(() => {
           font-size: 14px; color: #333; line-height: 1.8; padding: 16px;
           background: #fff; border: 1px solid #f0f0f0; border-radius: 2px;
           box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-          word-break: break-all; /* 防止长文本撑破布局 */
+          word-break: break-all;
         }
       }
-      .empty-comments {
-        text-align: center; color: #ccc; font-size: 12px; margin-top: 50px;
-      }
+      .empty-comments { text-align: center; color: #ccc; font-size: 12px; margin-top: 50px; }
     }
   }
 }
 
-/* 标题 & 控制台 */
 .hero-title-box {
-  margin-bottom: 45px;
-  .category-label { font-size: 12px; color: #bbb; font-weight: 900; letter-spacing: 2px; }
-  .main-title { font-size: 52px; font-weight: 900; margin: 15px 0; line-height: 1.1; letter-spacing: -3px; }
+  margin-bottom: 35px;
+  .category-label { 
+    font-size: 11px; 
+    color: #888; 
+    font-weight: 500; 
+    letter-spacing: 1px;
+    display: inline-block;
+    padding: 3px 10px;
+    background: #f5f5f5;
+    border-radius: 12px;
+  }
+  .main-title { 
+    font-size: 36px; 
+    font-weight: 700; 
+    margin: 15px 0 8px 0; 
+    line-height: 1.3; 
+    color: #1a1a1a;
+  }
 }
 
 .power-console {
-  margin-bottom: 55px;
+  margin-bottom: 40px;
   .stats-container {
-    display: flex; align-items: center; gap: 20px; padding: 22px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee;
-    .stat-item { display: flex; flex-direction: column; min-width: 60px;
-      .num { font-size: 26px; font-weight: 900; color: #000; line-height: 1; }
-      .lab { font-size: 9px; color: #ccc; font-weight: 900; margin-top: 5px; }
+    display: flex; 
+    align-items: center; 
+    gap: 20px;
+    padding: 16px 0;
+    
+    .stat-item.view-stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding-right: 20px;
+      border-right: 1px solid #eee;
+      
+      .emoji {
+        font-size: 20px;
+      }
+      
+      .num { 
+        font-size: 18px; 
+        font-weight: 600; 
+        color: #666;
+      }
     }
-    .stat-divider { width: 1px; height: 30px; background: #eee; }
-    .elegant-action-btn {
-      width: 42px; height: 42px; background: #fff; border: 2px solid #000; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;
-      .icon { font-size: 18px; color: #000; }
-      &:hover { transform: translateY(-2px); }
-      &.is-active { background: #000; .icon { color: #fff; } }
-      &.collect-btn.is-active .icon { color: #ffd700; }
+    
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-radius: 20px;
+      
+      svg {
+        width: 24px;
+        height: 24px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      .count {
+        font-size: 16px;
+        font-weight: 600;
+        color: #666;
+        transition: all 0.3s ease;
+      }
+      
+      &:hover {
+        background: rgba(0, 0, 0, 0.04);
+        transform: scale(1.05);
+      }
+      
+      &.like-btn {
+        .heart-icon {
+          fill: none;
+          stroke: #999;
+          stroke-width: 2;
+        }
+        
+        &:hover .heart-icon {
+          stroke: #ff4757;
+        }
+        
+        &.is-active {
+          .heart-icon {
+            fill: #ff4757;
+            stroke: #ff4757;
+            animation: heartBeat 0.5s ease-in-out;
+          }
+          
+          .count {
+            color: #ff4757;
+          }
+        }
+      }
+      
+      &.collect-btn {
+        .star-icon {
+          fill: none;
+          stroke: #999;
+          stroke-width: 2;
+        }
+        
+        &:hover .star-icon {
+          stroke: #ffa502;
+        }
+        
+        &.is-active {
+          .star-icon {
+            fill: #ffa502;
+            stroke: #ffa502;
+            animation: starTwinkle 0.5s ease-in-out;
+          }
+          
+          .count {
+            color: #ffa502;
+          }
+        }
+      }
     }
   }
 }
 
 .info-block {
   margin-bottom: 55px;
-  .block-label { font-size: 17px; font-weight: 900; letter-spacing: 1.5px; margin-bottom: 25px; display: flex; align-items: center;
-    &::before { content: ''; width: 4px; height: 18px; background: #000; margin-right: 14px; }
+  .block-label { 
+    font-size: 18px; 
+    font-weight: 700; 
+    letter-spacing: 1.5px; 
+    margin-bottom: 25px; 
+    display: flex; 
+    align-items: center;
+    color: #2c3e50;
+    
+    &::before { 
+      content: ''; 
+      width: 5px; 
+      height: 22px; 
+      background: linear-gradient(to bottom, #667eea, #764ba2); 
+      margin-right: 14px;
+      border-radius: 3px;
+    }
   }
-  .p-desc, .rich-text { font-size: 15px; line-height: 2.2; color: #444; padding-left: 18px; }
+  .p-desc, .rich-text { 
+    font-size: 15px; 
+    line-height: 2.2; 
+    color: #555; 
+    padding-left: 19px;
+    text-align: justify;
+  }
+}
+
+@keyframes heartBeat {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.3); }
+  50% { transform: scale(1.1); }
+  75% { transform: scale(1.4); }
+}
+
+@keyframes starTwinkle {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.3) rotate(-15deg); }
+  50% { transform: scale(1.1) rotate(15deg); }
+  75% { transform: scale(1.4) rotate(-10deg); }
 }
 
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0,0,0,0.1); } 70% { box-shadow: 0 0 0 10px rgba(0,0,0,0); } 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); } }

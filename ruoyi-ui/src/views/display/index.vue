@@ -1,7 +1,6 @@
-<!--
 <template>
   <div class="exhibit-container">
-    &lt;!&ndash; 1. 顶部搜索栏：吸顶效果 &ndash;&gt;
+    <!-- 1. 顶部搜索栏：吸顶效果 -->
     <div class="search-section">
       <div class="search-bar">
         <el-input
@@ -16,7 +15,7 @@
       </div>
     </div>
 
-    &lt;!&ndash; 2. 沉浸式轮播图：占据大比例视觉 &ndash;&gt;
+    <!-- 2. 沉浸式轮播图：占据大比例视觉 -->
     <div class="hero-carousel">
       <el-carousel :interval="5000" height="450px" indicator-position="outside">
         <el-carousel-item v-for="item in bannerList" :key="item.id">
@@ -32,13 +31,13 @@
       </el-carousel>
     </div>
 
-    &lt;!&ndash; 3. 非遗文化列表：极简工业风卡片 &ndash;&gt;
+    <!-- 3. 非遗文化列表：极简工业风卡片 -->
     <div class="content-section">
       <div class="section-header">
         <h3 class="section-title">白族非遗名录 / <span>HERITAGE LIST</span></h3>
         <div class="filter-tabs">
           <span :class="{ active: !queryParams.categoryId }" @click="filterByCategory(null)">全部</span>
-          &lt;!&ndash; 分类：1-技艺, 2-服饰, 3-建筑, 4-活动 &ndash;&gt;
+          <!-- 分类：1-技艺, 2-服饰, 3-建筑, 4-活动 -->
           <span v-for="cat in categoryList" :key="cat.id"
                 :class="{ active: queryParams.categoryId === cat.id }"
                 @click="filterByCategory(cat.id)">
@@ -70,7 +69,7 @@
         </el-col>
       </el-row>
 
-      &lt;!&ndash; 分页 &ndash;&gt;
+      <!-- 分页 -->
       <div class="pagination-wrapper">
         <pagination
             v-show="total > 0"
@@ -94,7 +93,7 @@ const route = useRoute();
 const router = useRouter();
 const { proxy } = getCurrentInstance();
 
-// -&#45;&#45; 数据响应式变量 -&#45;&#45;
+// --- 数据响应式变量 ---
 const loading = ref(true);
 const total = ref(0);
 const heritageList = ref([]);
@@ -106,7 +105,7 @@ const categoryList = ref([
   { id: 4, name: '民俗活动' }
 ]);
 
-// -&#45;&#45; 修改部分：添加排序参数 -&#45;&#45;
+// --- 修改部分：添加排序参数 ---
 const queryParams = reactive({
   pageNum: 1,
   pageSize: 8,
@@ -117,7 +116,7 @@ const queryParams = reactive({
   isAsc: 'asc'                 // 'asc'=升序(小到大), 'desc'=降序
 });
 
-// -&#45;&#45; 方法 -&#45;&#45;
+// --- 方法 ---
 
 /** 获取资源完整路径 */
 const getAssetUrl = (url) => {
@@ -156,9 +155,18 @@ const filterByCategory = (id) => {
   handleQuery();
 };
 
-/** 跳转详情 */
+/** 跳转详情 - 智能判断前后端环境 */
 const goToDetail = (id) => {
-  router.push("/exhibit/detail/" + id);
+  // 检查当前是否在后台 Layout 中（通过检测 .app-wrapper 是否存在）
+  const isInAdmin = document.querySelector('.app-wrapper') !== null;
+  
+  if (isInAdmin) {
+    // 后台环境：使用后台管理路由
+    router.push("/heritage-manage-detail/" + id);
+  } else {
+    // 前台环境：使用门户路由
+    router.push("/display/detail/" + id);
+  }
 };
 
 onMounted(() => {
@@ -392,10 +400,11 @@ onMounted(() => {
     justify-content: center;
   }
 }
-</style>-->
+</style>
+<!--
 <template>
   <div class="exhibit-container">
-    <!-- 1. 顶部搜索栏：吸顶效果 -->
+    &lt;!&ndash; 1. 顶部搜索栏：吸顶效果 &ndash;&gt;
     <div class="search-section">
       <div class="search-bar">
         <el-input
@@ -410,12 +419,12 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 2. 沉浸式轮播图：高度自适应 -->
+    &lt;!&ndash; 2. 沉浸式轮播图：高度自适应 &ndash;&gt;
     <div class="hero-carousel">
-      <!--
+      &lt;!&ndash;
          修改点：height 使用动态绑定 bannerHeight
          根据屏幕高度自动调整，防止在笔记本上占满全屏
-      -->
+      &ndash;&gt;
       <el-carousel :interval="5000" :height="bannerHeight" indicator-position="outside">
         <el-carousel-item v-for="item in bannerList" :key="item.id">
           <div class="carousel-content">
@@ -430,7 +439,7 @@ onMounted(() => {
       </el-carousel>
     </div>
 
-    <!-- 3. 非遗文化列表 -->
+    &lt;!&ndash; 3. 非遗文化列表 &ndash;&gt;
     <div class="content-section">
       <div class="section-header">
         <h3 class="section-title">白族非遗名录 / <span>HERITAGE LIST</span></h3>
@@ -445,14 +454,14 @@ onMounted(() => {
       </div>
 
       <el-row :gutter="25" v-loading="loading">
-        <!-- 响应式栅格：在不同尺寸下显示不同数量 -->
+        &lt;!&ndash; 响应式栅格：在不同尺寸下显示不同数量 &ndash;&gt;
         <el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="4" v-for="item in heritageList" :key="item.itemId">
           <div class="poizon-card" @click="goToDetail(item.itemId)">
             <div class="card-image-wrapper">
-              <!--
+              &lt;!&ndash;
                  修改点：移除 lazy，防止在某些内嵌滚动容器中出现白图
                  直接加载图片以保证稳定性
-              -->
+              &ndash;&gt;
               <el-image :src="getAssetUrl(item.coverImage)" fit="cover">
                 <template #placeholder>
                   <div class="image-slot">加载中...</div>
@@ -472,7 +481,7 @@ onMounted(() => {
         </el-col>
       </el-row>
 
-      <!-- 分页 -->
+      &lt;!&ndash; 分页 &ndash;&gt;
       <div class="pagination-wrapper">
         <pagination
             v-show="total > 0"
@@ -495,7 +504,7 @@ import { Plus, Right, Search } from "@element-plus/icons-vue";
 const route = useRoute();
 const router = useRouter();
 
-// --- 数据响应式变量 ---
+// -&#45;&#45; 数据响应式变量 -&#45;&#45;
 const loading = ref(true);
 const total = ref(0);
 const heritageList = ref([]);
@@ -520,7 +529,7 @@ const queryParams = reactive({
   status: 0
 });
 
-// --- 方法 ---
+// -&#45;&#45; 方法 -&#45;&#45;
 
 const getAssetUrl = (url) => {
   if (!url) return '';
@@ -568,7 +577,7 @@ const filterByCategory = (id) => {
 };
 
 const goToDetail = (id) => {
-  router.push("/display/detail/" + id);
+  router.push("/heritage-manage-detail/" + id);
 };
 
 onMounted(() => {
@@ -848,4 +857,4 @@ onUnmounted(() => {
     padding-top: 20px;
   }
 }
-</style>
+</style>-->

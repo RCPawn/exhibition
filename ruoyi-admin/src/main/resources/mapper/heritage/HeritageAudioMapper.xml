@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.heritage.mapper.HeritageAudioMapper">
+
+    <resultMap type="HeritageAudio" id="HeritageAudioResult">
+        <result property="audioId"      column="audio_id"    />
+        <result property="title"        column="title"    />
+        <result property="audioUrl"     column="audio_url"    />
+        <result property="itemId"       column="item_id"    />
+        <result property="waveformData"  column="waveform_data"    />
+        <result property="description"  column="description"    />
+        <result property="status"       column="status"    />
+        <result property="delFlag"      column="del_flag"    />
+        <result property="createBy"     column="create_by"    />
+        <result property="createTime"   column="create_time"    />
+        <result property="updateBy"     column="update_by"    />
+        <result property="updateTime"   column="update_time"    />
+        <!-- ✅ 关联字段映射 (对应 Java 实体类中新加的属性) -->
+        <result property="modelFile"    column="model_file"   />
+        <result property="coverImage"   column="cover_image"  />
+        <result property="itemName"     column="item_name"    />
+    </resultMap>
+
+    <!-- ✅ 关键：使用 LEFT JOIN 关联展品表，一次性查出 3D 资源路径 -->
+    <sql id="selectHeritageAudioVo">
+        select
+            a.audio_id, a.title, a.audio_url, a.item_id, a.waveform_data, a.description, a.status, a.del_flag, a.create_by, a.create_time, a.update_by, a.update_time,
+            i.model_file, i.cover_image, i.item_name
+        from heritage_audio a
+                 left join heritage_item i on a.item_id = i.item_id
+    </sql>
+
+    <!-- 列表查询 -->
+    <select id="selectHeritageAudioList" parameterType="HeritageAudio" resultMap="HeritageAudioResult">
+        <include refid="selectHeritageAudioVo"/>
+        <where>
+            <if test="title != null  and title != ''"> and a.title like concat('%', #{title}, '%')</if>
+            <if test="itemId != null "> and a.item_id = #{itemId}</if>
+            <if test="status != null  and status != ''"> and a.status = #{status}</if>
+            <!-- 仅查询未删除的数据 -->
+            and a.del_flag = '0'
+        </where>
+        order by a.create_time desc
+    </select>
+
+    <!-- 详情查询 -->
+    <select id="selectHeritageAudioByAudioId" parameterType="Long" resultMap="HeritageAudioResult">
+        <include refid="selectHeritageAudioVo"/>
+        where a.audio_id = #{audioId}
+    </select>
+
+    <insert id="insertHeritageAudio" parameterType="HeritageAudio" useGeneratedKeys="true" keyProperty="audioId">
+        insert into heritage_audio
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">title,</if>
+            <if test="audioUrl != null and audioUrl != ''">audio_url,</if>
+            <if test="itemId != null">item_id,</if>
+            <if test="waveformData != null">waveform_data,</if>
+            <if test="description != null">description,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="audioUrl != null and audioUrl != ''">#{audioUrl},</if>
+            <if test="itemId != null">#{itemId},</if>
+            <if test="waveformData != null">#{waveformData},</if>
+            <if test="description != null">#{description},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateHeritageAudio" parameterType="HeritageAudio">
+        update heritage_audio
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="audioUrl != null and audioUrl != ''">audio_url = #{audioUrl},</if>
+            <if test="itemId != null">item_id = #{itemId},</if>
+            <if test="waveformData != null">waveform_data = #{waveformData},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where audio_id = #{audioId}
+    </update>
+
+    <delete id="deleteHeritageAudioByAudioId" parameterType="Long">
+        delete from heritage_audio where audio_id = #{audioId}
+    </delete>
+
+    <delete id="deleteHeritageAudioByAudioIds" parameterType="String">
+        delete from heritage_audio where audio_id in
+        <foreach item="audioId" collection="array" open="(" separator="," close=")">
+            #{audioId}
+        </foreach>
+    </delete>
+</mapper>

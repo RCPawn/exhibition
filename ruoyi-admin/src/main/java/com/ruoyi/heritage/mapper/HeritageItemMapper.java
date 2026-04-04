@@ -69,7 +69,7 @@ public interface HeritageItemMapper {
     /** 获取热门展品排行 Top 5 */
     List<ChartDataVo> selectTop5Trend();
 
-    /** 获取最新录入的 3 条展品 */
+    /** 获取最新录入的 5 条展品 */
     List<HeritageItem> selectLatestItems();
 
     /** 获取热度最高的一个展品 (镇馆之宝) */

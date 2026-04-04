@@ -71,6 +71,42 @@ export const constantRoutes = [
             }
         ]
     },
+    // 【新增】：专门给后台管理端用的详情页路由（带左侧菜单栏）
+    {
+        path: '/heritage-manage-detail',
+        component: Layout, // 👈 关键点：这里使用后台的 Layout，确保左侧菜单不消失
+        hidden: true, // 不在侧边栏显示为独立菜单项
+        children: [
+            {
+                path: ':id', // 动态参数
+                component: () => import('@/views/display/detail'), // 指向同一个详情页组件
+                name: 'AdminHeritageDetail',
+                meta: {
+                    title: '展品详情',
+                    // 高亮前台的“在线展厅”菜单
+                    activeMenu: '/display/gallery'
+                }
+            }
+        ]
+    },
+    // 纸上乾坤后台详情页路由
+    {
+        path: '/gallery-manage-detail',
+        component: Layout,
+        hidden: true,
+        children: [
+            {
+                path: ':id',
+                component: () => import('@/views/display/gallery/detail'),
+                name: 'AdminGalleryDetail',
+                meta: {
+                    title: '图集详情',
+                    // 高亮前台的“纸上乾坤”菜单
+                    activeMenu: '/display/images'
+                }
+            }
+        ]
+    },
     // 新增门户路由（不需要侧边栏的页面都挂在这里）
     {
         path: '/display',
@@ -97,6 +133,11 @@ export const constantRoutes = [
                 meta: {title: '传承图谱'}
             },
             {
+                path: 'profile',
+                component: () => import('@/views/system/user/profile/index'),
+                meta: {title: '个人信息'}
+            },
+            {
                 path: 'collection',
                 component: () => import('@/views/heritage/user-center/collection'),
                 meta: {title: '我的收藏'}
@@ -105,6 +146,22 @@ export const constantRoutes = [
                 path: 'my-publish',
                 component: () => import('@/views/heritage/user-center/publish'),
                 meta: {title: '我的发布'}
+            },
+            {
+                path: 'acoustic',
+                component: () => import('@/views/display/audio'),
+                name: 'AcousticLab',
+                meta: { title: '三道余音' }
+            },
+            {
+                path: 'images',
+                component: () => import('@/views/display/gallery/index'),
+                meta: { title: '纸上乾坤' }
+            },
+            {
+                path: 'images/detail/:id',
+                component: () => import('@/views/display/gallery/detail'),
+                meta: { title: '图集' }
             }
         ]
     },

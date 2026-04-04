@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.heritage.mapper.HeritageGalleryMapper">
+
+    <resultMap type="HeritageGallery" id="HeritageGalleryResult">
+        <result property="galleryId"    column="gallery_id"    />
+        <result property="title"    column="title"    />
+        <result property="coverUrl"    column="cover_url"    />
+        <result property="description"    column="description"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <resultMap type="HeritageGalleryImage" id="HeritageGalleryImageResult">
+        <result property="imageId"    column="sub_image_id"    />
+        <result property="galleryId"    column="gallery_id"    />
+        <result property="imageUrl"    column="sub_image_url"    />
+        <result property="caption"    column="sub_caption"    />
+        <result property="sortOrder"    column="sub_sort_order"    />
+    </resultMap>
+
+    <resultMap id="HeritageGalleryHeritageGalleryImageResult" type="HeritageGallery" extends="HeritageGalleryResult">
+        <collection property="heritageGalleryImageList" notNullColumn="sub_image_id" javaType="java.util.List" resultMap="HeritageGalleryImageResult" />
+    </resultMap>
+
+    <sql id="selectHeritageGalleryVo">
+        select gallery_id, title, cover_url, description, status, del_flag, create_by, create_time from heritage_gallery
+    </sql>
+
+    <select id="selectHeritageGalleryList" parameterType="HeritageGallery" resultMap="HeritageGalleryResult">
+        <include refid="selectHeritageGalleryVo"/>
+        <where>
+            <if test="title != null  and title != ''"> and title like concat('%', #{title}, '%')</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+
+    <select id="selectHeritageGalleryByGalleryId" parameterType="Long" resultMap="HeritageGalleryHeritageGalleryImageResult">
+        select a.gallery_id, a.title, a.cover_url, a.description, a.status, a.del_flag, a.create_by, a.create_time,
+               b.image_id as sub_image_id, b.image_url as sub_image_url, b.caption as sub_caption, b.sort_order as sub_sort_order
+        from heritage_gallery a
+                 left join heritage_gallery_image b on b.gallery_id = a.gallery_id
+        where a.gallery_id = #{galleryId}
+    </select>
+
+    <select id="selectHeritageGalleryImageList" resultMap="HeritageGalleryImageResult">
+        select image_id as sub_image_id, gallery_id, image_url as sub_image_url, caption as sub_caption, sort_order as sub_sort_order
+        from heritage_gallery_image
+        where gallery_id = #{galleryId}
+    </select>
+
+    <insert id="insertHeritageGallery" parameterType="HeritageGallery" useGeneratedKeys="true" keyProperty="galleryId">
+        insert into heritage_gallery
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">title,</if>
+            <if test="coverUrl != null and coverUrl != ''">cover_url,</if>
+            <if test="description != null">description,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="coverUrl != null and coverUrl != ''">#{coverUrl},</if>
+            <if test="description != null">#{description},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateHeritageGallery" parameterType="HeritageGallery">
+        update heritage_gallery
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="coverUrl != null and coverUrl != ''">cover_url = #{coverUrl},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where gallery_id = #{galleryId}
+    </update>
+
+    <delete id="deleteHeritageGalleryByGalleryId" parameterType="Long">
+        delete from heritage_gallery where gallery_id = #{galleryId}
+    </delete>
+
+    <delete id="deleteHeritageGalleryByGalleryIds" parameterType="String">
+        delete from heritage_gallery where gallery_id in
+        <foreach item="galleryId" collection="array" open="(" separator="," close=")">
+            #{galleryId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteHeritageGalleryImageByGalleryIds" parameterType="String">
+        delete from heritage_gallery_image where gallery_id in
+        <foreach item="galleryId" collection="array" open="(" separator="," close=")">
+            #{galleryId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteHeritageGalleryImageByGalleryId" parameterType="Long">
+        delete from heritage_gallery_image where gallery_id = #{galleryId}
+    </delete>
+
+    <insert id="batchHeritageGalleryImage">
+        insert into heritage_gallery_image( image_id, gallery_id, image_url, caption, sort_order) values
+        <foreach item="item" index="index" collection="list" separator=",">
+            ( #{item.imageId}, #{item.galleryId}, #{item.imageUrl}, #{item.caption}, #{item.sortOrder})
+        </foreach>
+    </insert>
+</mapper>

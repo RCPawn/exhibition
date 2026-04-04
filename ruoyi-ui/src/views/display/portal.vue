@@ -7,7 +7,7 @@
       <section class="text-side">
         <div class="category-tag">数字孪生 / 馆藏档案</div>
         <h1 class="main-title">
-          白族 <span class="highlight">非遗</span>
+          <span class="highlight">白族</span> 非遗
         </h1>
         <p class="description">
           实时监测全站 {{ stats.totalItems }} 项数字化资产。<br />
@@ -34,7 +34,10 @@
               exposure="1.2"
               camera-orbit="45deg 75deg 105%"
               class="hero-model"
-          ></model-viewer>
+          >
+            <!-- 隐藏加载进度条 -->
+            <div slot="progress-bar" style="display: none;"></div>
+          </model-viewer>
 
           <div class="stage-ring"></div>
 
@@ -156,6 +159,10 @@ onMounted(getStats);
       height: 100%;
       outline: none;
       z-index: 10;
+      /* 隐藏 model-viewer 内部进度条的关键 CSS 变量 */
+      --progress-bar-height: 0px;
+      --progress-bar-color: transparent;
+      --poster-color: transparent;
     }
 
     .stage-ring {
@@ -230,6 +237,13 @@ onMounted(getStats);
       .lab { font-size: 11px; color: #999; margin-top: 10px; font-weight: 900; }
     }
     .stat-divider { width: 1px; height: 35px; background: #eee; }
+  }
+}
+
+// 强制隐藏 model-viewer 内部进度条
+:deep(model-viewer.hero-model) {
+  &::part(default-progress-bar) {
+    display: none !important;
   }
 }
 </style>

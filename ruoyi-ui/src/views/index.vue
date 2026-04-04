@@ -1180,6 +1180,14 @@ $primary: #409eff;
       height: 100%;
       z-index: 5;
       outline: none;
+      
+      &::part(default-progress-bar) {
+        display: none;
+      }
+      
+      :deep(div[slot="progress-bar"]) {
+        display: none !important;
+      }
     }
 
     .stage-ring {

@@ -188,7 +188,7 @@
     </select>
 
     <select id="selectLatestItems" resultMap="HeritageItemResult">
-        SELECT item_id, item_name, cover_image, create_time FROM heritage_item WHERE del_flag = '0' ORDER BY create_time DESC LIMIT 3
+        SELECT item_id, item_name, cover_image, create_time FROM heritage_item WHERE del_flag = '0' ORDER BY create_time DESC LIMIT 5
     </select>
 
     <select id="selectItemNames" resultType="com.ruoyi.heritage.domain.ChartDataVo">

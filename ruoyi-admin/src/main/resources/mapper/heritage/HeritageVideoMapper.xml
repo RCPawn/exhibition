@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.heritage.mapper.HeritageVideoMapper">
+
+    <resultMap type="HeritageVideo" id="HeritageVideoResult">
+        <result property="videoId"      column="video_id"    />
+        <result property="title"        column="title"    />
+        <result property="videoUrl"     column="video_url"    />
+        <result property="coverImage"   column="cover_image"    />
+        <result property="itemId"       column="item_id"    />
+        <result property="duration"     column="duration"    />
+        <result property="description"  column="description"    />
+        <result property="status"       column="status"    />
+        <result property="delFlag"      column="del_flag"    />
+        <result property="createBy"     column="create_by"    />
+        <result property="createTime"   column="create_time"    />
+        <result property="updateBy"     column="update_by"    />
+        <result property="updateTime"   column="update_time"    />
+        <!-- 关联字段映射 -->
+        <result property="modelFile"    column="model_file"   />
+        <result property="itemName"     column="item_name"    />
+    </resultMap>
+
+    <sql id="selectHeritageVideoVo">
+        select
+            v.video_id, v.title, v.video_url, v.cover_image, v.item_id, v.duration, v.description, v.status, v.del_flag, v.create_by, v.create_time, v.update_by, v.update_time,
+            i.model_file, i.item_name
+        from heritage_video v
+                 left join heritage_item i on v.item_id = i.item_id
+    </sql>
+
+    <select id="selectHeritageVideoList" parameterType="HeritageVideo" resultMap="HeritageVideoResult">
+        <include refid="selectHeritageVideoVo"/>
+        <where>
+            <if test="title != null  and title != ''"> and v.title like concat('%', #{title}, '%')</if>
+            <if test="itemId != null "> and v.item_id = #{itemId}</if>
+            <if test="status != null  and status != ''"> and v.status = #{status}</if>
+            and v.del_flag = '0'
+        </where>
+        order by v.create_time desc
+    </select>
+
+    <select id="selectHeritageVideoByVideoId" parameterType="Long" resultMap="HeritageVideoResult">
+        <include refid="selectHeritageVideoVo"/>
+        where v.video_id = #{videoId}
+    </select>
+
+    <insert id="insertHeritageVideo" parameterType="HeritageVideo" useGeneratedKeys="true" keyProperty="videoId">
+        insert into heritage_video
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">title,</if>
+            <if test="videoUrl != null and videoUrl != ''">video_url,</if>
+            <if test="coverImage != null and coverImage != ''">cover_image,</if>
+            <if test="itemId != null">item_id,</if>
+            <if test="duration != null">duration,</if>
+            <if test="description != null">description,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="videoUrl != null and videoUrl != ''">#{videoUrl},</if>
+            <if test="coverImage != null and coverImage != ''">#{coverImage},</if>
+            <if test="itemId != null">#{itemId},</if>
+            <if test="duration != null">#{duration},</if>
+            <if test="description != null">#{description},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateHeritageVideo" parameterType="HeritageVideo">
+        update heritage_video
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="videoUrl != null and videoUrl != ''">video_url = #{videoUrl},</if>
+            <if test="coverImage != null and coverImage != ''">cover_image = #{coverImage},</if>
+            <if test="itemId != null">item_id = #{itemId},</if>
+            <if test="duration != null">duration = #{duration},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where video_id = #{videoId}
+    </update>
+
+    <delete id="deleteHeritageVideoByVideoId" parameterType="Long">
+        delete from heritage_video where video_id = #{videoId}
+    </delete>
+
+    <delete id="deleteHeritageVideoByVideoIds" parameterType="String">
+        delete from heritage_video where video_id in
+        <foreach item="videoId" collection="array" open="(" separator="," close=")">
+            #{videoId}
+        </foreach>
+    </delete>
+</mapper>
