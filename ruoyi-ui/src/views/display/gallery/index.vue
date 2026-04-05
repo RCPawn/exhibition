@@ -16,12 +16,12 @@
 
       <!-- 瀑布流布局 -->
       <div class="masonry-grid" v-loading="loading">
-        <div 
-          v-for="(item, index) in galleryList" 
-          :key="item.galleryId"
-          class="gallery-card"
-          :style="{ order: getOrder(index) }"
-          @click="goToDetail(item.galleryId)"
+        <div
+            v-for="(item, index) in galleryList"
+            :key="item.galleryId"
+            class="gallery-card"
+            :style="{ order: getOrder(index) }"
+            @click="goToDetail(item.galleryId)"
         >
           <div class="card-image" :class="getImageClass(index)">
             <img :src="getAssetUrl(item.coverUrl)" alt="gallery cover" />
@@ -70,7 +70,7 @@ const getImageClass = (index) => {
 const goToDetail = (id) => {
   // 检查当前是否在后台 Layout 中（通过检测 .app-wrapper 是否存在）
   const isInAdmin = document.querySelector('.app-wrapper') !== null;
-  
+
   if (isInAdmin) {
     // 后台环境：使用后台管理路由
     router.push("/gallery-manage-detail/" + id);
@@ -110,9 +110,9 @@ $paper-bg: #FAFAFA;      // 宣纸白
 }
 
 .paper-texture {
-  position: absolute; 
-  inset: 0; 
-  opacity: 0.3; 
+  position: absolute;
+  inset: 0;
+  opacity: 0.3;
   pointer-events: none;
   background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png');
 }
@@ -144,7 +144,7 @@ $paper-bg: #FAFAFA;      // 宣纸白
       align-items: center;
       gap: 16px;
       color: $ink-black;
-      
+
       .seal-mark {
         background: $bai-red;
         color: #fff;
@@ -155,25 +155,25 @@ $paper-bg: #FAFAFA;      // 宣纸白
         letter-spacing: 4px;
         box-shadow: 2px 2px 8px rgba(198, 40, 40, 0.3);
       }
-      
+
       .text-part {
         font-weight: 900;
       }
     }
-    
-    .subtitle { 
-      margin: 0; 
-      color: #888; 
+
+    .subtitle {
+      margin: 0;
+      color: #888;
       font-size: 15px;
       letter-spacing: 2px;
     }
   }
-  
-  .count-tag { 
-    font-family: 'Courier New', monospace; 
-    font-weight: bold; 
-    border: 2px solid $ink-black; 
-    padding: 6px 14px; 
+
+  .count-tag {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    border: 2px solid $ink-black;
+    padding: 6px 14px;
     font-size: 13px;
     border-radius: 6px;
     background: #fff;
@@ -195,37 +195,37 @@ $paper-bg: #FAFAFA;      // 宣纸白
   margin-bottom: 30px;
   break-inside: avoid;
   transition: all 0.3s ease;
-  
+
   &:hover {
     box-shadow: 0 4px 16px rgba(0,0,0,0.1);
     transform: translateY(-4px);
-    
+
     .card-image img {
       opacity: 0.9;
     }
   }
-  
+
   .card-image {
     width: 100%;
     overflow: hidden;
     background: #f5f5f5;
-    
+
     &.img-normal {
       aspect-ratio: 4/3;
     }
-    
+
     &.img-wide {
       aspect-ratio: 16/9;
     }
-    
+
     &.img-tall {
       aspect-ratio: 3/4;
     }
-    
+
     &.img-extra-tall {
       aspect-ratio: 2/3;
     }
-    
+
     img {
       width: 100%;
       height: 100%;
@@ -234,11 +234,11 @@ $paper-bg: #FAFAFA;      // 宣纸白
       transition: opacity 0.3s ease;
     }
   }
-  
+
   .card-info {
     padding: 20px 16px;
     text-align: center;
-    
+
     .card-title {
       font-size: 14px;
       font-weight: 500;
@@ -250,7 +250,7 @@ $paper-bg: #FAFAFA;      // 宣纸白
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
-    
+
     .card-date {
       font-size: 12px;
       color: #999;
@@ -261,10 +261,10 @@ $paper-bg: #FAFAFA;      // 宣纸白
 
 // 底部装饰保留
 .bottom-decor {
-  position: fixed; 
-  bottom: 0; 
-  left: 0; 
-  width: 100%; 
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
   z-index: 100;
 }
 
@@ -279,37 +279,37 @@ $paper-bg: #FAFAFA;      // 宣纸白
   .content-container {
     padding: 30px 20px 120px;
   }
-  
+
   .header-section {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
-    
+
     .title-group {
       .main-title {
         font-size: 32px;
-        
+
         .seal-mark {
           font-size: 14px;
           padding: 4px 10px;
         }
       }
-      
+
       .subtitle {
         font-size: 13px;
       }
     }
-    
+
     .count-tag {
       display: none;
     }
   }
-  
+
   .masonry-grid {
     column-count: 2;
     column-gap: 20px;
   }
-  
+
   .gallery-card {
     margin-bottom: 20px;
   }

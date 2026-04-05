@@ -237,7 +237,7 @@ npm run dev
 
 ### 默认账号
 - 管理员：`admin` / `admin123`
-- 普通用户：`user` / `123456`
+- 普通用户：`user` / `admin123`
 
 ---
 
@@ -340,7 +340,7 @@ RuoYi-Vue-master/
 - [若依框架](http://www.ruoyi.vip/) - 优秀的后台管理系统脚手架
 - [Google Model Viewer](https://modelviewer.dev/) - 强大的 Web 3D 模型查看器
 - [ECharts](https://echarts.apache.org/) - 专业的数据可视化工具
-- 大理白族自治州文化和旅游局 - 提供非遗资料支持
+- 云南网、中国非物质文化遗产网... - 提供非遗资料支持
 
 ---
 
@@ -356,6 +356,6 @@ RuoYi-Vue-master/
 
 **⭐ 如果这个项目对你有帮助，请给个 Star 支持一下！⭐**
 
-Made with ❤️ by White Culture Digital Team
+Made with ❤️ by rcpawn
 
 </div>

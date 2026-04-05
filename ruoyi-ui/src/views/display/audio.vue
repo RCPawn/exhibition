@@ -11,12 +11,12 @@
         <!-- 搜索框 -->
         <div class="search-box">
           <el-input
-            v-model="searchKeyword"
-            placeholder="搜索标题..."
-            clearable
-            prefix-icon="Search"
-            @input="handleSearch"
-            class="search-input"
+              v-model="searchKeyword"
+              placeholder="搜索标题..."
+              clearable
+              prefix-icon="Search"
+              @input="handleSearch"
+              class="search-input"
           />
         </div>
         <div class="count-tag">TOTAL: {{ filteredList.length }}</div>
@@ -130,10 +130,10 @@
     </transition>
 
     <!-- 视频播放器弹窗 -->
-    <el-dialog 
-        v-model="videoDialogVisible" 
-        :width="dialogWidth" 
-        append-to-body 
+    <el-dialog
+        v-model="videoDialogVisible"
+        :width="dialogWidth"
+        append-to-body
         destroy-on-close
         class="immersive-video-dialog"
         :fullscreen="isMobile"
@@ -286,10 +286,10 @@ const handleSearch = () => {
 const filteredVideoList = computed(() => {
   if (!searchKeyword.value) return videoList.value;
   const keyword = searchKeyword.value.toLowerCase();
-  return videoList.value.filter(item => 
-    item.title?.toLowerCase().includes(keyword) ||
-    item.itemName?.toLowerCase().includes(keyword) ||
-    item.createBy?.toLowerCase().includes(keyword)
+  return videoList.value.filter(item =>
+      item.title?.toLowerCase().includes(keyword) ||
+      item.itemName?.toLowerCase().includes(keyword) ||
+      item.createBy?.toLowerCase().includes(keyword)
   );
 });
 
@@ -297,10 +297,10 @@ const filteredVideoList = computed(() => {
 const filteredAudioList = computed(() => {
   if (!searchKeyword.value) return audioList.value;
   const keyword = searchKeyword.value.toLowerCase();
-  return audioList.value.filter(item => 
-    item.title?.toLowerCase().includes(keyword) ||
-    item.itemName?.toLowerCase().includes(keyword) ||
-    item.performer?.toLowerCase().includes(keyword)
+  return audioList.value.filter(item =>
+      item.title?.toLowerCase().includes(keyword) ||
+      item.itemName?.toLowerCase().includes(keyword) ||
+      item.performer?.toLowerCase().includes(keyword)
   );
 });
 
@@ -410,66 +410,66 @@ $mineral-red: #5E2F2F;
     gap: 20px;
   }
   .tab-switcher {
-    display: flex; 
+    display: flex;
     border-radius: 8px;
     overflow: hidden;
     background: #f5f5f5;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    .tab-item { 
-      padding: 12px 32px; 
-      font-weight: 600; 
-      cursor: pointer; 
+    .tab-item {
+      padding: 12px 32px;
+      font-weight: 600;
+      cursor: pointer;
       transition: all 0.3s;
       color: #666;
       position: relative;
-      
-      &.active { 
+
+      &.active {
         background: #000;
         color: #fff;
         box-shadow: 0 2px 12px rgba(0,0,0,0.15);
       }
-      
+
       &:not(.active):hover {
         background: #e8e8e8;
         color: #333;
       }
-    } 
+    }
   }
   .seal-mark { background: $mineral-red; color: #fff; padding: 3px 8px; font-weight: 900; }
-  
+
   .right-info {
     display: flex;
     align-items: center;
     gap: 16px;
-    
+
     .search-box {
       .search-input {
         width: 240px;
-        
+
         :deep(.el-input__wrapper) {
           border-radius: 8px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.06);
           padding: 8px 12px;
           transition: all 0.3s;
-          
+
           &:hover {
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
           }
-          
+
           &.is-focus {
             box-shadow: 0 0 0 1px #000 inset;
           }
         }
-        
+
         :deep(.el-input__inner) {
           font-size: 13px;
           color: #333;
-          
+
           &::placeholder {
             color: #999;
           }
         }
-        
+
         :deep(.el-input__prefix) {
           color: #999;
         }
@@ -487,33 +487,33 @@ $mineral-red: #5E2F2F;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-  
-  &:hover { 
-    transform: translateY(-6px); 
+
+  &:hover {
+    transform: translateY(-6px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.12);
   }
-  
+
   &.playing {
     box-shadow: 0 0 0 2px #667eea, 0 8px 24px rgba(102, 126, 234, 0.2);
   }
-  
+
   .cover-wrapper {
     height: 200px;
     position: relative;
     overflow: hidden;
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    
-    img { 
-      width: 100%; 
-      height: 100%; 
+
+    img {
+      width: 100%;
+      height: 100%;
       object-fit: cover;
       transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    
+
     &:hover img {
       transform: scale(1.08);
     }
-    
+
     .play-overlay {
       position: absolute;
       inset: 0;
@@ -524,25 +524,25 @@ $mineral-red: #5E2F2F;
       opacity: 0;
       transition: all 0.3s;
       backdrop-filter: blur(2px);
-      
-      &.show { 
+
+      &.show {
         opacity: 1;
         background: rgba(0,0,0,0.5);
       }
-      
-      .play-icon { 
+
+      .play-icon {
         font-size: 48px;
         color: #fff;
         filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
         transition: transform 0.3s;
       }
-      
+
       &:hover .play-icon {
         transform: scale(1.15);
       }
     }
-    
-    .card-tag { 
+
+    .card-tag {
       position: absolute;
       top: 12px;
       left: 12px;
@@ -555,11 +555,11 @@ $mineral-red: #5E2F2F;
       backdrop-filter: blur(8px);
     }
   }
-  
-  .card-info { 
+
+  .card-info {
     padding: 16px;
-    
-    h3 { 
+
+    h3 {
       font-size: 15px;
       font-weight: 600;
       margin: 0 0 10px;
@@ -571,19 +571,19 @@ $mineral-red: #5E2F2F;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
     }
-    
-    .t-meta { 
+
+    .t-meta {
       font-size: 12px;
       color: #999;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      
+
       span {
         display: flex;
         align-items: center;
         gap: 4px;
-        
+
         .el-icon {
           font-size: 14px;
         }
@@ -601,29 +601,29 @@ $mineral-red: #5E2F2F;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-  
-  &:hover { 
+
+  &:hover {
     transform: translateY(-6px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.12);
   }
-  
+
   .cover-wrapper {
     height: 200px;
     position: relative;
     overflow: hidden;
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    
-    img { 
-      width: 100%; 
-      height: 100%; 
+
+    img {
+      width: 100%;
+      height: 100%;
       object-fit: cover;
       transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    
+
     &:hover img {
       transform: scale(1.08);
     }
-    
+
     .play-overlay {
       position: absolute;
       inset: 0;
@@ -634,25 +634,25 @@ $mineral-red: #5E2F2F;
       opacity: 0;
       transition: all 0.3s;
       backdrop-filter: blur(2px);
-      
+
       &:hover {
         opacity: 1;
         background: rgba(0,0,0,0.5);
       }
-      
-      .play-icon { 
+
+      .play-icon {
         font-size: 48px;
         color: #fff;
         filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
         transition: transform 0.3s;
       }
-      
+
       &:hover .play-icon {
         transform: scale(1.15);
       }
     }
-    
-    .card-tag { 
+
+    .card-tag {
       position: absolute;
       top: 12px;
       left: 12px;
@@ -664,8 +664,8 @@ $mineral-red: #5E2F2F;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       backdrop-filter: blur(8px);
     }
-    
-    .duration-tag { 
+
+    .duration-tag {
       position: absolute;
       bottom: 12px;
       right: 12px;
@@ -678,11 +678,11 @@ $mineral-red: #5E2F2F;
       backdrop-filter: blur(8px);
     }
   }
-  
-  .card-info { 
+
+  .card-info {
     padding: 16px;
-    
-    h3 { 
+
+    h3 {
       font-size: 15px;
       font-weight: 600;
       margin: 0 0 10px;
@@ -694,19 +694,19 @@ $mineral-red: #5E2F2F;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
     }
-    
-    .t-meta { 
+
+    .t-meta {
       font-size: 12px;
       color: #999;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      
+
       span {
         display: flex;
         align-items: center;
         gap: 4px;
-        
+
         .el-icon {
           font-size: 14px;
         }
@@ -783,11 +783,11 @@ $mineral-red: #5E2F2F;
 .player-pop-enter-active, .player-pop-leave-active { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .player-pop-enter-from { opacity: 0; transform: translate(-50%, 40px) scale(0.9); }
 
-.count-tag { 
-  font-family: 'Courier New', Courier, monospace; 
-  font-weight: bold; 
-  border: 1px solid #000; 
-  padding: 6px 12px; 
+.count-tag {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  border: 1px solid #000;
+  padding: 6px 12px;
   font-size: 12px;
   border-radius: 6px;
   background: #fff;
@@ -797,7 +797,7 @@ $mineral-red: #5E2F2F;
 .empty-state {
   padding: 60px 0;
   text-align: center;
-  
+
   :deep(.el-empty) {
     .el-empty__description {
       color: #999;
@@ -810,7 +810,7 @@ $mineral-red: #5E2F2F;
 .video-player-container {
   text-align: center;
   padding: 0;
-  
+
   .responsive-video-player {
     width: 100%;
     max-height: 75vh;
@@ -819,18 +819,18 @@ $mineral-red: #5E2F2F;
     border-radius: 4px;
     display: block;
   }
-  
+
   .video-info {
     text-align: left;
     margin-top: 20px;
     padding: 0 10px;
-    
+
     .video-meta {
       display: flex;
       gap: 20px;
       margin-bottom: 12px;
       flex-wrap: wrap;
-      
+
       .meta-item {
         display: inline-flex;
         align-items: center;
@@ -840,13 +840,13 @@ $mineral-red: #5E2F2F;
         background: #f5f5f5;
         padding: 4px 12px;
         border-radius: 12px;
-        
+
         .el-icon {
           font-size: 16px;
         }
       }
     }
-    
+
     .video-description {
       color: #666;
       font-size: 14px;
@@ -864,18 +864,18 @@ $mineral-red: #5E2F2F;
     border-bottom: 1px solid #eee;
     margin: 0;
   }
-  
+
   .el-dialog__body {
     padding: 0;
     max-height: 85vh;
     overflow-y: auto;
   }
-  
+
   .dialog-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    
+
     .dialog-title {
       font-size: 16px;
       font-weight: 600;
@@ -890,28 +890,28 @@ $mineral-red: #5E2F2F;
     .responsive-video-player {
       max-height: 50vh;
     }
-    
+
     .video-info {
       padding: 15px;
-      
+
       .video-meta {
         .meta-item {
           font-size: 12px;
           padding: 3px 10px;
         }
       }
-      
+
       .video-description {
         font-size: 13px;
       }
     }
   }
-  
+
   :deep(.immersive-video-dialog) {
     .el-dialog__header {
       padding: 12px 15px;
     }
-    
+
     .dialog-title {
       font-size: 14px;
     }
