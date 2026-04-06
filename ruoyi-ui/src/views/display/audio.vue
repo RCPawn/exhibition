@@ -419,9 +419,17 @@ $mineral-red: #5E2F2F;
 .echoes-content {
   flex: 1;
   min-height: 0;
+  width: 100%;
   max-width: 1600px;
   margin: 0 auto;
   padding: 0 40px 120px;
+
+  /* 修复 Flex 布局下 Element Plus 栅格宽度坍缩的问题 */
+  :deep(.el-row) {
+    width: 100% !important;
+    display: flex;
+    flex-wrap: wrap;
+  }
 }
 
 /* 顶部 Tab - 白族非遗风格 */
