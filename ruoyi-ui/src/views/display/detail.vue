@@ -64,7 +64,9 @@
           <div class="power-console">
             <div class="stats-container">
               <div class="stat-item view-stat">
-                <span class="emoji">👁️</span>
+                <svg viewBox="0 0 24 24" class="eye-icon">
+                  <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                </svg>
                 <span class="num">{{ form.viewCount || 0 }}</span>
               </div>
               
@@ -290,7 +292,7 @@ onMounted(() => {
 
   /* 3D区 */
   .axis-3d {
-    flex: 0 0 38%;
+    flex: 0 0 clamp(35%, 40vw, 42%); // 响应式宽度,防止窄屏过窄
     background: #f8f8f8;
     position: relative;
     display: flex;
@@ -369,13 +371,13 @@ onMounted(() => {
 
   /* 信息区 */
   .axis-info {
-    flex: 0 0 37%;
+    flex: 0 0 clamp(32%, 38vw, 40%); // 响应式宽度
     border-right: 1px solid #eee;
     overflow: hidden;
     .scroll-wrapper {
       height: 100%;
       overflow-y: auto;
-      padding: 50px 45px;
+      padding: clamp(30px, 4vh, 50px) clamp(25px, 3vw, 45px); // 响应式内边距
       &::-webkit-scrollbar { width: 4px; }
       &::-webkit-scrollbar-thumb { background: #000; }
     }
@@ -384,13 +386,13 @@ onMounted(() => {
   /* 讨论区 */
   .axis-social {
     flex: 1;
-    min-width: 320px;
+    min-width: 280px; // 降低最小宽度,适配小屏
     background: #fcfcfc;
     overflow: hidden;
     .social-wrapper {
       height: 100%;
       overflow-y: auto;
-      padding: 50px 35px;
+      padding: clamp(30px, 4vh, 50px) clamp(20px, 2.5vw, 35px); // 响应式内边距
       &::-webkit-scrollbar { width: 0; }
     }
     .social-header { font-size: 12px; font-weight: 900; letter-spacing: 2px; margin-bottom: 30px; color: #000; }
@@ -430,9 +432,9 @@ onMounted(() => {
 }
 
 .hero-title-box {
-  margin-bottom: 35px;
+  margin-bottom: clamp(25px, 3vh, 35px);
   .category-label { 
-    font-size: 11px; 
+    font-size: clamp(10px, 1vw, 11px); // 响应式字体
     color: #888; 
     font-weight: 500; 
     letter-spacing: 1px;
@@ -442,7 +444,7 @@ onMounted(() => {
     border-radius: 12px;
   }
   .main-title { 
-    font-size: 36px; 
+    font-size: clamp(24px, 3vw, 36px); // 响应式标题
     font-weight: 700; 
     margin: 15px 0 8px 0; 
     line-height: 1.3; 
@@ -465,8 +467,16 @@ onMounted(() => {
       padding-right: 20px;
       border-right: 1px solid #eee;
       
-      .emoji {
-        font-size: 20px;
+      svg {
+        width: 24px;
+        height: 24px;
+        fill: #999;
+        transition: all 0.3s ease;
+      }
+      
+      &:hover svg {
+        fill: #666;
+        transform: scale(1.1);
       }
       
       .num { 
@@ -557,12 +567,12 @@ onMounted(() => {
 }
 
 .info-block {
-  margin-bottom: 55px;
+  margin-bottom: clamp(35px, 4vh, 55px); // 响应式间距
   .block-label { 
-    font-size: 18px; 
+    font-size: clamp(16px, 1.8vw, 18px); // 响应式字体
     font-weight: 700; 
     letter-spacing: 1.5px; 
-    margin-bottom: 25px; 
+    margin-bottom: clamp(18px, 2vh, 25px); // 响应式间距
     display: flex; 
     align-items: center;
     color: #2c3e50;
@@ -577,7 +587,7 @@ onMounted(() => {
     }
   }
   .p-desc, .rich-text { 
-    font-size: 15px; 
+    font-size: clamp(14px, 1.4vw, 15px); // 响应式字体
     line-height: 2.2; 
     color: #555; 
     padding-left: 19px;

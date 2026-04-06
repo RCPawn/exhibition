@@ -51,7 +51,8 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
 
     /**
      * 切换点赞/收藏状态
-     * 优化：点赞不再清除大屏缓存（防止雪崩），只清除当前展品的详情缓存。
+     * 优化：只清除当前展品详情缓存，不清除大屏缓存（避免高并发时缓存失效）
+     * 大屏数据实时性通过：①缓存时合并 Redis 缓冲 ②定时任务同步后清缓存 保证
      */
     @Override
     @Transactional
@@ -69,15 +70,14 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
         if (count == 0) {
             // 还没点过 -> 插入记录
             actionMapper.insertAction(query);
-            result = heritageItemMapper.updateItemCount(itemId, type, 1);
+            result = heritageItemMapper.updateItemCount(itemId, type, 1, 1);
         } else {
             // 已经点过 -> 删除记录
             actionMapper.deleteAction(query);
-            result = heritageItemMapper.updateItemCount(itemId, type, 0);
+            result = heritageItemMapper.updateItemCount(itemId, type, 0, 1);
         }
 
-        // 关键优化：只删除单个展品的详情缓存，让下次读取时从数据库加载最新的点赞/收藏数
-        // 不删除大屏缓存，因为点赞数对大屏整体统计影响微小，让大屏自然过期即可
+        // 只清除单个展品详情缓存，不清除大屏缓存（防止高并发时缓存雪崩）
         redisCache.deleteObject(CACHE_KEY_ITEM_DETAIL_PREFIX + itemId);
 
         return result;
@@ -145,9 +145,13 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
             // --- 基础数据 ---
             stats.setTotalItems(heritageItemMapper.selectHeritageItemList(null).size());
             Long views = heritageItemMapper.sumViewCount();
-            // 这里加上 Redis 里的所有缓冲浏览量，保证大屏数据也是实时的
-            // (注：如果数据量极大，这里遍历 Map 可能有性能损耗，可忽略或单独维护一个总浏览量计数器)
-            stats.setTotalViews(views != null ? views : 0);
+            // 合并 Redis 里的所有缓冲浏览量，保证大屏数据实时
+            Map<String, Integer> bufferMap = redisCache.getCacheMap(CACHE_KEY_VIEW_BUFFER);
+            if (bufferMap != null && !bufferMap.isEmpty()) {
+                long bufferTotal = bufferMap.values().stream().filter(Objects::nonNull).mapToLong(Integer::longValue).sum();
+                views = (views != null ? views : 0) + bufferTotal;
+            }
+            stats.setTotalViews(views);
 
             Long interactions = heritageItemMapper.sumTotalInteractions();
             stats.setTotalInteractions(interactions != null ? interactions : 0);
@@ -167,8 +171,8 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
             stats.setWordCloud(heritageItemMapper.selectItemNames());
             stats.setTop5Items(heritageItemMapper.selectTop5Trend());
 
-            // 5. 写入缓存，设置 10 分钟过期
-            redisCache.setCacheObject(CACHE_KEY_DASHBOARD, stats, 10, TimeUnit.MINUTES);
+            // 5. 写入缓存，设置 2 分钟过期（本地开发短周期，部署后可调长）
+            redisCache.setCacheObject(CACHE_KEY_DASHBOARD, stats, 2, TimeUnit.MINUTES);
 
             return stats;
         }

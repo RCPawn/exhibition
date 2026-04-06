@@ -130,7 +130,7 @@
     <update id="updateItemCount">
         update heritage_item
         <set>
-            <if test="type == 1">view_count = view_count + 1</if>
+            <if test="type == 1">view_count = view_count + #{increment}</if>
             <if test="type == 2">
                 like_count = <if test="status == 1">like_count + 1</if><if test="status == 0">CASE WHEN like_count > 0 THEN like_count - 1 ELSE 0 END</if>
             </if>

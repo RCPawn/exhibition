@@ -1,7 +1,10 @@
 <template>
+
   <div
       class="interactive-bar-container"
       ref="containerRef"
+      @mousemove="handleContainerMouseMove"
+      @mouseleave="handleContainerMouseLeave"
   >
     <div
         v-for="(bar, index) in bars"
@@ -17,6 +20,7 @@
       <div class="fiber-lines"></div>
     </div>
   </div>
+
 </template>
 
 <script setup>
@@ -37,9 +41,11 @@ const bars = ref(Array.from({ length: BAR_COUNT }, (_, i) => ({
 
 const containerRef = ref(null);
 let animationFrameId = null;
+let isMouseInside = ref(false);
 
-const handleMouseMove = (e) => {
-  if (!containerRef.value) return;
+// 仅当鼠标在容器内时触发交互
+const handleContainerMouseMove = (e) => {
+  if (!containerRef.value || !isMouseInside.value) return;
   
   if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
@@ -71,6 +77,17 @@ const handleMouseMove = (e) => {
   });
 };
 
+// 鼠标离开容器时重置
+const handleContainerMouseLeave = () => {
+  isMouseInside.value = false;
+  resetBars();
+};
+
+// 鼠标进入容器时标记
+const handleContainerMouseEnter = () => {
+  isMouseInside.value = true;
+};
+
 const resetBars = () => {
   if (animationFrameId) cancelAnimationFrame(animationFrameId);
   bars.value.forEach(bar => {
@@ -79,12 +96,16 @@ const resetBars = () => {
 };
 
 onMounted(() => {
-  window.addEventListener('mousemove', handleMouseMove);
+  if (containerRef.value) {
+    containerRef.value.addEventListener('mouseenter', handleContainerMouseEnter);
+  }
 });
 
 onUnmounted(() => {
-  window.removeEventListener('mousemove', handleMouseMove);
   if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  if (containerRef.value) {
+    containerRef.value.removeEventListener('mouseenter', handleContainerMouseEnter);
+  }
 });
 </script>
 

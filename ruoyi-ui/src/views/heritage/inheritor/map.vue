@@ -363,7 +363,7 @@ $accent: #FFD700;
 .vignette-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, transparent 60%, rgba(0, 0, 0, 0.1) 100%);
+  background: radial-gradient(circle at center, transparent 65%, rgba(255, 255, 255, 0.98) 100%);
   z-index: 1;
   pointer-events: none;
 }
@@ -398,7 +398,7 @@ $accent: #FFD700;
 
 .main-title {
   color: #1A4A7F;
-  font-size: 4rem;
+  font-size: clamp(2rem, 4vw, 4rem); // 响应式标题
   margin: 0;
   display: flex;
   align-items: center;
@@ -408,7 +408,7 @@ $accent: #FFD700;
   .seal {
     background: #C62828;
     color: #fff;
-    font-size: 1.5rem;
+    font-size: clamp(1rem, 1.5vw, 1.5rem); // 响应式印章
     padding: 4px 10px;
     border-radius: 4px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
@@ -423,7 +423,7 @@ $accent: #FFD700;
 
 .subtitle {
   color: #5D4037;
-  font-size: 1.2rem;
+  font-size: clamp(0.9rem, 1.2vw, 1.2rem); // 响应式副标题
   letter-spacing: 15px;
   margin-top: 15px;
   opacity: 0.7;
@@ -432,8 +432,8 @@ $accent: #FFD700;
 
 .model-wrapper {
   width: 100%;
-  max-width: 900px;
-  height: 60vh;
+  max-width: min(900px, 80vw); // 响应式最大宽度
+  height: clamp(40vh, 60vh, 60vh); // 响应式高度
   position: relative;
   z-index: 11;
   cursor: pointer;
@@ -500,11 +500,11 @@ $accent: #FFD700;
   background: #fff;
 
   .deck-nav {
-    height: 60px;
+    height: clamp(50px, 6vh, 60px); // 响应式导航栏高度
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 40px;
+    padding: 0 clamp(20px, 3vw, 40px); // 响应式内边距
     font-weight: 900;
     font-size: 12px;
     background: #fafafa;
@@ -534,17 +534,18 @@ $accent: #FFD700;
 
   .color-legend {
     position: absolute;
-    bottom: 90px;
-    right: 40px;
+    bottom: clamp(80px, 10vh, 90px); // 响应式位置
+    right: clamp(20px, 3vw, 40px); // 响应式位置
     z-index: 999;
     background: rgba(255,255,255,0.96);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: 12px;
-    padding: 16px 20px;
+    padding: clamp(12px, 1.5vh, 16px) clamp(16px, 2vw, 20px); // 响应式内边距
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     border: 1px solid rgba(0,0,0,0.08);
-    min-width: 160px;
+    min-width: 140px;
+    max-width: 200px;
       
     .legend-title {
       font-size: 13px;
@@ -607,23 +608,23 @@ $accent: #FFD700;
 
   .bottom-nav {
     position: absolute;
-    bottom: 30px;
+    bottom: clamp(20px, 3vh, 30px); // 响应式位置
     left: 50%;
     transform: translateX(-50%);
     z-index: 100;
 
     .nav-inner {
       display: flex;
-      gap: 12px;
+      gap: clamp(8px, 1vw, 12px); // 响应式间距
       background: rgba(255,255,255,0.95);
       backdrop-filter: blur(10px);
-      padding: 12px 20px;
+      padding: clamp(8px, 1vh, 12px) clamp(15px, 2vw, 20px); // 响应式内边距
       border-radius: 16px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.12);
       border: 1px solid rgba(0,0,0,0.08);
 
       .nav-tab {
-        padding: 12px 24px;
+        padding: clamp(8px, 1vh, 12px) clamp(16px, 2vw, 24px); // 响应式内边距
         cursor: pointer;
         transition: all 0.3s ease;
         border-radius: 10px;

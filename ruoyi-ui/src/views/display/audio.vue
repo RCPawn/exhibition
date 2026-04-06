@@ -2,6 +2,13 @@
   <div class="echoes-container">
     <header class="echoes-header">
       <div class="left-tools">
+        <div class="title-group">
+          <h2 class="main-title">
+            <span class="seal-mark">白族</span>
+            <span class="text-part">三道余音</span>
+          </h2>
+          <p class="subtitle">听见苍山洱海的回响，感受非遗声音的韵律</p>
+        </div>
         <div class="tab-switcher">
           <div class="tab-item" :class="{ active: currentTab === 'video' }" @click="switchTab('video')">视频影像</div>
           <div class="tab-item" :class="{ active: currentTab === 'audio' }" @click="switchTab('audio')">音频档案</div>
@@ -9,14 +16,16 @@
       </div>
       <div class="right-info">
         <!-- 搜索框 -->
-        <div class="search-box">
+        <div class="search-box" :class="{ 'is-focused': isSearchFocused }">
           <el-input
-              v-model="searchKeyword"
-              placeholder="搜索标题..."
-              clearable
-              prefix-icon="Search"
-              @input="handleSearch"
-              class="search-input"
+            v-model="searchKeyword"
+            placeholder="搜索标题..."
+            clearable
+            prefix-icon="Search"
+            @input="handleSearch"
+            @focus="isSearchFocused = true"
+            @blur="isSearchFocused = false"
+            class="search-input"
           />
         </div>
         <div class="count-tag">TOTAL: {{ filteredList.length }}</div>
@@ -175,6 +184,9 @@
         @ended="isPlaying = false"
         crossorigin="anonymous"
     ></audio>
+
+    <!-- 页脚：放在根容器内部，保证单根节点 -->
+    <SiteFooter />
   </div>
 </template>
 
@@ -183,6 +195,7 @@ import { ref, onMounted, onUnmounted, getCurrentInstance, nextTick, computed } f
 import { listArchiveAudio } from "@/api/heritage/audio.js";
 import { listArchiveVideo } from "@/api/heritage/ video.js";
 import { VideoPlay, VideoPause, User, Collection, Timer } from '@element-plus/icons-vue';
+import SiteFooter from "@/components/SiteFooter.vue";
 
 const { proxy } = getCurrentInstance();
 const loading = ref(true);
@@ -190,6 +203,7 @@ const currentTab = ref('video'); // 默认展示视频
 const audioList = ref([]);
 const videoList = ref([]);
 const searchKeyword = ref(''); // 搜索关键词
+const isSearchFocused = ref(false); // 搜索框焦点状态
 const currentAudio = ref(null);
 const isPlaying = ref(false);
 const progress = ref(0);
@@ -287,9 +301,9 @@ const filteredVideoList = computed(() => {
   if (!searchKeyword.value) return videoList.value;
   const keyword = searchKeyword.value.toLowerCase();
   return videoList.value.filter(item =>
-      item.title?.toLowerCase().includes(keyword) ||
-      item.itemName?.toLowerCase().includes(keyword) ||
-      item.createBy?.toLowerCase().includes(keyword)
+    item.title?.toLowerCase().includes(keyword) ||
+    item.itemName?.toLowerCase().includes(keyword) ||
+    item.createBy?.toLowerCase().includes(keyword)
   );
 });
 
@@ -298,9 +312,9 @@ const filteredAudioList = computed(() => {
   if (!searchKeyword.value) return audioList.value;
   const keyword = searchKeyword.value.toLowerCase();
   return audioList.value.filter(item =>
-      item.title?.toLowerCase().includes(keyword) ||
-      item.itemName?.toLowerCase().includes(keyword) ||
-      item.performer?.toLowerCase().includes(keyword)
+    item.title?.toLowerCase().includes(keyword) ||
+    item.itemName?.toLowerCase().includes(keyword) ||
+    item.performer?.toLowerCase().includes(keyword)
   );
 });
 
@@ -398,44 +412,103 @@ $mineral-red: #5E2F2F;
 .echoes-container {
   min-height: 100vh;
   background: #ffffff;
-  padding: 40px 60px 120px;
+  display: flex;
+  flex-direction: column;
+}
+
+.echoes-content {
+  flex: 1;
+  min-height: 0;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 40px 120px;
 }
 
 /* 顶部 Tab - 白族非遗风格 */
 .echoes-header {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 40px 40px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 2px solid #eee;
+
   .left-tools {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 20px;
-  }
-  .tab-switcher {
-    display: flex;
-    border-radius: 8px;
-    overflow: hidden;
-    background: #f5f5f5;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    .tab-item {
-      padding: 12px 32px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      color: #666;
-      position: relative;
 
-      &.active {
-        background: #000;
-        color: #fff;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    .title-group {
+      .main-title {
+        font-size: 42px;
+        font-weight: 900;
+        letter-spacing: 8px;
+        margin: 0 0 12px 0;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        color: #1a1a1a;
+
+        .seal-mark {
+          background: $mineral-red;
+          color: #fff;
+          font-size: 18px;
+          padding: 6px 14px;
+          border-radius: 4px;
+          font-weight: 700;
+          letter-spacing: 4px;
+          box-shadow: 2px 2px 8px rgba(198, 40, 40, 0.3);
+        }
+
+        .text-part {
+          font-weight: 900;
+        }
       }
 
-      &:not(.active):hover {
-        background: #e8e8e8;
-        color: #333;
+      .subtitle {
+        margin: 0;
+        color: #888;
+        font-size: 15px;
+        letter-spacing: 2px;
+      }
+    }
+
+    .tab-switcher {
+      display: inline-flex;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f0f0f0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+
+      .tab-item {
+        flex: 1;
+        min-width: 120px;
+        padding: 12px 28px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        color: #666;
+        position: relative;
+        white-space: nowrap;
+        user-select: none;
+        text-align: center;
+
+        &.active {
+          background: #000;
+          color: #fff;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        &:not(.active):hover {
+          background: #e0e0e0;
+          color: #333;
+        }
       }
     }
   }
-  .seal-mark { background: $mineral-red; color: #fff; padding: 3px 8px; font-weight: 900; }
 
   .right-info {
     display: flex;
@@ -443,8 +516,11 @@ $mineral-red: #5E2F2F;
     gap: 16px;
 
     .search-box {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
       .search-input {
-        width: 240px;
+        width: 200px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
         :deep(.el-input__wrapper) {
           border-radius: 8px;
@@ -474,6 +550,23 @@ $mineral-red: #5E2F2F;
           color: #999;
         }
       }
+
+      // 焦点时向左延伸
+      &.is-focused .search-input {
+        width: 320px;
+      }
+    }
+
+    .count-tag {
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      border: 2px solid #1a1a1a;
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 3px 3px 0 rgba(0,0,0,0.1);
+      white-space: nowrap;
     }
   }
 }

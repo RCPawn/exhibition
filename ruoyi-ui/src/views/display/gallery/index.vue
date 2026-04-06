@@ -11,17 +11,32 @@
           </h2>
           <p class="subtitle">记录白族非遗的视觉映像与生活碎片</p>
         </div>
-        <div class="count-tag">TOTAL: {{ galleryList.length }}</div>
+        <div class="right-info">
+          <!-- 搜索框 -->
+          <div class="search-box" :class="{ 'is-focused': isSearchFocused }">
+            <el-input
+              v-model="searchKeyword"
+              placeholder="搜索标题..."
+              clearable
+              prefix-icon="Search"
+              @input="handleSearch"
+              @focus="isSearchFocused = true"
+              @blur="isSearchFocused = false"
+              class="search-input"
+            />
+          </div>
+          <div class="count-tag">TOTAL: {{ filteredList.length }}</div>
+        </div>
       </div>
 
       <!-- 瀑布流布局 -->
       <div class="masonry-grid" v-loading="loading">
         <div
-            v-for="(item, index) in galleryList"
-            :key="item.galleryId"
-            class="gallery-card"
-            :style="{ order: getOrder(index) }"
-            @click="goToDetail(item.galleryId)"
+          v-for="(item, index) in filteredList"
+          :key="item.galleryId"
+          class="gallery-card"
+          :style="{ order: getOrder(index) }"
+          @click="goToDetail(item.galleryId)"
         >
           <div class="card-image" :class="getImageClass(index)">
             <img :src="getAssetUrl(item.coverUrl)" alt="gallery cover" />
@@ -41,7 +56,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { listGallery } from "@/api/heritage/gallery";
 import InteractiveBar from "@/components/InteractiveBar";
@@ -49,6 +64,8 @@ import InteractiveBar from "@/components/InteractiveBar";
 const router = useRouter();
 const loading = ref(true);
 const galleryList = ref([]);
+const searchKeyword = ref(''); // 搜索关键词
+const isSearchFocused = ref(false); // 搜索框焦点状态
 
 const getAssetUrl = (url) => {
   if (!url) return '';
@@ -65,6 +82,20 @@ const getImageClass = (index) => {
   const classes = ['img-normal', 'img-wide', 'img-tall', 'img-extra-tall'];
   return classes[index % 4];
 };
+
+/** 搜索处理 */
+const handleSearch = () => {
+  // 搜索逻辑在计算属性中实现
+};
+
+/** 过滤后的列表 */
+const filteredList = computed(() => {
+  if (!searchKeyword.value) return galleryList.value;
+  const keyword = searchKeyword.value.toLowerCase();
+  return galleryList.value.filter(item =>
+    item.title?.toLowerCase().includes(keyword)
+  );
+});
 
 /** 跳转详情 - 智能判断前后端环境 */
 const goToDetail = (id) => {
@@ -100,7 +131,7 @@ onMounted(getList);
 $bai-cyan: #3B82F6;      // 白族青
 $bai-red: #C62828;       // 印章红
 $ink-black: #1A1A1A;     // 墨黑
-$paper-bg: #FAFAFA;      // 宣纸白
+$paper-bg: #ffffff;
 
 .gallery-wrapper {
   background-color: $paper-bg;
@@ -169,6 +200,54 @@ $paper-bg: #FAFAFA;      // 宣纸白
     }
   }
 
+  .right-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .search-box {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+      .search-input {
+        width: 200px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+        :deep(.el-input__wrapper) {
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+          padding: 8px 12px;
+          transition: all 0.3s;
+
+          &:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          }
+
+          &.is-focus {
+            box-shadow: 0 0 0 1px #000 inset;
+          }
+        }
+
+        :deep(.el-input__inner) {
+          font-size: 13px;
+          color: #333;
+
+          &::placeholder {
+            color: #999;
+          }
+        }
+
+        :deep(.el-input__prefix) {
+          color: #999;
+        }
+      }
+
+      // 焦点时向左延伸
+      &.is-focused .search-input {
+        width: 320px;
+      }
+    }
+  }
+
   .count-tag {
     font-family: 'Courier New', monospace;
     font-weight: bold;
@@ -178,6 +257,7 @@ $paper-bg: #FAFAFA;      // 宣纸白
     border-radius: 6px;
     background: #fff;
     box-shadow: 3px 3px 0 rgba(0,0,0,0.1);
+    white-space: nowrap;
   }
 }
 

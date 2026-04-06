@@ -43,8 +43,9 @@ public interface HeritageItemMapper {
      * @param itemId 展品ID
      * @param type   类型: 1-浏览, 2-点赞, 3-收藏
      * @param status 动作: 1-增加, 0-减少
+     * @param increment 增量值 (仅type=1时使用)
      */
-    int updateItemCount(@Param("itemId") Long itemId, @Param("type") Integer type, @Param("status") Integer status);
+    int updateItemCount(@Param("itemId") Long itemId, @Param("type") Integer type, @Param("status") Integer status, @Param("increment") Integer increment);
 
     /** 增加评论数 */
     int incrementCommentCount(@Param("itemId") Long itemId);
