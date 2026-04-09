@@ -1,4 +1,4 @@
-# 🏛️ 白族非遗数字博物馆
+# 🏛️ 非遗虚拟展陈与数据检测平台
 
 > **以数字之光照亮千年文脉，让传统技艺在云端永续传承**
 
@@ -91,7 +91,7 @@
 
 精心设计的门户页面，以极简美学呈现白族文化精髓，引导用户快速进入探索之旅。
 
-![image-20260405001815342](README.assets/image-20260405001815342.png)
+![image-20260409102800430](README.assets/image-20260409102800430.png)
 
 ---
 
@@ -111,9 +111,9 @@
 - 渐变标题与圆角标签设计
 - 响应式布局适配多端
 
-![image-20260404234526131](README.assets/image-20260404234526131.png)
+![image-20260409102726156](README.assets/image-20260409102726156.png)
 
-![image-20260405002015189](README.assets/image-20260405002015189.png)
+![image-20260409103008253](README.assets/image-20260409103008253.png)
 
 ---
 
@@ -127,7 +127,7 @@
 - 🏅 国家级/省级/市级传承人分级标识
 - 💬 悬浮信息卡片展示详细档案
 
-![image-20260405002052657](README.assets/image-20260405002052657.png)
+![image-20260409102845527](README.assets/image-20260409102845527.png)
 
 ![image-20260405002122659](README.assets/image-20260405002122659.png)
 
@@ -142,9 +142,9 @@
 - 🔍 点击进入沉浸式看图模式
 - 📅 时间轴排序与元数据展示
 
-![image-20260405002226145](README.assets/image-20260405002226145.png)
+![image-20260409103045434](README.assets/image-20260409103045434.png)
 
-![image-20260405002259871](README.assets/image-20260405002259871.png)
+![image-20260409103123369](README.assets/image-20260409103123369.png)
 
 ---
 
@@ -208,7 +208,7 @@
 git clone https://github.com/your-username/RuoYi-Vue.git
 
 # 2. 导入数据库
-mysql -u root -p < sql/current_all_table.sql
+mysql -u root -p < sql/all_table.sql
 
 # 3. 修改配置
 # 编辑 ruoyi-admin/src/main/resources/application.yml

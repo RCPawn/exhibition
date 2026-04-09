@@ -53,6 +53,27 @@ create table gen_table_column
 )
     comment '代码生成业务表字段';
 
+create table heritage_audio
+(
+    audio_id      bigint auto_increment comment '音频ID'
+        primary key,
+    title         varchar(100)                          not null comment '音频标题',
+    audio_url     varchar(500)                          not null comment '音频文件路径',
+    item_id       bigint                                not null comment '关联展品ID (用于调取3D模型)',
+    waveform_data text                                  null comment '预生成的波形数据 (JSON字符串)',
+    description   text                                  null comment '内容解析/唱词',
+    status        char        default '0'               null comment '状态 (0正常 1待审核 2下架)',
+    del_flag      char        default '0'               null comment '删除标志',
+    create_by     varchar(64) default ''                null comment '创建者',
+    create_time   datetime    default CURRENT_TIMESTAMP null comment '创建时间',
+    update_by     varchar(64) default ''                null,
+    update_time   datetime    default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
+)
+    comment '非遗声影共振档案表';
+
+create index idx_item_id
+    on heritage_audio (item_id);
+
 create table heritage_category
 (
     category_id   bigint auto_increment comment '分类ID'
@@ -88,6 +109,31 @@ create table heritage_comment
     del_flag    char default '0' null comment '删除标志（0代表存在 2代表删除）'
 )
     comment '非遗展品评论表';
+
+create table heritage_gallery
+(
+    gallery_id  bigint auto_increment
+        primary key,
+    title       varchar(100)                          not null comment '图集标题',
+    cover_url   varchar(500)                          not null comment '封面图',
+    description text                                  null comment '导语',
+    status      char        default '0'               null comment '状态',
+    del_flag    char        default '0'               null,
+    create_by   varchar(64) default ''                null,
+    create_time datetime    default CURRENT_TIMESTAMP null
+)
+    comment '非遗图集主表';
+
+create table heritage_gallery_image
+(
+    image_id   bigint auto_increment
+        primary key,
+    gallery_id bigint        not null comment '关联主表ID',
+    image_url  varchar(500)  not null comment '图片路径',
+    caption    varchar(200)  null comment '图片说明',
+    sort_order int default 0 null comment '排序'
+)
+    comment '非遗图集从表';
 
 create table heritage_inheritor
 (
@@ -131,7 +177,8 @@ create table heritage_item
     create_by      varchar(64)  default ''                null comment '创建者',
     create_time    datetime     default CURRENT_TIMESTAMP null comment '创建时间',
     update_by      varchar(64)  default ''                null comment '更新者',
-    update_time    datetime     default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间'
+    update_time    datetime     default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
+    reject_reason  varchar(500)                           null comment '审核驳回原因'
 )
     comment '非遗展品表' collate = utf8mb4_unicode_ci;
 
@@ -147,6 +194,9 @@ create index idx_favorite_count
 create index idx_status
     on heritage_item (status);
 
+create index idx_view_count
+    on heritage_item (view_count);
+
 create table heritage_user_action
 (
     action_id   bigint auto_increment comment '主键ID'
@@ -159,6 +209,28 @@ create table heritage_user_action
         unique (user_id, item_id, action_type)
 )
     comment '用户点赞收藏记录表';
+
+create table heritage_video
+(
+    video_id    bigint auto_increment comment '视频 ID'
+        primary key,
+    title       varchar(100)                          not null comment '视频标题',
+    video_url   varchar(500)                          not null comment '视频文件路径',
+    cover_image varchar(500)                          null comment '封面图片 URL',
+    item_id     bigint                                not null comment '关联展品 ID',
+    duration    int                                   null comment '视频时长 (秒)',
+    description text                                  null comment '视频简介/解说词',
+    status      char        default '0'               null comment '状态 (0 正常 1 待审核 2 下架)',
+    del_flag    char        default '0'               null comment '删除标志',
+    create_by   varchar(64) default ''                null comment '创建者',
+    create_time datetime    default CURRENT_TIMESTAMP null comment '创建时间',
+    update_by   varchar(64) default ''                null,
+    update_time datetime    default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
+)
+    comment '非遗视频档案表';
+
+create index idx_item_id
+    on heritage_video (item_id);
 
 create table sys_config
 (
