@@ -329,23 +329,8 @@ function handleScroll() {
         background-color: #409eff;
         color: #fff;
         border-color: #409eff;
-
-        &::before {
-          content: '';
-          background: #fff;
-          display: inline-block;
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          position: relative;
-          margin-right: 5px;
-        }
       }
     }
-  }
-
-  .tags-view-item.active.has-icon::before {
-    content: none !important;
   }
 
   &.tags-view-container--embedded .tags-view-wrapper .tags-view-item {
@@ -373,12 +358,6 @@ function handleScroll() {
       /* 与未选中页签同高、同字重，仅颜色区分 */
       font-weight: 400;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-
-      &::before {
-        width: 6px;
-        height: 6px;
-        margin-right: 6px;
-      }
     }
   }
 }

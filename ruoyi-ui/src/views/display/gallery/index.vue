@@ -3,31 +3,31 @@
     <div class="paper-texture"></div>
 
     <div class="content-container">
-      <div class="header-section">
-        <div class="title-group">
-          <h2 class="main-title">
+      <header class="archive-toolbar is-gallery">
+        <div class="archive-toolbar__row">
+          <div class="archive-toolbar__identity">
             <span class="seal-mark">白族</span>
-            <span class="text-part">纸上乾坤</span>
-          </h2>
-          <p class="subtitle">记录白族非遗的视觉映像与生活碎片</p>
-        </div>
-        <div class="right-info">
-          <!-- 搜索框 -->
-          <div class="search-box" :class="{ 'is-focused': isSearchFocused }">
-            <el-input
-              v-model="searchKeyword"
-              placeholder="搜索标题..."
-              clearable
-              prefix-icon="Search"
-              @input="handleSearch"
-              @focus="isSearchFocused = true"
-              @blur="isSearchFocused = false"
-              class="search-input"
-            />
+            <h2 class="toolbar-title">纸上乾坤</h2>
+            <span class="toolbar-divider" aria-hidden="true"></span>
+            <p class="toolbar-lede">记录白族非遗的视觉映像与生活碎片</p>
           </div>
-          <div class="count-tag">TOTAL: {{ filteredList.length }}</div>
+          <div class="archive-toolbar__actions">
+            <div class="search-box" :class="{ 'is-focused': isSearchFocused }">
+              <el-input
+                v-model="searchKeyword"
+                placeholder="搜索标题..."
+                clearable
+                prefix-icon="Search"
+                @input="handleSearch"
+                @focus="isSearchFocused = true"
+                @blur="isSearchFocused = false"
+                class="search-input"
+              />
+            </div>
+            <div class="count-pill">共 {{ filteredList.length }} 条</div>
+          </div>
         </div>
-      </div>
+      </header>
 
       <!-- 瀑布流布局 -->
       <div class="masonry-grid" v-loading="loading">
@@ -127,6 +127,8 @@ onMounted(getList);
 </script>
 
 <style scoped lang="scss">
+@import '@/assets/styles/display-archive-toolbar.scss';
+
 // 白族传统色彩
 $bai-cyan: #3B82F6;      // 白族青
 $bai-red: #C62828;       // 印章红
@@ -151,114 +153,9 @@ $paper-bg: #ffffff;
 .content-container {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 50px 40px 120px;
+  padding: 24px 40px 120px;
   position: relative;
   z-index: 10;
-}
-
-// 头部区域优化
-.header-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  padding-bottom: 20px;
-  margin-bottom: 60px;
-  border-bottom: 2px solid #eee;
-
-  .title-group {
-    .main-title {
-      font-size: 42px;
-      font-weight: 900;
-      letter-spacing: 8px;
-      margin: 0 0 12px 0;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      color: $ink-black;
-
-      .seal-mark {
-        background: $bai-red;
-        color: #fff;
-        font-size: 18px;
-        padding: 6px 14px;
-        border-radius: 4px;
-        font-weight: 700;
-        letter-spacing: 4px;
-        box-shadow: 2px 2px 8px rgba(198, 40, 40, 0.3);
-      }
-
-      .text-part {
-        font-weight: 900;
-      }
-    }
-
-    .subtitle {
-      margin: 0;
-      color: #888;
-      font-size: 15px;
-      letter-spacing: 2px;
-    }
-  }
-
-  .right-info {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-
-    .search-box {
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-
-      .search-input {
-        width: 200px;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-
-        :deep(.el-input__wrapper) {
-          border-radius: 8px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-          padding: 8px 12px;
-          transition: all 0.3s;
-
-          &:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-          }
-
-          &.is-focus {
-            box-shadow: 0 0 0 1px #000 inset;
-          }
-        }
-
-        :deep(.el-input__inner) {
-          font-size: 13px;
-          color: #333;
-
-          &::placeholder {
-            color: #999;
-          }
-        }
-
-        :deep(.el-input__prefix) {
-          color: #999;
-        }
-      }
-
-      // 焦点时向左延伸
-      &.is-focused .search-input {
-        width: 320px;
-      }
-    }
-  }
-
-  .count-tag {
-    font-family: 'Courier New', monospace;
-    font-weight: bold;
-    border: 2px solid $ink-black;
-    padding: 6px 14px;
-    font-size: 13px;
-    border-radius: 6px;
-    background: #fff;
-    box-shadow: 3px 3px 0 rgba(0,0,0,0.1);
-    white-space: nowrap;
-  }
 }
 
 // 瀑布流网格
@@ -358,31 +255,6 @@ $paper-bg: #ffffff;
 @media (max-width: 768px) {
   .content-container {
     padding: 30px 20px 120px;
-  }
-
-  .header-section {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-
-    .title-group {
-      .main-title {
-        font-size: 32px;
-
-        .seal-mark {
-          font-size: 14px;
-          padding: 4px 10px;
-        }
-      }
-
-      .subtitle {
-        font-size: 13px;
-      }
-    }
-
-    .count-tag {
-      display: none;
-    }
   }
 
   .masonry-grid {

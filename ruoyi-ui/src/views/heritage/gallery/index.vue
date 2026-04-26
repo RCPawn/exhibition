@@ -1,16 +1,37 @@
 <template>
-  <div class="app-container">
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
+  <div class="app-container heritage-admin-page">
+    <div class="header-section">
+      <div class="title-group">
+        <h2 class="page-title">图集管理</h2>
+      </div>
+      <div class="header-actions">
+        <el-button
+            class="industrial-add-btn"
+            icon="Plus"
+            @click="handleAdd"
+            v-hasPermi="['heritage:gallery:add']"
+        >新增</el-button>
+        <el-button
+            class="industrial-export-btn"
+            icon="Download"
+            @click="handleExport"
+            v-hasPermi="['heritage:gallery:export']"
+        >导出</el-button>
+      </div>
+    </div>
+
+    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" class="industrial-search-form" label-width="72px">
       <el-form-item label="图集标题" prop="title">
         <el-input
             v-model="queryParams.title"
-            placeholder="请输入图集标题"
+            placeholder="图集标题"
             clearable
+            style="width: 200px"
             @keyup.enter="handleQuery"
         />
       </el-form-item>
       <el-form-item label="状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
+        <el-select v-model="queryParams.status" placeholder="状态" clearable style="width: 120px">
           <el-option
               v-for="dict in sys_normal_disable"
               :key="dict.value"
@@ -25,82 +46,70 @@
       </el-form-item>
     </el-form>
 
-    <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button
-            type="primary"
-            plain
-            icon="Plus"
-            @click="handleAdd"
-            v-hasPermi="['heritage:gallery:add']"
-        >新增</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-            type="success"
-            plain
-            icon="Edit"
-            :disabled="single"
-            @click="handleUpdate"
-            v-hasPermi="['heritage:gallery:edit']"
-        >修改</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-            type="danger"
-            plain
-            icon="Delete"
-            :disabled="multiple"
-            @click="handleDelete"
-            v-hasPermi="['heritage:gallery:remove']"
-        >删除</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-            type="warning"
-            plain
-            icon="Download"
-            @click="handleExport"
-            v-hasPermi="['heritage:gallery:export']"
-        >导出</el-button>
-      </el-col>
-      <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
-    </el-row>
+    <div class="heritage-toolbar">
+      <el-button
+          type="primary"
+          icon="Edit"
+          :disabled="single"
+          @click="handleUpdate"
+          v-hasPermi="['heritage:gallery:edit']"
+      >修改</el-button>
+      <el-button
+          type="danger"
+          icon="Delete"
+          :disabled="multiple"
+          @click="handleDelete"
+          v-hasPermi="['heritage:gallery:remove']"
+      >删除</el-button>
+      <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" class="heritage-toolbar-trailing" />
+    </div>
 
-    <el-table v-loading="loading" :data="galleryList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="图集ID" align="center" prop="galleryId" />
-      <el-table-column label="图集标题" align="center" prop="title" />
-      <el-table-column label="封面图" align="center" prop="coverUrl" width="100">
+    <el-table
+        v-loading="loading"
+        :data="galleryList"
+        @selection-change="handleSelectionChange"
+        border
+        stripe
+        size="small"
+        class="industrial-table"
+    >
+      <el-table-column type="selection" width="44" align="center" />
+      <el-table-column label="图集ID" align="center" prop="galleryId" width="88" />
+      <el-table-column label="图集标题" align="left" prop="title" min-width="120" :show-overflow-tooltip="true" />
+      <el-table-column label="封面" align="center" prop="coverUrl" width="76">
         <template #default="scope">
-          <image-preview :src="scope.row.coverUrl" :width="50" :height="50"/>
+          <image-preview :src="scope.row.coverUrl" :width="40" :height="40" />
         </template>
       </el-table-column>
-      <el-table-column label="状态" align="center" prop="status">
+      <el-table-column label="状态" align="center" prop="status" width="88">
         <template #default="scope">
-          <dict-tag :options="sys_normal_disable" :value="scope.row.status"/>
+          <dict-tag :options="sys_normal_disable" :value="scope.row.status" size="small" />
         </template>
       </el-table-column>
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+      <el-table-column label="创建时间" align="center" prop="createTime" width="118">
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="156" fixed="right" class-name="heritage-op-col">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['heritage:gallery:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['heritage:gallery:remove']">删除</el-button>
+          <div class="op-group">
+            <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['heritage:gallery:edit']">修改</el-button>
+            <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['heritage:gallery:remove']">删除</el-button>
+          </div>
         </template>
       </el-table-column>
     </el-table>
 
-    <pagination
-        v-show="total>0"
-        :total="total"
-        v-model:page="queryParams.pageNum"
-        v-model:limit="queryParams.pageSize"
-        @pagination="getList"
-    />
+    <div class="pagination-wrapper">
+      <pagination
+          v-show="total>0"
+          :total="total"
+          v-model:page="queryParams.pageNum"
+          v-model:limit="queryParams.pageSize"
+          @pagination="getList"
+      />
+    </div>
 
     <el-dialog :title="title" v-model="open" width="700px" append-to-body>
       <el-form ref="galleryRef" :model="form" :rules="rules" label-width="80px">

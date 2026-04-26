@@ -1,0 +1,197 @@
+// Heritage admin list pages. Root: .app-container.heritage-admin-page
+.heritage-admin-page {
+  .header-section {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 20px;
+    min-height: 36px;
+    border-bottom: 1px solid var(--el-border-color);
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+  }
+
+  @media (max-width: 600px) {
+    .header-section {
+      flex-wrap: wrap;
+    }
+    .header-actions {
+      margin-left: auto;
+    }
+  }
+
+  .title-group {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .page-title {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0 2px;
+    font-size: clamp(16px, 1.1vw + 12px, 18px);
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.3;
+    color: var(--el-text-color-primary);
+  }
+
+  .page-title-meta {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--el-text-color-secondary);
+    white-space: nowrap;
+  }
+
+  .header-actions {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  // primary / outline primary: same theme as Element Plus
+  .industrial-add-btn,
+  .industrial-export-btn {
+    --el-button-size: 32px;
+    min-height: 32px !important;
+    height: 32px !important;
+    padding: 0 14px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    border-radius: 4px !important;
+  }
+
+  .industrial-add-btn {
+    background: var(--el-color-primary) !important;
+    color: var(--el-color-white) !important;
+    border: 1px solid var(--el-color-primary) !important;
+  }
+
+  .industrial-add-btn:not(:disabled):hover,
+  .industrial-add-btn:not(:disabled):focus {
+    background: var(--el-color-primary-dark-2) !important;
+    border-color: var(--el-color-primary-dark-2) !important;
+    color: var(--el-color-white) !important;
+  }
+
+  .industrial-export-btn {
+    background: var(--el-bg-color) !important;
+    color: var(--el-color-primary) !important;
+    border: 1px solid var(--el-color-primary) !important;
+  }
+
+  .industrial-export-btn:not(:disabled):hover,
+  .industrial-export-btn:not(:disabled):focus {
+    color: var(--el-color-primary) !important;
+    background: var(--el-color-primary-light-9) !important;
+    border-color: var(--el-color-primary-light-5) !important;
+  }
+
+  .industrial-search-form {
+    background: var(--el-fill-color-lighter);
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    border: 1px solid var(--el-border-color-lighter);
+    border-radius: 4px;
+  }
+
+  .industrial-search-form.el-form--inline {
+    .el-form-item {
+      margin-bottom: 6px;
+      margin-right: 12px;
+    }
+
+    .el-form-item__label {
+      font-size: 13px;
+    }
+  }
+
+  // batch toolbar row (edit/delete, search toggle, etc.)
+  .heritage-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    margin-bottom: 10px;
+  }
+
+  .heritage-toolbar .heritage-toolbar-trailing {
+    margin-left: auto;
+  }
+
+  .heritage-toolbar .el-button--primary:not(.is-link) {
+    height: 32px;
+  }
+
+  .heritage-toolbar .el-button--danger:not(.is-link) {
+    height: 32px;
+  }
+
+  // op column: single-line action links
+  th.heritage-op-col .cell,
+  td.heritage-op-col .cell {
+    white-space: nowrap !important;
+  }
+
+  .op-group {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    column-gap: 2px;
+    max-width: 100%;
+  }
+
+  .op-group .el-button.is-link {
+    padding: 0 3px;
+    margin: 0;
+    height: auto;
+    vertical-align: middle;
+  }
+
+  .op-group .el-button.is-link + .el-button.is-link {
+    margin-left: 0;
+  }
+
+  .industrial-table {
+    font-size: 13px;
+    --el-table-border-color: var(--el-border-color-lighter);
+
+    .el-table__header-wrapper th.el-table__cell,
+    .el-table__header th.el-table__cell {
+      background-color: #fafafa !important;
+      color: #303133 !important;
+      font-weight: 600 !important;
+      font-size: 12px !important;
+      text-transform: none;
+      height: 36px !important;
+    }
+
+    .el-table__cell {
+      padding: 5px 10px !important;
+    }
+
+    .el-table__row {
+      height: auto !important;
+    }
+
+    .cell {
+      line-height: 1.45;
+    }
+  }
+
+  .pagination-wrapper {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .pagination-container {
+    background: transparent !important;
+    padding: 8px 0 0 0 !important;
+  }
+}

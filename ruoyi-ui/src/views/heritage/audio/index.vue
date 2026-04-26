@@ -1,10 +1,9 @@
 <template>
-  <div class="app-container">
+  <div class="app-container heritage-admin-page">
     <!-- 1. 顶部操作区：工业风标题 -->
     <div class="header-section">
       <div class="title-group">
-        <h2 class="page-title">声音档案馆(音频来源于QQ音乐，仅供学习使用)</h2>
-        <p class="page-subtitle">管理声音资产并精准关联数字化实物模型</p>
+        <h2 class="page-title">音频管理</h2>
       </div>
       <div class="header-actions">
         <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd">录入新音轨</el-button>
@@ -28,9 +27,17 @@
     </el-form>
 
     <!-- 3. 数据表格 -->
-    <el-table v-loading="loading" :data="audioList" @selection-change="handleSelectionChange" border stripe class="industrial-table">
-      <el-table-column type="selection" width="50" align="center"/>
-      <el-table-column type="index" label="序号" align="center" width="60" />
+    <el-table
+        v-loading="loading"
+        :data="audioList"
+        @selection-change="handleSelectionChange"
+        border
+        stripe
+        size="small"
+        class="industrial-table"
+    >
+      <el-table-column type="selection" width="44" align="center"/>
+      <el-table-column type="index" label="序号" align="center" width="52" />
 
       <el-table-column label="音频标题" align="left" prop="title" min-width="200">
         <template #default="scope">
@@ -61,7 +68,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="center" width="150" fixed="right">
+      <el-table-column label="操作" align="center" width="156" fixed="right" class-name="heritage-op-col">
         <template #default="scope">
           <div class="op-group">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
@@ -229,28 +236,9 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-/* 延续全站工业极简风 */
-.header-section {
-  display: flex; justify-content: space-between; align-items: flex-end;
-  border-bottom: 2px solid #000; padding-bottom: 18px; margin-bottom: 25px;
-  .page-title { font-size: 26px; font-weight: 900; letter-spacing: -1px; margin: 0; }
-  .page-subtitle { font-size: 13px; color: #999; margin-top: 5px; }
-}
-
-.industrial-add-btn { background: #000 !important; color: #fff !important; border-radius: 0; font-weight: 900; height: 42px; padding: 0 20px; }
-.industrial-search-form { background: #fcfcfc; padding: 15px; margin-bottom: 20px; border: 1px solid #eee; }
-
-.industrial-table {
-  border-radius: 0;
-  :deep(.el-table__header) th { background-color: #fcfcfc !important; color: #000; font-weight: 900; height: 50px; }
-  :deep(.el-table__row) { height: 75px; }
-}
-
-.item-name-bold { font-weight: 700; color: #000; font-size: 14px; }
-.industrial-tag { border-radius: 0; border: 1px solid #ddd; color: #333; font-weight: 600; }
-.pagination-wrapper { margin-top: 40px; display: flex; justify-content: center; }
-:deep(.pagination-container) { background: transparent !important; }
-
+.item-name-bold { font-weight: 600; color: #303133; font-size: 13px; }
+.industrial-tag { border-radius: 4px; border: 1px solid #ddd; color: #333; font-weight: 500; }
+.pagination-wrapper { margin-top: 12px; }
 .dialog-scroll-wrapper {
   max-height: 60vh; overflow-y: auto; padding: 0 20px;
   &::-webkit-scrollbar { width: 4px; }

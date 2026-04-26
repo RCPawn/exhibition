@@ -1,14 +1,13 @@
 <template>
-  <div class="app-container">
+  <div class="app-container heritage-admin-page">
     <!-- 1. 顶部标题与操作区 -->
     <div class="header-section">
       <div class="title-group">
-        <h2 class="page-title">传承人管理（数据来源于豆包）</h2>
-        <p class="page-subtitle">管理非遗传承人档案及其所属项目层级</p>
+        <h2 class="page-title">传承人管理</h2>
       </div>
       <div class="header-actions">
         <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd" v-hasPermi="['heritage:inheritor:add']">新增传承人</el-button>
-        <el-button class="industrial-export-btn" icon="Download" @click="handleExport" v-hasPermi="['heritage:inheritor:export']">导出数据</el-button>
+        <el-button class="industrial-export-btn" icon="Download" @click="handleExport" v-hasPermi="['heritage:inheritor:export']">导出</el-button>
       </div>
     </div>
 
@@ -54,34 +53,36 @@
         :data="inheritorList"
         @selection-change="handleSelectionChange"
         border
+        stripe
+        size="small"
         class="industrial-table"
         style="width: 100%"
     >
-      <el-table-column type="selection" width="50" align="center" />
-      <el-table-column type="index" label="序号" align="center" width="65" />
+      <el-table-column type="selection" width="44" align="center" />
+      <el-table-column type="index" label="序号" align="center" width="56" />
 
-      <el-table-column label="肖像" align="center" width="300">
+      <el-table-column label="肖像" align="center" width="72">
         <template #default="scope">
-          <image-preview :src="scope.row.avatar" :width="50" :height="50" class="table-avatar"/>
+          <image-preview :src="scope.row.avatar" :width="40" :height="40" class="table-avatar"/>
         </template>
       </el-table-column>
 
-      <el-table-column label="姓名" align="center" prop="name" width="300">
+      <el-table-column label="姓名" align="left" prop="name" min-width="96" :show-overflow-tooltip="true">
         <template #default="scope">
           <span class="item-name-bold">{{ scope.row.name }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="称号级别" align="center" prop="level" width="300">
+      <el-table-column label="称号级别" align="center" prop="level" min-width="108">
         <template #default="scope">
           <dict-tag :options="heritage_level" :value="scope.row.level" />
         </template>
       </el-table-column>
 
       <!-- 核心修复：显示分类名称 -->
-      <el-table-column label="所属非遗项目" align="center" prop="categoryId" min-width="300">
+      <el-table-column label="所属非遗项目" align="left" prop="categoryId" min-width="140" :show-overflow-tooltip="true">
         <template #default="scope">
-          <el-tag size="small" effect="plain" class="industrial-tag">
+          <el-tag size="small" effect="plain" class="industrial-tag table-tag-ellipsis">
             {{ categoryFormat(scope.row.categoryId) }}
           </el-tag>
         </template>
@@ -93,13 +94,13 @@
         </template>
       </el-table-column>-->
 
-      <el-table-column label="创建日期" align="center" prop="createTime" width="300">
+      <el-table-column label="创建日期" align="center" prop="createTime" width="110">
         <template #default="scope">
           <span class="time-text">{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="center" width="200" fixed="right">
+      <el-table-column label="操作" align="center" width="156" fixed="right" class-name="heritage-op-col">
         <template #default="scope">
           <div class="op-group">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['heritage:inheritor:edit']">修改</el-button>
@@ -313,34 +314,12 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.header-section {
-  display: flex; justify-content: space-between; align-items: flex-end;
-  border-bottom: 2px solid #000; padding-bottom: 18px; margin-bottom: 25px;
-  .page-title { font-size: 26px; font-weight: 900; letter-spacing: -1px; margin: 0; }
-  .page-subtitle { font-size: 13px; color: #999; margin-top: 5px; }
-}
-
-.industrial-add-btn { background: #000 !important; color: #fff !important; border: none !important; border-radius: 0; font-weight: 900; height: 42px; padding: 0 20px; }
-.industrial-export-btn { background: #fff !important; color: #000 !important; border: 1.5px solid #000 !important; border-radius: 0; font-weight: 900; height: 42px; padding: 0 20px; }
-.industrial-search-form { background: #fcfcfc; padding: 15px; margin-bottom: 20px; border: 1px solid #eee; }
-
-.industrial-table {
-  border-radius: 0; border: 1px solid #ebeef5;
-  :deep(.el-table__header) th {
-    background-color: #fcfcfc !important; color: #000 !important; font-weight: 900 !important;
-    font-size: 13px; height: 50px; text-transform: uppercase;
-  }
-  :deep(.el-table__row) { height: 80px; }
-}
-
-.item-name-bold { font-weight: 700; color: #000; font-size: 14px; }
-.table-avatar { border: 1px solid #eee; border-radius: 0; }
-.op-group { display: flex; justify-content: center; gap: 12px; }
-.industrial-tag { border-radius: 0; border: 1px solid #ddd; color: #333; font-weight: 600; }
-.time-text { font-size: 12px; color: #999; }
-
-.pagination-wrapper { margin-top: 40px; display: flex; justify-content: center; }
-:deep(.pagination-container) { background: transparent !important; }
+/* 表内细节（列表骨架见 assets/styles/heritage-admin-list.scss） */
+.item-name-bold { font-weight: 600; color: #303133; font-size: 13px; }
+.table-avatar { border: 1px solid #eee; border-radius: 4px; vertical-align: middle; }
+.industrial-tag { border-radius: 4px; border: 1px solid #ddd; color: #333; font-weight: 500; max-width: 100%; }
+.table-tag-ellipsis { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+.time-text { font-size: 12px; color: #909399; }
 
 /* 核心修复：对话框内部滚动容器 */
 .dialog-scroll-wrapper {

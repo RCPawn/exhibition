@@ -1,9 +1,8 @@
 <template>
-  <div class="app-container">
+  <div class="app-container heritage-admin-page">
     <div class="header-section">
       <div class="title-group">
-        <h2 class="page-title">三道余音·影像馆</h2>
-        <p class="page-subtitle">管理非遗视频资源并精准关联数字化实物模型</p>
+        <h2 class="page-title">视频管理</h2>
       </div>
       <div class="header-actions">
         <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd">录入新视频</el-button>
@@ -25,18 +24,26 @@
       </el-form-item>
     </el-form>
 
-    <el-table v-loading="loading" :data="videoList" @selection-change="handleSelectionChange" border stripe class="industrial-table">
-      <el-table-column type="selection" width="50" align="center"/>
-      <el-table-column type="index" label="序号" align="center" width="60" />
+    <el-table
+        v-loading="loading"
+        :data="videoList"
+        @selection-change="handleSelectionChange"
+        border
+        stripe
+        size="small"
+        class="industrial-table"
+    >
+      <el-table-column type="selection" width="44" align="center"/>
+      <el-table-column type="index" label="序号" align="center" width="52" />
 
-      <el-table-column label="视频封面" align="center" prop="coverImage" width="120">
+      <el-table-column label="视频封面" align="center" prop="coverImage" width="108">
         <template #default="scope">
           <el-image
               v-if="scope.row.coverImage"
               :src="getAssetUrl(scope.row.coverImage)"
               :preview-src-list="[getAssetUrl(scope.row.coverImage)]"
               fit="cover"
-              style="width: 80px; height: 60px; border-radius: 4px;"
+              style="width: 88px; height: 50px; border-radius: 4px; vertical-align: middle;"
           />
           <span v-else class="no-cover">无封面</span>
         </template>
@@ -76,7 +83,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="center" width="180" fixed="right">
+      <el-table-column label="操作" align="center" width="200" fixed="right" class-name="heritage-op-col">
         <template #default="scope">
           <div class="op-group">
             <el-button link type="primary" icon="VideoPlay" @click="handlePlay(scope.row)">播放</el-button>
@@ -290,27 +297,9 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.header-section {
-  display: flex; justify-content: space-between; align-items: flex-end;
-  border-bottom: 2px solid #000; padding-bottom: 18px; margin-bottom: 25px;
-  .page-title { font-size: 26px; font-weight: 900; letter-spacing: -1px; margin: 0; }
-  .page-subtitle { font-size: 13px; color: #999; margin-top: 5px; }
-}
-
-.industrial-add-btn { background: #000 !important; color: #fff !important; border-radius: 0; font-weight: 900; height: 42px; padding: 0 20px; }
-.industrial-search-form { background: #fcfcfc; padding: 15px; margin-bottom: 20px; border: 1px solid #eee; }
-
-.industrial-table {
-  border-radius: 0;
-  :deep(.el-table__header) th { background-color: #fcfcfc !important; color: #000; font-weight: 900; height: 50px; }
-  :deep(.el-table__row) { height: 75px; }
-}
-
-.item-name-bold { font-weight: 700; color: #000; font-size: 14px; }
-.industrial-tag { border-radius: 0; border: 1px solid #ddd; color: #333; font-weight: 600; }
-.pagination-wrapper { margin-top: 40px; display: flex; justify-content: center; }
-:deep(.pagination-container) { background: transparent !important; }
-
+.item-name-bold { font-weight: 600; color: #303133; font-size: 13px; }
+.industrial-tag { border-radius: 4px; border: 1px solid #ddd; color: #333; font-weight: 500; }
+.pagination-wrapper { margin-top: 12px; }
 .dialog-scroll-wrapper {
   max-height: 60vh; overflow-y: auto; padding: 0 20px;
   &::-webkit-scrollbar { width: 4px; }

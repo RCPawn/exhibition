@@ -1,10 +1,9 @@
 <template>
-  <div class="app-container">
+  <div class="app-container heritage-admin-page">
     <!-- 1. 顶部标题与操作区 -->
     <div class="header-section">
       <div class="title-group">
         <h2 class="page-title">我的发布</h2>
-        <p class="page-subtitle">管理您上传的数字展品及其全生命周期状态</p>
       </div>
       <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd">发布新展品</el-button>
     </div>
@@ -14,23 +13,25 @@
         v-loading="loading"
         :data="myPublishList"
         border
+        stripe
+        size="small"
         class="industrial-table"
         style="width: 100%"
     >
-      <el-table-column type="index" label="序号" align="center" width="65"/>
-      <el-table-column label="封面" align="center" width="110">
+      <el-table-column type="index" label="序号" align="center" width="52"/>
+      <el-table-column label="封面" align="center" width="76">
         <template #default="scope">
-          <image-preview :src="scope.row.coverImage" :width="50" :height="50" class="table-cover"/>
+          <image-preview :src="scope.row.coverImage" :width="40" :height="40" class="table-cover"/>
         </template>
       </el-table-column>
-      <el-table-column label="展品名称" align="center" prop="itemName" min-width="200" :show-overflow-tooltip="true">
+      <el-table-column label="展品名称" align="left" prop="itemName" min-width="120" :show-overflow-tooltip="true">
         <template #default="scope">
           <span class="item-name-bold">{{ scope.row.itemName }}</span>
         </template>
       </el-table-column>
 
       <!-- 类别列修复 -->
-      <el-table-column label="所属类别" align="center" prop="categoryId" min-width="120">
+      <el-table-column label="所属类别" align="left" prop="categoryId" min-width="100" :show-overflow-tooltip="true">
         <template #default="scope">
           <el-tag size="small" effect="plain" class="industrial-tag">{{ categoryFormat(scope.row.categoryId) }}</el-tag>
         </template>
@@ -50,7 +51,7 @@
           <dict-tag v-else :options="heritage_audit_status" :value="scope.row.status"/>
         </template>
       </el-table-column>
-      <el-table-column label="数据统计 (览/赞/藏)" align="center" min-width="220">
+      <el-table-column label="览 / 赞 / 藏" align="center" min-width="150">
         <template #default="scope">
           <div class="stat-group">
             <div class="stat-item">
@@ -79,7 +80,7 @@
           <span class="time-text">{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="160" fixed="right">
+      <el-table-column label="操作" align="center" width="156" fixed="right" class-name="heritage-op-col">
         <template #default="scope">
           <div class="op-group">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)">修改</el-button>
@@ -316,83 +317,26 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-/* 样式部分保持原样，增加文本左对齐优化 */
 .item-name-bold {
-  font-weight: 700;
-  color: #000;
-  font-size: 14px;
-  display: block;
-  text-align: center;
-  padding-left: 10px;
-}
-
-.header-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  padding-bottom: 18px;
-  margin-bottom: 25px;
-
-  .page-title {
-    font-size: 26px;
-    font-weight: 900;
-    letter-spacing: -1px;
-    margin: 0;
-  }
-
-  .page-subtitle {
-    font-size: 13px;
-    color: #999;
-    margin-top: 5px;
-  }
-}
-
-.industrial-add-btn {
-  background: #000 !important;
-  color: #fff !important;
-  border: none !important;
-  border-radius: 0;
-  font-weight: 900;
-  height: 42px;
-  padding: 0 20px;
-
-  &:hover {
-    background: #333 !important;
-  }
-}
-
-.industrial-table {
-  border-radius: 0;
-  border: 1px solid #ebeef5;
-
-  :deep(.el-table__header) th {
-    background-color: #fcfcfc !important;
-    color: #000 !important;
-    font-weight: 900 !important;
-    font-size: 13px;
-    height: 50px;
-  }
-
-  :deep(.el-table__row) {
-    height: 70px;
-  }
+  font-weight: 600;
+  color: #303133;
+  font-size: 13px;
 }
 
 .stat-group {
   display: flex;
-  justify-content: space-around;
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
-  padding: 0 10px;
+  gap: 6px 10px;
 }
 
 .stat-item {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-family: 'D-DIN', sans-serif;
-  font-weight: 600;
-  font-size: 14px;
-  color: #666;
+  gap: 4px;
+  font-size: 12px;
+  color: #606266;
 }
 
 .text-danger {
@@ -403,28 +347,17 @@ onMounted(() => {
   color: #E6A23C;
 }
 
-.op-group {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-}
-
 .industrial-tag {
-  border-radius: 0;
+  border-radius: 4px;
   border: 1px solid #ddd;
   background: #fff;
   color: #333;
-  font-weight: 600;
+  font-weight: 500;
 }
 
-.pagination-wrapper {
-  margin-top: 40px;
-  display: flex;
-  justify-content: center;
-}
-
-:deep(.pagination-container) {
-  background: transparent !important;
+.time-text {
+  font-size: 12px;
+  color: #909399;
 }
 
 .dialog-scroll-wrapper {

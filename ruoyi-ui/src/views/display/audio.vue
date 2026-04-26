@@ -1,34 +1,32 @@
 <template>
   <div class="echoes-container">
-    <header class="echoes-header">
-      <div class="left-tools">
-        <div class="title-group">
-          <h2 class="main-title">
-            <span class="seal-mark">白族</span>
-            <span class="text-part">三道余音</span>
-          </h2>
-          <p class="subtitle">听见苍山洱海的回响，感受非遗声音的韵律</p>
+    <header class="archive-toolbar">
+      <div class="archive-toolbar__row">
+        <div class="archive-toolbar__identity">
+          <span class="seal-mark">白族</span>
+          <h2 class="toolbar-title">三道余音</h2>
+          <span class="toolbar-divider" aria-hidden="true"></span>
+          <p class="toolbar-lede">听见苍山洱海的回响，感受非遗声音的韵律</p>
         </div>
         <div class="tab-switcher">
           <div class="tab-item" :class="{ active: currentTab === 'video' }" @click="switchTab('video')">视频影像</div>
           <div class="tab-item" :class="{ active: currentTab === 'audio' }" @click="switchTab('audio')">音频档案</div>
         </div>
-      </div>
-      <div class="right-info">
-        <!-- 搜索框 -->
-        <div class="search-box" :class="{ 'is-focused': isSearchFocused }">
-          <el-input
-            v-model="searchKeyword"
-            placeholder="搜索标题..."
-            clearable
-            prefix-icon="Search"
-            @input="handleSearch"
-            @focus="isSearchFocused = true"
-            @blur="isSearchFocused = false"
-            class="search-input"
-          />
+        <div class="archive-toolbar__actions">
+          <div class="search-box" :class="{ 'is-focused': isSearchFocused }">
+            <el-input
+              v-model="searchKeyword"
+              placeholder="搜索标题..."
+              clearable
+              prefix-icon="Search"
+              @input="handleSearch"
+              @focus="isSearchFocused = true"
+              @blur="isSearchFocused = false"
+              class="search-input"
+            />
+          </div>
+          <div class="count-pill">共 {{ filteredList.length }} 条</div>
         </div>
-        <div class="count-tag">TOTAL: {{ filteredList.length }}</div>
       </div>
     </header>
 
@@ -405,6 +403,8 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
+@import '@/assets/styles/display-archive-toolbar.scss';
+
 $bg-paper: #ffffff;
 $ink: #1A1A1A;
 $mineral-red: #5E2F2F;
@@ -429,153 +429,6 @@ $mineral-red: #5E2F2F;
     width: 100% !important;
     display: flex;
     flex-wrap: wrap;
-  }
-}
-
-/* 顶部 Tab - 白族非遗风格 */
-.echoes-header {
-  width: 100%;
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 40px 40px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  border-bottom: 2px solid #eee;
-
-  .left-tools {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-
-    .title-group {
-      .main-title {
-        font-size: 42px;
-        font-weight: 900;
-        letter-spacing: 8px;
-        margin: 0 0 12px 0;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        color: #1a1a1a;
-
-        .seal-mark {
-          background: $mineral-red;
-          color: #fff;
-          font-size: 18px;
-          padding: 6px 14px;
-          border-radius: 4px;
-          font-weight: 700;
-          letter-spacing: 4px;
-          box-shadow: 2px 2px 8px rgba(198, 40, 40, 0.3);
-        }
-
-        .text-part {
-          font-weight: 900;
-        }
-      }
-
-      .subtitle {
-        margin: 0;
-        color: #888;
-        font-size: 15px;
-        letter-spacing: 2px;
-      }
-    }
-
-    .tab-switcher {
-      display: inline-flex;
-      border-radius: 10px;
-      overflow: hidden;
-      background: #f0f0f0;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-
-      .tab-item {
-        flex: 1;
-        min-width: 120px;
-        padding: 12px 28px;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        color: #666;
-        position: relative;
-        white-space: nowrap;
-        user-select: none;
-        text-align: center;
-
-        &.active {
-          background: #000;
-          color: #fff;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-
-        &:not(.active):hover {
-          background: #e0e0e0;
-          color: #333;
-        }
-      }
-    }
-  }
-
-  .right-info {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-
-    .search-box {
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-
-      .search-input {
-        width: 200px;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-
-        :deep(.el-input__wrapper) {
-          border-radius: 8px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-          padding: 8px 12px;
-          transition: all 0.3s;
-
-          &:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-          }
-
-          &.is-focus {
-            box-shadow: 0 0 0 1px #000 inset;
-          }
-        }
-
-        :deep(.el-input__inner) {
-          font-size: 13px;
-          color: #333;
-
-          &::placeholder {
-            color: #999;
-          }
-        }
-
-        :deep(.el-input__prefix) {
-          color: #999;
-        }
-      }
-
-      // 焦点时向左延伸
-      &.is-focused .search-input {
-        width: 320px;
-      }
-    }
-
-    .count-tag {
-      font-family: 'Courier New', monospace;
-      font-weight: bold;
-      border: 2px solid #1a1a1a;
-      padding: 6px 14px;
-      font-size: 13px;
-      border-radius: 6px;
-      background: #fff;
-      box-shadow: 3px 3px 0 rgba(0,0,0,0.1);
-      white-space: nowrap;
-    }
   }
 }
 
@@ -883,16 +736,6 @@ $mineral-red: #5E2F2F;
 
 .player-pop-enter-active, .player-pop-leave-active { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .player-pop-enter-from { opacity: 0; transform: translate(-50%, 40px) scale(0.9); }
-
-.count-tag {
-  font-family: 'Courier New', Courier, monospace;
-  font-weight: bold;
-  border: 1px solid #000;
-  padding: 6px 12px;
-  font-size: 12px;
-  border-radius: 6px;
-  background: #fff;
-}
 
 // 空状态样式
 .empty-state {

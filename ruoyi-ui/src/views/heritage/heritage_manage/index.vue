@@ -1,10 +1,9 @@
 <template>
-  <div class="app-container">
+  <div class="app-container heritage-admin-page">
     <!-- 1. 顶部操作区 -->
     <div class="header-section">
       <div class="title-group">
         <h2 class="page-title">非遗展品管理</h2>
-        <p class="page-subtitle">系统全量数据监控、审核及资产归档控制台</p>
       </div>
       <div class="header-actions">
         <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd">新增展品</el-button>
@@ -39,30 +38,38 @@
     </el-form>
 
     <!-- 3. 数据表格 -->
-    <el-table v-loading="loading" :data="heritage_manageList" @selection-change="handleSelectionChange" border stripe class="industrial-table">
-      <el-table-column type="selection" width="50" align="center"/>
-      <el-table-column type="index" label="序号" align="center" width="60"/>
-      <el-table-column label="封面" align="center" width="90">
+    <el-table
+        v-loading="loading"
+        :data="heritage_manageList"
+        @selection-change="handleSelectionChange"
+        border
+        stripe
+        size="small"
+        class="industrial-table"
+    >
+      <el-table-column type="selection" width="44" align="center"/>
+      <el-table-column type="index" label="序号" align="center" width="52"/>
+      <el-table-column label="封面" align="center" width="72">
         <template #default="scope">
-          <image-preview :src="scope.row.coverImage" :width="45" :height="45" class="table-cover"/>
+          <image-preview :src="scope.row.coverImage" :width="40" :height="40" class="table-cover"/>
         </template>
       </el-table-column>
-      <el-table-column label="展品名称" align="center" prop="itemName" min-width="160" :show-overflow-tooltip="true">
+      <el-table-column label="展品名称" align="left" prop="itemName" min-width="120" :show-overflow-tooltip="true">
         <template #default="scope">
           <span class="item-name-bold">{{ scope.row.itemName }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="所属项目" align="center" prop="categoryId" width="150">
+      <el-table-column label="所属项目" align="center" prop="categoryId" min-width="120" :show-overflow-tooltip="true">
         <template #default="scope">
-          <el-tag size="small" effect="plain" class="industrial-tag">{{ categoryFormat(scope.row) }}</el-tag>
+          <el-tag size="small" effect="plain" class="industrial-tag table-tag-ellipsis">{{ categoryFormat(scope.row) }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="状态" align="center" prop="status" width="90">
+      <el-table-column label="状态" align="center" prop="status" width="80">
         <template #default="scope">
           <dict-tag :options="heritage_audit_status" :value="scope.row.status" size="small"/>
         </template>
       </el-table-column>
-      <el-table-column label="数据统计 (览/赞/藏)" align="center" min-width="220">
+      <el-table-column label="览 / 赞 / 藏" align="center" min-width="160">
         <template #default="scope">
           <div class="stat-group">
             <div class="stat-item"><el-icon><View /></el-icon> {{ scope.row.viewCount || 0 }}</div>
@@ -71,13 +78,13 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="发布人" align="center" prop="createBy" width="110"/>
-      <el-table-column label="创建日期" align="center" prop="createTime" width="200">
+      <el-table-column label="发布人" align="center" prop="createBy" min-width="88" :show-overflow-tooltip="true"/>
+      <el-table-column label="创建日期" align="center" prop="createTime" width="108">
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="200" fixed="right">
+      <el-table-column label="操作" align="center" width="156" fixed="right" class-name="heritage-op-col">
         <template #default="scope">
           <div class="op-group">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['heritage:heritage_manage:edit']">修改</el-button>
@@ -244,28 +251,13 @@ onMounted(() => { getCategoryTree(); getList(); });
 </script>
 
 <style scoped lang="scss">
-.header-section {
-  display: flex; justify-content: space-between; align-items: flex-end;
-  border-bottom: 2px solid #000; padding-bottom: 18px; margin-bottom: 25px;
-  .page-title { font-size: 26px; font-weight: 900; letter-spacing: -1px; margin: 0; }
-  .page-subtitle { font-size: 13px; color: #999; margin-top: 5px; }
-}
-.industrial-add-btn { background: #000 !important; color: #fff !important; border-radius: 0; font-weight: 900; height: 42px; padding: 0 20px; }
-.industrial-export-btn { background: #fff !important; color: #000 !important; border: 1.5px solid #000 !important; border-radius: 0; font-weight: 900; height: 42px; padding: 0 20px; }
-.industrial-search-form { background: #fcfcfc; padding: 15px; margin-bottom: 20px; border: 1px solid #eee; }
-.industrial-table {
-  border-radius: 0; :deep(.el-table__header) th { background-color: #fcfcfc !important; color: #000; font-weight: 900; font-size: 13px; height: 50px; text-transform: uppercase; }
-  :deep(.el-table__row) { height: 75px; }
-}
-.item-name-bold { font-weight: 700; color: #000; font-size: 14px; text-align: center}
-.stat-group { display: flex; justify-content: space-around; align-items: center; padding: 0 10px; }
-.stat-item { display: inline-flex; align-items: center; gap: 5px; font-family: 'D-DIN', sans-serif; font-weight: 600; font-size: 14px; color: #666; }
+.item-name-bold { font-weight: 600; color: #303133; font-size: 13px; }
+.table-tag-ellipsis { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+.stat-group { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 10px; }
+.stat-item { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #606266; }
 .text-danger { color: #F56C6C; }
 .text-warning { color: #E6A23C; }
-.op-group { display: flex; justify-content: center; gap: 12px; }
-.industrial-tag { border-radius: 0; border: 1px solid #ddd; color: #333; font-weight: 600; }
-.pagination-wrapper { margin-top: 40px; display: flex; justify-content: center; }
-:deep(.pagination-container) { background: transparent !important; }
+.industrial-tag { border-radius: 4px; border: 1px solid #ddd; color: #333; font-weight: 500; }
 .dialog-scroll-wrapper {
   max-height: 65vh; overflow-y: auto; padding: 0 20px;
   &::-webkit-scrollbar { width: 4px; }

@@ -1,10 +1,9 @@
 <template>
-  <div class="app-container">
+  <div class="app-container heritage-admin-page">
     <!-- 1. 顶部工业风标题与操作区 -->
     <div class="header-section">
       <div class="title-group">
         <h2 class="page-title">非遗分类管理</h2>
-        <p class="page-subtitle">定义和维护非遗物品的所属门类及其编码规范</p>
       </div>
       <div class="header-actions">
         <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd" v-hasPermi="['heritage:category:add']">新增分类</el-button>
@@ -35,13 +34,14 @@
         @selection-change="handleSelectionChange"
         border
         stripe
+        size="small"
         class="industrial-table"
         style="width: 100%"
     >
-      <el-table-column type="selection" width="50" align="center" />
-      <el-table-column type="index" label="序号" align="center" width="60" />
+      <el-table-column type="selection" width="44" align="center" />
+      <el-table-column type="index" label="序号" align="center" width="52" />
 
-      <el-table-column label="分类名称" align="center" prop="categoryName" min-width="160">
+      <el-table-column label="分类名称" align="left" prop="categoryName" min-width="120" :show-overflow-tooltip="true">
         <template #default="scope">
           <span class="category-name-bold">{{ scope.row.categoryName }}</span>
         </template>
@@ -80,19 +80,19 @@
 
 <!--      <el-table-column label="显示顺序" align="center" prop="sortOrder" width="100" />-->
 
-      <el-table-column label="状态" align="center" prop="status" width="150">
+      <el-table-column label="状态" align="center" prop="status" width="88">
         <template #default="scope">
           <dict-tag :options="sys_normal_disable" :value="scope.row.status" size="small" />
         </template>
       </el-table-column>
 
-      <el-table-column label="创建时间" align="center" prop="createTime" width="200">
+      <el-table-column label="创建时间" align="center" prop="createTime" width="158">
         <template #default="scope">
           <span class="time-text">{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{i}') }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="center" width="200" fixed="right">
+      <el-table-column label="操作" align="center" width="156" fixed="right" class-name="heritage-op-col">
         <template #default="scope">
           <div class="op-group">
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['heritage:category:edit']">修改</el-button>
@@ -316,58 +316,14 @@ getAllCategories(); // 【关键】初始化时获取一次全量数据
 </script>
 
 <style scoped lang="scss">
-/* --- 布局头风格 --- */
-.header-section {
-  display: flex; justify-content: space-between; align-items: flex-end;
-  border-bottom: 2px solid #000; padding-bottom: 18px; margin-bottom: 25px;
-  .page-title { font-size: 26px; font-weight: 900; letter-spacing: -1px; margin: 0; }
-  .page-subtitle { font-size: 13px; color: #999; margin-top: 5px; }
-}
-
-/* --- 工业风按钮 --- */
-.industrial-add-btn {
-  background: #000 !important; color: #fff !important; border: none !important; border-radius: 0;
-  font-weight: 900; height: 42px; padding: 0 20px;
-}
-.industrial-export-btn {
-  background: #fff !important; color: #000 !important; border: 1.5px solid #000 !important; border-radius: 0;
-  font-weight: 900; height: 42px; padding: 0 20px;
-}
-
-/* --- 搜索区域 --- */
-.industrial-search-form {
-  background: #fcfcfc; padding: 15px; margin-bottom: 20px; border: 1px solid #eee;
-}
-
-/* --- 表格样式重构 --- */
-.industrial-table {
-  border-radius: 0; border: 1px solid #ebeef5;
-
-  :deep(.el-table__header) th {
-    background-color: #fafafa !important;
-    color: #333 !important;
-    font-weight: 800 !important;
-    font-size: 13px;
-    height: 50px;
-    text-transform: uppercase;
-  }
-  :deep(.el-table__row) {
-    height: 65px;
-  }
-}
-
-.category-name-bold { font-weight: 700; color: #000; font-size: 14px; }
-.code-text { font-family: 'D-DIN', monospace; font-weight: 600; color: #555; letter-spacing: 0.5px; }
-.time-text { font-size: 12px; color: #999; font-family: monospace; }
+.category-name-bold { font-weight: 600; color: #303133; font-size: 13px; }
+.code-text { font-family: ui-monospace, monospace; font-weight: 600; color: #606266; letter-spacing: 0.3px; }
+.time-text { font-size: 12px; color: #909399; }
 
 .parent-tag {
-  font-weight: 600;
+  font-weight: 500;
   border-radius: 4px;
-  padding: 0 10px;
+  padding: 0 6px;
 }
 
-.op-group { display: flex; justify-content: center; gap: 8px; }
-
-.pagination-wrapper { display: flex; justify-content: center; margin-top: 30px; }
-:deep(.pagination-container) { background: transparent !important; }
 </style>

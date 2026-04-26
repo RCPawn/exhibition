@@ -1,29 +1,35 @@
 <template>
-  <div class="app-container">
+  <div class="app-container heritage-admin-page">
     <!-- 1. 顶部标题 -->
     <div class="header-section">
       <div class="title-group">
-        <h2 class="page-title">审核中心</h2>
-        <p class="page-subtitle">待处理资产：{{ total }} 项</p>
+        <h2 class="page-title">审核中心<span class="page-title-meta">· 待处理 {{ total }} 项</span></h2>
       </div>
     </div>
 
     <!-- 2. 待审核列表 -->
-    <el-table v-loading="loading" :data="auditList" border class="industrial-table">
-      <el-table-column type="index" label="序号" align="center" width="70" />
-      <el-table-column label="封面" align="center" width="120">
+    <el-table
+        v-loading="loading"
+        :data="auditList"
+        border
+        stripe
+        size="small"
+        class="industrial-table"
+    >
+      <el-table-column type="index" label="序号" align="center" width="52" />
+      <el-table-column label="封面" align="center" width="76">
         <template #default="scope">
-          <image-preview :src="scope.row.coverImage" :width="60" :height="60" class="table-cover"/>
+          <image-preview :src="scope.row.coverImage" :width="40" :height="40" class="table-cover"/>
         </template>
       </el-table-column>
-      <el-table-column label="展品名称" align="left" prop="itemName" min-width="200" :show-overflow-tooltip="true">
+      <el-table-column label="展品名称" align="left" prop="itemName" min-width="140" :show-overflow-tooltip="true">
         <template #default="scope">
           <span class="item-name-bold">{{ scope.row.itemName }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="发布人" align="center" prop="createBy" width="150" />
-      <el-table-column label="提交日期" align="center" prop="createTime" width="180" />
-      <el-table-column label="操作" align="center" width="150" fixed="right">
+      <el-table-column label="发布人" align="center" prop="createBy" min-width="88" :show-overflow-tooltip="true" />
+      <el-table-column label="提交日期" align="center" prop="createTime" width="158" />
+      <el-table-column label="操作" align="center" width="120" fixed="right" class-name="heritage-op-col">
         <template #default="scope">
           <button class="industrial-audit-btn" @click="handleOpenAudit(scope.row)">
             进入审核
@@ -161,18 +167,7 @@ onMounted(() => getList());
 </script>
 
 <style scoped lang="scss">
-.header-section {
-  display: flex; justify-content: space-between; align-items: flex-end;
-  border-bottom: 2px solid #000; padding-bottom: 18px; margin-bottom: 25px;
-  .page-title { font-size: 26px; font-weight: 900; letter-spacing: -1px; }
-  .page-subtitle { color: #999; margin-top: 5px; }
-}
-
-.industrial-table {
-  border-radius: 0;
-  :deep(.el-table__header) th { background-color: #fcfcfc !important; color: #000; font-weight: 900; }
-  :deep(.el-table__row) { height: 80px; }
-}
+.item-name-bold { font-weight: 600; color: #303133; font-size: 13px; }
 
 .industrial-audit-btn {
   background: #000; color: #fff; border: none; padding: 8px 15px;
