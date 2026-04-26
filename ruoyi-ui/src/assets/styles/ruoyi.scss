@@ -68,6 +68,17 @@
   }
 }
 
+@media screen and (max-width: 1366px) {
+  .el-form--inline {
+    .el-form-item {
+      .el-input, .el-cascader, .el-select, .el-autocomplete {
+        width: min(200px, 100%);
+        max-width: 168px;
+      }
+    }
+  }
+}
+
 .el-form .el-form-item__label {
   font-weight: 700;
 }

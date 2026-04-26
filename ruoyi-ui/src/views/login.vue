@@ -195,8 +195,9 @@ getCookie()
 
 .login-wrapper {
   display: flex;
-  width: 950px;
-  height: 550px;
+  width: min(950px, 94vw);
+  height: min(550px, calc(100vh - 40px));
+  max-height: 90vh;
   background: #fff;
   border: 3px solid #000;
   box-shadow: 20px 20px 0px #000; // 核心：硬核块状投影
@@ -208,7 +209,7 @@ getCookie()
   flex: 1.2;
   background: #000;
   color: #fff;
-  padding: 60px;
+  padding: clamp(24px, 4vw, 60px);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -226,7 +227,7 @@ getCookie()
   }
 
   .brand-title {
-    font-size: 80px;
+    font-size: clamp(36px, 6vw, 80px);
     line-height: 0.9;
     font-weight: 900;
     letter-spacing: -4px;
@@ -251,7 +252,7 @@ getCookie()
   &::after {
     content: "ARCHIVE";
     position: absolute;
-    font-size: 150px;
+    font-size: clamp(72px, 14vw, 150px);
     font-weight: 900;
     color: rgba(255,255,255,0.03);
     bottom: -30px;
@@ -263,7 +264,7 @@ getCookie()
 /* 右侧：表单逻辑 */
 .form-side {
   flex: 1;
-  padding: 50px 45px;
+  padding: clamp(28px, 4vh, 50px) clamp(20px, 3vw, 45px);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -380,9 +381,16 @@ getCookie()
   z-index: 10;
 }
 
+/* 窄高屏笔记本：略压阴影，避免溢出视口 */
+@media screen and (max-height: 720px) {
+  .login-wrapper {
+    box-shadow: 12px 12px 0 #000;
+  }
+}
+
 /* 响应式调整 */
 @media screen and (max-width: 900px) {
   .brand-side { display: none; }
-  .login-wrapper { width: 400px; }
+  .login-wrapper { width: min(400px, 92vw); height: auto; max-height: none; }
 }
 </style>

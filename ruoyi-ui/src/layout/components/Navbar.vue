@@ -244,6 +244,12 @@ function toggleTheme() {
           font-size: 14px;
           font-weight: bold;
           color: var(--navbar-text);
+          max-width: 12em;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          display: inline-block;
+          vertical-align: middle;
         }
 
         i {

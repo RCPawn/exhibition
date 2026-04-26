@@ -41,8 +41,10 @@ const moreRoutes = computed(() => {
   return permissionStore.sidebarRouters.filter((f) => !f.hidden).slice(visibleNumber.value, sidebarRouters.value.length - visibleNumber.value)
 })
 function setVisibleNumber() {
-  const width = document.body.getBoundingClientRect().width / 3
-  visibleNumber.value = parseInt(width / 85)
+  const vw = document.documentElement?.clientWidth || document.body.getBoundingClientRect().width
+  const reserved = 300
+  const w = Math.max(320, vw - reserved)
+  visibleNumber.value = Math.max(3, Math.min(14, Math.floor(w / 88)))
 }
 
 onMounted(() => {

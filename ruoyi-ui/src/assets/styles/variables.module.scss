@@ -100,6 +100,10 @@ $--color-info: #909399;
   --tags-close-hover: rgba(255, 255, 255, 0.3);
 
   --splitpanes-default-bg: #ffffff;
+
+  /* 13″～27″ 通用：内容区内边距与宽屏页边距节奏（供全局样式引用） */
+  --app-container-padding: clamp(12px, 0.75vw + 10px, 24px);
+  --components-container-margin-x: clamp(12px, 2.8vw + 8px, 50px);
 }
 
 // ==============================================

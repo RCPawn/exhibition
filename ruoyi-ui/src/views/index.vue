@@ -1355,4 +1355,38 @@ $primary: #409eff;
     font-size: 18px;
   }
 }
+
+/* 13″ 常见 1280 宽：三列略收紧，避免横向拥挤 */
+@media (max-width: 1280px) {
+  .screen-body {
+    grid-template-columns: minmax(0, 28%) minmax(0, 1fr) minmax(0, 28%);
+    gap: 8px;
+    padding: 5px 10px 12px;
+  }
+}
+
+/* 27″ 等大屏：略放大标题与统计，减少「过空」观感 */
+@media (min-width: 1920px) {
+  .screen-body {
+    gap: clamp(14px, 1.1vw, 26px);
+    padding: 10px clamp(20px, 1.8vw, 40px) clamp(16px, 2vh, 28px);
+  }
+
+  .screen-header .header-title .cn {
+    font-size: clamp(22px, 1.25vw, 30px);
+  }
+
+  .hud-stats .stat-box .value {
+    font-size: clamp(30px, 2vw, 42px);
+  }
+
+  .center-stage .stage-ring {
+    max-width: min(360px, 24vw);
+    max-height: min(360px, 24vw);
+  }
+
+  .center-stage .model-name-card h3 {
+    font-size: clamp(20px, 1.35vw, 28px);
+  }
+}
 </style>

@@ -116,7 +116,7 @@ onUnmounted(() => {
   justify-content: stretch;
   gap: 0; /* 彻底消除缝隙 */
   width: 100%;
-  height: 150px;
+  height: clamp(100px, 14vh, 150px);
   cursor: pointer;
   background: transparent;
   overflow: hidden;

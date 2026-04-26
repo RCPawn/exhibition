@@ -134,11 +134,11 @@ aside {
 
 //main-container全局样式
 .app-container {
-  padding: 20px;
+  padding: var(--app-container-padding, 20px);
 }
 
 .components-container {
-  margin: 30px 50px;
+  margin: clamp(16px, 2vh, 30px) var(--components-container-margin-x, 50px);
   position: relative;
 }
 

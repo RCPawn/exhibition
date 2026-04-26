@@ -17,7 +17,7 @@
 
     <!-- 2. 沉浸式轮播图：占据大比例视觉 -->
     <div class="hero-carousel">
-      <el-carousel :interval="5000" height="450px" indicator-position="outside">
+      <el-carousel :interval="5000" :height="`${carouselHeightPx}px`" indicator-position="outside">
         <el-carousel-item v-for="item in bannerList" :key="item.id">
           <div class="carousel-content">
             <img :src="getAssetUrl(item.coverImage)" class="carousel-img" />
@@ -90,7 +90,8 @@
 </template>
 
 <script setup name="Exhibit">
-import { ref, reactive, onMounted, getCurrentInstance } from 'vue';
+import { ref, reactive, onMounted, getCurrentInstance, computed } from 'vue';
+import { useWindowSize } from '@vueuse/core';
 import { useRoute, useRouter } from 'vue-router';
 import { listHeritage_manage } from "@/api/heritage/heritage_manage";
 import { Plus, Right, Search } from "@element-plus/icons-vue";
@@ -99,6 +100,13 @@ import SiteFooter from "@/components/SiteFooter.vue";
 const route = useRoute();
 const router = useRouter();
 const { proxy } = getCurrentInstance();
+const { height: windowHeight } = useWindowSize();
+
+/** 轮播高度：笔记本偏矮时加高，避免标题+描述被 overflow 裁切；大屏上限放宽 */
+const carouselHeightPx = computed(() => {
+  const h = windowHeight.value || 800;
+  return Math.min(560, Math.max(360, Math.round(h * 0.48)));
+});
 
 // --- 数据响应式变量 ---
 const loading = ref(true);
@@ -235,10 +243,6 @@ onMounted(() => {
     margin: clamp(15px, 2vh, 20px) auto; // 响应式外边距
     padding: 0 clamp(15px, 2vw, 20px); // 响应式内边距
 
-    :deep(.el-carousel) {
-      height: clamp(300px, 40vh, 450px) !important; // 响应式轮播高度
-    }
-
     .carousel-content {
       position: relative;
       height: 100%;
@@ -253,29 +257,61 @@ onMounted(() => {
 
       .carousel-info {
         position: absolute;
-        left: clamp(30px, 4vw, 50px); // 响应式位置
-        bottom: clamp(30px, 4vh, 50px); // 响应式位置
+        left: clamp(16px, 3vw, 48px);
+        right: clamp(16px, 3vw, 48px);
+        bottom: clamp(12px, 2.5vh, 40px);
+        max-height: min(58%, calc(100% - 20px));
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
         color: #fff;
         z-index: 2;
+        box-sizing: border-box;
 
         .tag {
+          align-self: flex-start;
+          width: fit-content;
           background: #00ffcc;
           color: #000;
           padding: 4px 12px;
           font-weight: 900;
           font-size: clamp(10px, 1vw, 12px); // 响应式字体
           text-transform: uppercase;
+          flex-shrink: 0;
         }
 
         .title {
-          font-size: clamp(28px, 4vw, 42px); // 响应式标题
-          margin: 15px 0;
+          font-size: clamp(20px, 3.2vw, 40px);
+          margin: 10px 0 8px;
+          line-height: 1.2;
           text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+          flex-shrink: 0;
         }
 
         .desc {
-          font-size: clamp(14px, 1.5vw, 16px); // 响应式描述
-          opacity: 0.9;
+          flex: 1 1 auto;
+          min-height: 0;
+          overflow-x: hidden;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          -webkit-overflow-scrolling: touch;
+          padding-right: 4px;
+          font-size: clamp(13px, 1.35vw, 16px);
+          line-height: 1.55;
+          opacity: 0.95;
+          margin: 0;
+          white-space: pre-wrap;
+          word-break: break-word;
+
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+          &::-webkit-scrollbar {
+            width: 6px;
+          }
+          &::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.35);
+            border-radius: 3px;
+          }
         }
       }
 
@@ -283,7 +319,9 @@ onMounted(() => {
         content: '';
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+        background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.25) 45%, transparent 100%);
+        pointer-events: none;
+        z-index: 1;
       }
     }
   }

@@ -176,8 +176,9 @@ getCode()
 
 .register-wrapper {
   display: flex;
-  width: 950px;
-  height: 580px; // 比登录页稍高以容纳确认密码框
+  width: min(950px, 94vw);
+  height: min(580px, calc(100vh - 40px));
+  max-height: 92vh;
   background: #fff;
   border: 3px solid #000;
   box-shadow: 20px 20px 0px #000;
@@ -189,7 +190,7 @@ getCode()
   flex: 1.2;
   background: #000;
   color: #fff;
-  padding: 60px;
+  padding: clamp(24px, 4vw, 60px);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -207,7 +208,7 @@ getCode()
   }
 
   .brand-title {
-    font-size: 70px;
+    font-size: clamp(32px, 5.5vw, 70px);
     line-height: 0.9;
     font-weight: 900;
     letter-spacing: -4px;
@@ -231,7 +232,7 @@ getCode()
   &::after {
     content: "JOIN";
     position: absolute;
-    font-size: 180px;
+    font-size: clamp(80px, 15vw, 180px);
     font-weight: 900;
     color: rgba(255,255,255,0.03);
     bottom: -40px;
@@ -243,7 +244,7 @@ getCode()
 /* 右侧：表单区 */
 .form-side {
   flex: 1;
-  padding: 40px 45px;
+  padding: clamp(24px, 3.5vh, 40px) clamp(20px, 3vw, 45px);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -349,8 +350,14 @@ getCode()
   z-index: 10;
 }
 
+@media screen and (max-height: 720px) {
+  .register-wrapper {
+    box-shadow: 12px 12px 0 #000;
+  }
+}
+
 @media screen and (max-width: 900px) {
   .brand-side { display: none; }
-  .register-wrapper { width: 400px; }
+  .register-wrapper { width: min(400px, 92vw); height: auto; max-height: none; }
 }
 </style>
