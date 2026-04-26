@@ -87,8 +87,17 @@ $--color-info: #909399;
   --sidebar-text: #{$menuText};
   --menu-hover: #{$menuHover};
 
-  --navbar-bg: #ffffff;
-  --navbar-text: #303133;
+  /* 顶部导航栏 - 深蓝色系，与侧边栏和数据大屏统一 */
+  --navbar-bg: #182640;
+  --navbar-text: #bfcbd9;
+
+  /* 标签栏 - 深蓝色系，与导航栏统一 */
+  --tags-bg: #182640;
+  --tags-item-bg: #0f1828;
+  --tags-item-border: rgba(255, 255, 255, 0.15);
+  --tags-item-text: #bfcbd9;
+  --tags-item-hover: #121c30;
+  --tags-close-hover: rgba(255, 255, 255, 0.3);
 
   --splitpanes-default-bg: #ffffff;
 }

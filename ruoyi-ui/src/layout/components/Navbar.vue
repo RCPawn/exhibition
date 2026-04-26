@@ -128,7 +128,7 @@ function toggleTheme() {
   overflow: hidden;
   position: relative;
   background: var(--navbar-bg);
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   // padding: 0 8px;
@@ -146,7 +146,11 @@ function toggleTheme() {
     margin-right: 8px;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.025);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    :deep(svg) {
+      fill: var(--navbar-text);
     }
   }
 
@@ -189,7 +193,7 @@ function toggleTheme() {
       padding: 0 8px;
       height: 100%;
       font-size: 18px;
-      color: #5a5e66;
+      color: var(--navbar-text);
       vertical-align: text-bottom;
 
       &.hover-effect {
@@ -197,7 +201,7 @@ function toggleTheme() {
         transition: background 0.3s;
 
         &:hover {
-          background: rgba(0, 0, 0, 0.025);
+          background: rgba(255, 255, 255, 0.1);
         }
       }
 
@@ -230,6 +234,7 @@ function toggleTheme() {
           height: 30px;
           margin-right: 8px;
           border-radius: 50%;
+          border: 2px solid rgba(255, 255, 255, 0.3);
         }
 
         .user-nickname{
@@ -238,6 +243,7 @@ function toggleTheme() {
           bottom: 10px;
           font-size: 14px;
           font-weight: bold;
+          color: var(--navbar-text);
         }
 
         i {

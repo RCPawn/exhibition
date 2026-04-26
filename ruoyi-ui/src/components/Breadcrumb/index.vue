@@ -88,10 +88,28 @@ getBreadcrumb()
   display: inline-block;
   font-size: 14px;
   line-height: 50px;
+  color: var(--navbar-text);
 
   .no-redirect {
-    color: #97a8be;
+    color: var(--navbar-text);
+    opacity: 0.7;
     cursor: text;
+  }
+
+  a {
+    color: var(--navbar-text);
+    opacity: 0.85;
+    transition: opacity 0.2s;
+    
+    &:hover {
+      opacity: 1;
+      color: var(--navbar-text);
+    }
+  }
+
+  :deep(.el-breadcrumb__separator) {
+    color: var(--navbar-text);
+    opacity: 0.5;
   }
 }
 </style>

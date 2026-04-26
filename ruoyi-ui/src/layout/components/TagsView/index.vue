@@ -263,9 +263,9 @@ function handleScroll() {
 .tags-view-container {
   height: 34px;
   width: 100%;
-  background: var(--tags-bg, #fff);
-  border-bottom: 1px solid var(--tags-item-border, #d8dce5);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .12), 0 0 3px 0 rgba(0, 0, 0, .04);
+  background: var(--tags-bg, #182640);
+  border-bottom: 1px solid var(--tags-item-border, rgba(255, 255, 255, 0.15));
+  box-shadow: none;
 
   .tags-view-wrapper {
     .tags-view-item {
@@ -274,9 +274,9 @@ function handleScroll() {
       cursor: pointer;
       height: 26px;
       line-height: 26px;
-      border: 1px solid var(--tags-item-border, #d8dce5);
-      color: var(--tags-item-text, #495060);
-      background: var(--tags-item-bg, #fff);
+      border: 1px solid var(--tags-item-border, rgba(255, 255, 255, 0.15));
+      color: var(--tags-item-text, #bfcbd9);
+      background: var(--tags-item-bg, #0f1828);
       padding: 0 8px;
       font-size: 12px;
       margin-left: 5px;
@@ -290,10 +290,14 @@ function handleScroll() {
         margin-right: 15px;
       }
 
+      &:hover {
+        background: var(--tags-item-hover, #121c30);
+      }
+
       &.active {
-        background-color: #42b983;
+        background-color: #409eff;
         color: #fff;
-        border-color: #42b983;
+        border-color: #409eff;
 
         &::before {
           content: '';
@@ -315,7 +319,7 @@ function handleScroll() {
 
   .contextmenu {
     margin: 0;
-    background: var(--el-bg-color-overlay, #fff);
+    background: #fff;
     z-index: 3000;
     position: absolute;
     list-style-type: none;
@@ -323,9 +327,9 @@ function handleScroll() {
     border-radius: 4px;
     font-size: 12px;
     font-weight: 400;
-    color: var(--tags-item-text, #333);
+    color: #333;
     box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, .3);
-    border: 1px solid var(--el-border-color-light, #e4e7ed);
+    border: 1px solid #e4e7ed;
 
     li {
       margin: 0;
@@ -333,7 +337,7 @@ function handleScroll() {
       cursor: pointer;
 
       &:hover {
-        background: var(--tags-item-hover, #eee);
+        background: #f5f7fa;
       }
     }
   }
@@ -360,7 +364,7 @@ function handleScroll() {
       }
 
       &:hover {
-        background-color: var(--tags-close-hover, #b4bccc);
+        background-color: var(--tags-close-hover, rgba(255, 255, 255, 0.3));
         color: #fff;
         width: 12px !important;
         height: 12px !important;
