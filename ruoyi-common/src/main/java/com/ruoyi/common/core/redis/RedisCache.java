@@ -1,6 +1,9 @@
 package com.ruoyi.common.core.redis;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -8,10 +11,14 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundSetOperations;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * spring redis 工具类
@@ -248,12 +255,32 @@ public class RedisCache {
     }
 
     /**
-     * 获得缓存的基本对象列表
+     * 通过模式匹配查找 key 集合。内部使用 <b>SCAN</b> 迭代，避免原 KEYS 对 Redis 的阻塞，适合多在线会话等生产场景。
      *
-     * @param pattern 字符串前缀
-     * @return 对象列表
+     * @param pattern 与 Redis KEYS/SCAN 相同的模式（如 {@code "prefix:*"}）
+     * @return 匹配的 key 名；若无法匹配或 pattern 为空则返回空集合
      */
     public Collection<String> keys(final String pattern) {
-        return redisTemplate.keys(pattern);
+        if (!StringUtils.hasText(pattern)) {
+            return new ArrayList<String>();
+        }
+        @SuppressWarnings("unchecked")
+        Set<String> s = (Set<String>) redisTemplate.execute((RedisCallback<Set<String>>) (connection) -> {
+            Set<String> out = new HashSet<String>();
+            ScanOptions options = ScanOptions.scanOptions()
+                .match(pattern)
+                .count(2000L)
+                .build();
+            try (Cursor<byte[]> cursor = connection.scan(options)) {
+                while (cursor != null && cursor.hasNext()) {
+                    out.add(new String(cursor.next(), StandardCharsets.UTF_8));
+                }
+            }
+            return out;
+        });
+        if (s == null) {
+            s = new HashSet<String>();
+        }
+        return s;
     }
 }

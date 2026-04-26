@@ -47,6 +47,9 @@ public class SysUserOnlineController extends BaseController
         for (String key : keys)
         {
             LoginUser user = redisCache.getCacheObject(key);
+            if (StringUtils.isNull(user)) {
+                continue;
+            }
             if (StringUtils.isNotEmpty(ipaddr) && StringUtils.isNotEmpty(userName))
             {
                 userOnlineList.add(userOnlineService.selectOnlineByInfo(ipaddr, userName, user));
