@@ -45,3 +45,7 @@ nbdist/
 !*/build/*.java
 !*/build/*.html
 !*/build/*.xml
+
+######################################################################
+# Runtime (user uploads, do not commit)
+profile/upload/
