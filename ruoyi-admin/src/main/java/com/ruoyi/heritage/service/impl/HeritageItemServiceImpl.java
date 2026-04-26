@@ -142,8 +142,9 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
             // 4. 确实没有缓存，执行数据库查询 (这是最重的操作)
             IndexStatsVo stats = new IndexStatsVo();
 
-            // --- 基础数据 ---
-            stats.setTotalItems(heritageItemMapper.selectHeritageItemList(null).size());
+            // --- 基础数据（聚合查询，避免全表 select + JVM size）---
+            Long totalItems = heritageItemMapper.countValidHeritageItems();
+            stats.setTotalItems(totalItems != null ? totalItems : 0L);
             Long views = heritageItemMapper.sumViewCount();
             // 合并 Redis 里的所有缓冲浏览量，保证大屏数据实时
             Map<String, Integer> bufferMap = redisCache.getCacheMap(CACHE_KEY_VIEW_BUFFER);

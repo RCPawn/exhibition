@@ -79,6 +79,11 @@ public interface HeritageItemMapper {
     /** 累计浏览总热度 */
     Long sumViewCount();
 
+    /**
+     * 未逻辑删除的展品总条数（与无筛选的 {@link #selectHeritageItemList} 在参数为 null 时一致）
+     */
+    Long countValidHeritageItems();
+
     /** 累计全站互动总数 */
     Long sumTotalInteractions();
 }

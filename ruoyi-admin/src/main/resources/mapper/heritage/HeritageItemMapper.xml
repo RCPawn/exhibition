@@ -169,6 +169,10 @@
         SELECT COALESCE(SUM(view_count), 0) FROM heritage_item WHERE del_flag = '0'
     </select>
 
+    <select id="countValidHeritageItems" resultType="Long">
+        SELECT COUNT(*) FROM heritage_item WHERE del_flag = '0'
+    </select>
+
     <select id="sumTotalInteractions" resultType="Long">
         SELECT COALESCE(SUM(like_count + favorite_count + comment_count), 0) FROM heritage_item WHERE del_flag = '0'
     </select>
