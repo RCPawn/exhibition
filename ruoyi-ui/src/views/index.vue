@@ -367,7 +367,7 @@ $border-color: rgba(255, 255, 255, 0.15);
 $primary: #409eff;
 
 .data-screen-container {
-  width: 100%; height: calc(100vh - 84px);
+  width: 100%; height: calc(100vh - var(--layout-navbar-height, 60px) - var(--layout-tags-height, 34px));
   background-color: $bg-color;
   position: relative; overflow: hidden;
   color: #fff;
@@ -882,20 +882,19 @@ $bg-color: #182640;
 $border-color: rgba(255, 255, 255, 0.15);
 $primary: #409eff;
 
-/* --- 1. 容器：铺满剩余空间，严禁滚动 --- */
+/* --- 1. 容器：铺满主内容区（app-main 已扣除顶栏；标签在顶栏内不再重复减高度） --- */
 .data-screen-container {
   width: 100%;
-  /*
-     核心：若依框架通常有 header(50px) + tags(34px) = 84px。
-     设置 calc(100vh - 84px) 保证刚好占满可视区域
-  */
-  height: calc(100vh - 84px);
+  height: 100%;
+  /* dvh：笔记本/大屏在浏览器 UI 变化时仍尽量贴满可视区域 */
+  min-height: calc(100dvh - var(--layout-navbar-height, 60px));
   background-color: $bg-color;
   position: relative;
-  overflow: hidden; /* 强制不显示滚动条 */
+  overflow: hidden;
   color: #fff;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
 /* 背景 */

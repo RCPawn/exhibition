@@ -31,9 +31,9 @@ $menuLightHover: #f0f1f5;
 $menuLightText: #303133;
 $menuLightActiveText: #409EFF;
 
-// 侧边栏宽度
-$base-sidebar-width: 240px;
-$sideBarWidth: 240px;
+// 侧边栏宽度（略收窄，减少留白；与 layout / Logo 引用的 sideBarWidth 同步）
+$base-sidebar-width: 200px;
+$sideBarWidth: 200px;
 
 // ==============================================
 // 3. 基础与组件变量
@@ -87,17 +87,19 @@ $--color-info: #909399;
   --sidebar-text: #{$menuText};
   --menu-hover: #{$menuHover};
 
-  /* 顶部导航栏 - 深蓝色系，与侧边栏和数据大屏统一 */
-  --navbar-bg: #182640;
-  --navbar-text: #bfcbd9;
+  /* 默认管理页：白底顶栏 + 浅色页签（数据大屏路由下由 .app-wrapper--admin-screen-header 覆盖为深蓝） */
+  --navbar-bg: #ffffff;
+  --navbar-text: #303133;
+  --navbar-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --navbar-row-hover: rgba(0, 0, 0, 0.06);
+  --navbar-avatar-ring: rgba(0, 0, 0, 0.12);
 
-  /* 标签栏 - 深蓝色系，与导航栏统一 */
-  --tags-bg: #182640;
-  --tags-item-bg: #0f1828;
-  --tags-item-border: rgba(255, 255, 255, 0.15);
-  --tags-item-text: #bfcbd9;
-  --tags-item-hover: #121c30;
-  --tags-close-hover: rgba(255, 255, 255, 0.3);
+  --tags-bg: #ffffff;
+  --tags-item-bg: #f0f2f5;
+  --tags-item-border: #e4e7ed;
+  --tags-item-text: #606266;
+  --tags-item-hover: #e4e7ed;
+  --tags-close-hover: rgba(0, 0, 0, 0.12);
 
   --splitpanes-default-bg: #ffffff;
 
@@ -229,6 +231,22 @@ html.dark {
   .popup-result .title {
     background: var(--cron-border);
   }
+}
+
+/* 数据大屏等路由（meta.adminScreenHeader）：顶栏与顶栏内页签与侧栏/大屏统一为深蓝 */
+.app-wrapper.app-wrapper--admin-screen-header {
+  --navbar-bg: #182640;
+  --navbar-text: #bfcbd9;
+  --navbar-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --navbar-row-hover: rgba(255, 255, 255, 0.08);
+  --navbar-avatar-ring: rgba(255, 255, 255, 0.22);
+
+  --tags-bg: #182640;
+  --tags-item-bg: #0f1828;
+  --tags-item-border: rgba(255, 255, 255, 0.15);
+  --tags-item-text: #bfcbd9;
+  --tags-item-hover: #121c30;
+  --tags-close-hover: rgba(255, 255, 255, 0.3);
 }
 
 

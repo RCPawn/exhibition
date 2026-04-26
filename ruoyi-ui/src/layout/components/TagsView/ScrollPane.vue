@@ -2,7 +2,7 @@
   <el-scrollbar
     ref="scrollContainer"
     :vertical="false"
-    class="scroll-container"
+    :class="['scroll-container', { 'scroll-container--embedded': embedded }]"
     @wheel.prevent="handleScroll"
   >
     <slot />
@@ -11,6 +11,13 @@
 
 <script setup>
 import useTagsViewStore from '@/store/modules/tagsView'
+
+defineProps({
+  embedded: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const tagAndTagSpacing = ref(4)
 const { proxy } = getCurrentInstance()
@@ -102,6 +109,23 @@ defineExpose({
   }
   :deep(.el-scrollbar__wrap) {
     height: 39px;
+  }
+
+  &.scroll-container--embedded {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    :deep(.el-scrollbar__wrap) {
+      height: 100%;
+      max-height: 52px;
+      display: flex;
+      align-items: center;
+    }
+    :deep(.el-scrollbar__view) {
+      display: flex;
+      align-items: center;
+      min-height: 40px;
+    }
   }
 }
 </style>

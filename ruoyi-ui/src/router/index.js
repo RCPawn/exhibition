@@ -66,8 +66,8 @@ export const constantRoutes = [
                 path: '/index',
                 component: () => import('@/views/index'),
                 name: 'Index',
-                // 将首页修改
-                meta: {title: '数据大屏', icon: 'international', affix: true}
+                // 将首页修改；与顶栏主题联动（驾驶舱/数据大屏区域）
+                meta: { title: '数据大屏', icon: 'international', affix: true, adminScreenHeader: true }
             }
         ]
     },

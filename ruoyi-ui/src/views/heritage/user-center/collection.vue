@@ -99,7 +99,7 @@ onMounted(() => {
 .collection-container {
   padding: 30px;
   background-color: #f9f9f9;
-  min-height: calc(100vh - 84px);
+  min-height: calc(100vh - var(--layout-navbar-height, 60px) - var(--layout-tags-height, 34px));
 }
 
 .page-header {

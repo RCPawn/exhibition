@@ -70,6 +70,7 @@
     }
 
     .svg-icon {
+      /* 图标与菜单名之间留白 */
       margin-right: 10px !important;
     }
 
@@ -78,6 +79,47 @@
       height: 100%;
       width: 100% !important;
       background-color: transparent !important; /* 确保菜单背景透明，透出底色 */
+      /* 左侧基准再加大：整行相对侧栏右移，避免贴边 */
+      --el-menu-base-level-padding: 18px;
+      --el-menu-level-padding: 18px;
+      --el-menu-icon-width: 22px;
+    }
+
+    /*
+     * 带子菜单的标题：flex 布局；标题区可伸缩，下拉箭头 margin-left:auto 靠右，
+     * 水平位置在子菜单文字折线更右侧，与 EP 默认「整块贴左」相比观感更稳。
+     */
+    .el-sub-menu > .el-sub-menu__title {
+      display: flex !important;
+      align-items: center;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      padding-right: 10px !important;
+
+      > .svg-icon {
+        flex-shrink: 0;
+      }
+
+      .menu-title {
+        flex: 1 1 auto;
+        min-width: 0;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .el-sub-menu__icon-arrow {
+        position: static !important;
+        top: auto !important;
+        right: auto !important;
+        margin-top: 0 !important;
+        margin-left: auto;
+        flex-shrink: 0;
+        width: 18px !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
     }
 
     .el-menu-item, .menu-title {

@@ -9,6 +9,11 @@ alwaysApply: true
 
 1. 在仓库根目录执行：`git add .`
 2. 再执行：`git commit -m "提交说明"`（用 `-m`，不是 `-u`）
-3. 提交说明：根据当前改动写**一句**清晰中文或英文即可；**不要**为「写说明」而刻意跑大量诊断命令，除非用户明确要求多段/Conventional 长正文。
+3. 提交说明：根据当前改动写**一句**清晰说明。默认推荐 **Conventional Commits**（与团队/CI 解析习惯一致）：
+   - 单行格式：`<type>(<scope>): <subject>`（`scope` 可选；`subject` 用祈使语气、首字母小写、结尾不加句号）。
+   - 常用 `type`：`feat` 新功能、`fix` 修复、`docs` 文档、`style` 纯格式/不影响逻辑、`refactor` 重构、`perf` 性能、`test` 测试、`chore` 构建/工具/杂项、`ci` CI、`build` 构建系统。
+   - 示例：`feat(ui): refine tags view and navbar layout`、`fix(auth): handle null token on refresh`。
+   - 若用户明确要求「一句中文」或非 Conventional，按其当次要求即可。
+   - **不要**为「写说明」而刻意跑大量诊断命令，除非用户明确要求多段正文或详细 body（多行可用多次 `-m` 或编辑器提交）。
 4. 已受 `.gitignore` 忽略的路径（如 `target/`）不会被 `git add .` 纳入；若出现未忽略的大文件或密钥，先提醒用户再决定是否提交。
 5. 仅当用户**明确要求推送**时再执行 `git push`。

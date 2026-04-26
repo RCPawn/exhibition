@@ -346,7 +346,7 @@ $accent: #FFD700;
 .genealogy-container {
   position: relative;
   width: 100%;
-  height: calc(100vh - 84px);
+  height: calc(100vh - var(--layout-navbar-height, 60px) - var(--layout-tags-height, 34px));
   background-color: #ffffff;
   overflow: hidden;
   font-family: "Songti SC", "SimSun", serif;

@@ -1,8 +1,8 @@
 <template>
   <el-breadcrumb class="app-breadcrumb" separator="/">
     <transition-group name="breadcrumb">
-      <el-breadcrumb-item v-for="(item, index) in levelList" :key="item.path">
-        <span v-if="item.redirect === 'noRedirect' || index == levelList.length - 1" class="no-redirect">{{ item.meta.title }}</span>
+      <el-breadcrumb-item v-for="(item, index) in displayList" :key="item.path">
+        <span v-if="item.redirect === 'noRedirect' || index == displayList.length - 1" class="no-redirect">{{ item.meta.title }}</span>
         <a v-else @click.prevent="handleLink(item)">{{ item.meta.title }}</a>
       </el-breadcrumb-item>
     </transition-group>
@@ -11,11 +11,22 @@
 
 <script setup>
 import usePermissionStore from '@/store/modules/permission'
+import useSettingsStore from '@/store/modules/settings'
 
 const route = useRoute()
 const router = useRouter()
 const permissionStore = usePermissionStore()
+const settingsStore = useSettingsStore()
 const levelList = ref([])
+
+/** 开启页签时不再展示末级（当前页），避免与标签重复 */
+const displayList = computed(() => {
+  const list = levelList.value
+  if (settingsStore.tagsView && list.length > 1) {
+    return list.slice(0, -1)
+  }
+  return list
+})
 
 function getBreadcrumb() {
   // only show routes with meta.title
@@ -87,7 +98,7 @@ getBreadcrumb()
 .app-breadcrumb.el-breadcrumb {
   display: inline-block;
   font-size: 14px;
-  line-height: 50px;
+  line-height: var(--layout-navbar-height, 60px);
   color: var(--navbar-text);
 
   .no-redirect {

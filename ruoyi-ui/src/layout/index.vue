@@ -1,11 +1,14 @@
 <template>
-  <div :class="classObj" class="app-wrapper" :style="{ '--current-color': theme }">
+  <div
+    :class="[classObj, { 'app-wrapper--admin-screen-header': isAdminScreenHeader }]"
+    class="app-wrapper"
+    :style="{ '--current-color': theme }"
+  >
     <div v-if="device === 'mobile' && sidebar.opened" class="drawer-bg" @click="handleClickOutside"/>
     <sidebar v-if="!sidebar.hide" class="sidebar-container" />
-    <div :class="{ hasTagsView: needTagsView, sidebarHide: sidebar.hide }" class="main-container">
+    <div :class="{ sidebarHide: sidebar.hide }" class="main-container">
       <div :class="{ 'fixed-header': fixedHeader }">
         <navbar @setLayout="setLayout" />
-        <tags-view v-if="needTagsView" />
       </div>
       <app-main />
       <settings ref="settingRef" />
@@ -16,16 +19,21 @@
 <script setup>
 import { useWindowSize } from '@vueuse/core'
 import Sidebar from './components/Sidebar/index.vue'
-import { AppMain, Navbar, Settings, TagsView } from './components'
+import { AppMain, Navbar, Settings } from './components'
 import useAppStore from '@/store/modules/app'
 import useSettingsStore from '@/store/modules/settings'
 
+const route = useRoute()
 const settingsStore = useSettingsStore()
+
+/** 数据大屏等页：顶栏与标签栏使用深蓝，与侧栏/大屏视觉统一 */
+const isAdminScreenHeader = computed(() =>
+  route.matched.some(r => r.meta && r.meta.adminScreenHeader === true)
+)
 const theme = computed(() => settingsStore.theme)
 const sideTheme = computed(() => settingsStore.sideTheme)
 const sidebar = computed(() => useAppStore().sidebar)
 const device = computed(() => useAppStore().device)
-const needTagsView = computed(() => settingsStore.tagsView)
 const fixedHeader = computed(() => settingsStore.fixedHeader)
 
 const classObj = computed(() => ({

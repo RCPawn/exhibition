@@ -1,12 +1,19 @@
 <template>
   <div class="navbar" :class="'nav' + settingsStore.navType">
     <hamburger id="hamburger-container" :is-active="appStore.sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
-    <breadcrumb v-if="settingsStore.navType == 1" id="breadcrumb-container" class="breadcrumb-container" />
     <top-nav v-if="settingsStore.navType == 2" id="topmenu-container" class="topmenu-container" />
     <template v-if="settingsStore.navType == 3">
       <logo v-show="settingsStore.sidebarLogo" :collapse="false"></logo>
       <top-bar id="topbar-container" class="topbar-container" />
     </template>
+
+    <div
+      v-if="settingsStore.tagsView"
+      class="navbar-tags-wrap"
+      :class="'tags-pos-nav' + settingsStore.navType"
+    >
+      <tags-view embedded />
+    </div>
 
     <div class="right-menu">
       <template v-if="appStore.device !== 'mobile'">
@@ -59,9 +66,9 @@
 
 <script setup>
 import { ElMessageBox } from 'element-plus'
-import Breadcrumb from '@/components/Breadcrumb'
 import TopNav from '@/components/TopNav'
 import TopBar from './TopBar'
+import TagsView from './TagsView'
 import Logo from './Sidebar/Logo'
 import Hamburger from '@/components/Hamburger'
 import Screenfull from '@/components/Screenfull'
@@ -124,18 +131,18 @@ function toggleTheme() {
 }
 
 .navbar {
-  height: 50px;
+  height: var(--layout-navbar-height, 60px);
   overflow: hidden;
   position: relative;
   background: var(--navbar-bg);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--navbar-shadow, 0 1px 3px rgba(0, 0, 0, 0.08));
   display: flex;
   align-items: center;
-  // padding: 0 8px;
+  padding: 0 4px 0 6px;
   box-sizing: border-box;
 
   .hamburger-container {
-    line-height: 46px;
+    line-height: var(--layout-navbar-height, 60px);
     height: 100%;
     cursor: pointer;
     transition: background 0.3s;
@@ -146,7 +153,7 @@ function toggleTheme() {
     margin-right: 8px;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.1);
+      background: var(--navbar-row-hover, rgba(0, 0, 0, 0.06));
     }
 
     :deep(svg) {
@@ -154,8 +161,33 @@ function toggleTheme() {
     }
   }
 
-  .breadcrumb-container {
-    flex-shrink: 0;
+  /* 页签占据中间剩余宽度 */
+  .navbar-tags-wrap {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    margin-left: 10px;
+  }
+
+  /* 混合导航：顶部菜单绝对定位，页签让出中间区域 */
+  .navbar-tags-wrap.tags-pos-nav2 {
+    position: absolute;
+    left: 200px;
+    right: 200px;
+    top: 0;
+    margin-left: 0;
+    width: auto;
+    max-width: none;
+  }
+
+  .navbar-tags-wrap.tags-pos-nav3 {
+    flex: 1;
+    min-width: 0;
+    max-width: 40%;
+    margin-left: 6px;
   }
 
   .topmenu-container {
@@ -179,19 +211,25 @@ function toggleTheme() {
 
   .right-menu {
     height: 100%;
-    line-height: 50px;
+    max-height: var(--layout-navbar-height, 60px);
+    line-height: var(--layout-navbar-height, 60px);
     display: flex;
     align-items: center;
     margin-left: auto;
+    flex-shrink: 0;
+    padding: 10px 8px 10px 12px;
+    box-sizing: border-box;
 
     &:focus {
       outline: none;
     }
 
     .right-menu-item {
-      display: inline-block;
-      padding: 0 8px;
-      height: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 10px;
+      min-height: 44px;
       font-size: 18px;
       color: var(--navbar-text);
       vertical-align: text-bottom;
@@ -201,7 +239,7 @@ function toggleTheme() {
         transition: background 0.3s;
 
         &:hover {
-          background: rgba(255, 255, 255, 0.1);
+          background: var(--navbar-row-hover, rgba(0, 0, 0, 0.06));
         }
       }
 
@@ -220,29 +258,39 @@ function toggleTheme() {
     }
 
     .avatar-container {
-      margin-right: 0px;
-      padding-right: 0px;
+      margin-right: 0;
+      padding: 6px 12px 6px 8px;
+      display: inline-flex;
+      align-items: center;
+      align-self: center;
+      height: auto;
+      max-height: 100%;
+      border-radius: 8px;
 
       .avatar-wrapper {
-        margin-top: 10px;
-        right: 8px;
+        display: flex;
+        align-items: center;
+        right: 0;
         position: relative;
+        gap: 8px;
+        padding: 2px 0;
 
         .user-avatar {
           cursor: pointer;
-          width: 30px;
-          height: 30px;
-          margin-right: 8px;
+          width: 34px;
+          height: 34px;
+          margin-right: 0;
           border-radius: 50%;
-          border: 2px solid rgba(255, 255, 255, 0.3);
+          border: 2px solid var(--navbar-avatar-ring, rgba(0, 0, 0, 0.12));
+          flex-shrink: 0;
         }
 
         .user-nickname{
           position: relative;
-          left: 0px;
-          bottom: 10px;
+          left: 0;
           font-size: 14px;
-          font-weight: bold;
+          font-weight: 600;
+          line-height: 1.35;
           color: var(--navbar-text);
           max-width: 12em;
           overflow: hidden;

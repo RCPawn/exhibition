@@ -1,6 +1,9 @@
 <template>
-  <div id="tags-view-container" class="tags-view-container">
-    <scroll-pane ref="scrollPaneRef" class="tags-view-wrapper" @scroll="handleScroll">
+  <div
+    id="tags-view-container"
+    :class="['tags-view-container', { 'tags-view-container--embedded': embedded }]"
+  >
+    <scroll-pane ref="scrollPaneRef" class="tags-view-wrapper" :embedded="embedded" @scroll="handleScroll">
       <router-link
         v-for="tag in visitedViews"
         :key="tag.path"
@@ -19,26 +22,33 @@
         </span>
       </router-link>
     </scroll-pane>
-    <ul v-show="visible" :style="{ left: left + 'px', top: top + 'px' }" class="contextmenu">
-      <li @click="refreshSelectedTag(selectedTag)">
-        <refresh-right style="width: 1em; height: 1em;" /> 刷新页面
-      </li>
-      <li v-if="!isAffix(selectedTag)" @click="closeSelectedTag(selectedTag)">
-        <close style="width: 1em; height: 1em;" /> 关闭当前
-      </li>
-      <li @click="closeOthersTags">
-        <circle-close style="width: 1em; height: 1em;" /> 关闭其他
-      </li>
-      <li v-if="!isFirstView()" @click="closeLeftTags">
-        <back style="width: 1em; height: 1em;" /> 关闭左侧
-      </li>
-      <li v-if="!isLastView()" @click="closeRightTags">
-        <right style="width: 1em; height: 1em;" /> 关闭右侧
-      </li>
-      <li @click="closeAllTags(selectedTag)">
-        <circle-close style="width: 1em; height: 1em;" /> 全部关闭
-      </li>
-    </ul>
+    <Teleport to="body">
+      <ul
+        v-show="visible"
+        class="tags-view-contextmenu"
+        :style="{ left: left + 'px', top: top + 'px' }"
+        @click.stop
+      >
+        <li @click="refreshSelectedTag(selectedTag)">
+          <refresh-right style="width: 1em; height: 1em;" /> 刷新页面
+        </li>
+        <li v-if="!isAffix(selectedTag)" @click="closeSelectedTag(selectedTag)">
+          <close style="width: 1em; height: 1em;" /> 关闭当前
+        </li>
+        <li @click="closeOthersTags">
+          <circle-close style="width: 1em; height: 1em;" /> 关闭其他
+        </li>
+        <li v-if="!isFirstView()" @click="closeLeftTags">
+          <back style="width: 1em; height: 1em;" /> 关闭左侧
+        </li>
+        <li v-if="!isLastView()" @click="closeRightTags">
+          <right style="width: 1em; height: 1em;" /> 关闭右侧
+        </li>
+        <li @click="closeAllTags(selectedTag)">
+          <circle-close style="width: 1em; height: 1em;" /> 全部关闭
+        </li>
+      </ul>
+    </Teleport>
   </div>
 </template>
 
@@ -48,6 +58,14 @@ import { getNormalPath } from '@/utils/ruoyi'
 import useTagsViewStore from '@/store/modules/tagsView'
 import useSettingsStore from '@/store/modules/settings'
 import usePermissionStore from '@/store/modules/permission'
+
+defineProps({
+  /** 为 true 时表示嵌在顶栏一行内（无独立标签条） */
+  embedded: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const visible = ref(false)
 const top = ref(0)
@@ -233,19 +251,22 @@ function toLastView(visitedViews, view) {
 }
 
 function openMenu(tag, e) {
-  const menuMinWidth = 105
-  const offsetLeft = proxy.$el.getBoundingClientRect().left // container margin left
-  const offsetWidth = proxy.$el.offsetWidth // container width
-  const maxLeft = offsetWidth - menuMinWidth // left boundary
-  const l = e.clientX - offsetLeft + 15 // 15: margin right
+  const menuMinWidth = 168
+  const menuEstHeight = 260
+  let x = e.clientX
+  let y = e.clientY
 
-  if (l > maxLeft) {
-    left.value = maxLeft
-  } else {
-    left.value = l
+  if (x + menuMinWidth > window.innerWidth - 6) {
+    x = window.innerWidth - menuMinWidth - 6
   }
+  if (x < 6) x = 6
+  if (y + menuEstHeight > window.innerHeight - 6) {
+    y = Math.max(6, window.innerHeight - menuEstHeight - 6)
+  }
+  if (y < 6) y = 6
 
-  top.value = e.clientY
+  left.value = x
+  top.value = y
   visible.value = true
   selectedTag.value = tag
 }
@@ -266,6 +287,16 @@ function handleScroll() {
   background: var(--tags-bg, #182640);
   border-bottom: 1px solid var(--tags-item-border, rgba(255, 255, 255, 0.15));
   box-shadow: none;
+
+  &.tags-view-container--embedded {
+    height: 100%;
+    width: 100%;
+    background: transparent;
+    border-bottom: none;
+    display: flex;
+    align-items: center;
+    min-height: 0;
+  }
 
   .tags-view-wrapper {
     .tags-view-item {
@@ -317,27 +348,36 @@ function handleScroll() {
     content: none !important;
   }
 
-  .contextmenu {
-    margin: 0;
-    background: #fff;
-    z-index: 3000;
-    position: absolute;
-    list-style-type: none;
-    padding: 5px 0;
-    border-radius: 4px;
+  &.tags-view-container--embedded .tags-view-wrapper .tags-view-item {
+    margin-top: 0;
+    vertical-align: middle;
+    height: 30px;
+    line-height: 28px;
+    padding: 0 10px 0 12px;
+    border-radius: 8px;
+    margin-left: 6px;
     font-size: 12px;
-    font-weight: 400;
-    color: #333;
-    box-shadow: 2px 2px 3px 0 rgba(0, 0, 0, .3);
-    border: 1px solid #e4e7ed;
+    letter-spacing: 0.02em;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
 
-    li {
-      margin: 0;
-      padding: 7px 16px;
-      cursor: pointer;
+    &:first-of-type {
+      margin-left: 2px;
+    }
 
-      &:hover {
-        background: #f5f7fa;
+    &:last-of-type {
+      margin-right: 10px;
+    }
+
+    &.active {
+      /* 与未选中页签同高、同字重，仅颜色区分 */
+      font-weight: 400;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+      &::before {
+        width: 6px;
+        height: 6px;
+        margin-right: 6px;
       }
     }
   }
@@ -345,6 +385,38 @@ function handleScroll() {
 </style>
 
 <style lang="scss">
+/* 挂到 body，避免顶栏 overflow 裁剪；使用视口坐标 */
+.tags-view-contextmenu {
+  position: fixed;
+  z-index: 5000;
+  margin: 0;
+  min-width: 160px;
+  background: #fff;
+  list-style: none;
+  padding: 6px 0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 400;
+  color: #303133;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.08);
+  border: 1px solid #ebeef5;
+
+  li {
+    margin: 0;
+    padding: 9px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+
+    &:hover {
+      background: #f5f7fa;
+      color: var(--el-color-primary, #409eff);
+    }
+  }
+}
+
 //reset element css of el-icon-close
 .tags-view-wrapper {
   .tags-view-item {
