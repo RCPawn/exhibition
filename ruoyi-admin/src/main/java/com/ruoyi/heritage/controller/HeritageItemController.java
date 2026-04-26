@@ -154,8 +154,11 @@ public class HeritageItemController extends BaseController {
     @GetMapping("/myInfo/{itemId}")
     public AjaxResult getMyInfo(@PathVariable("itemId") Long itemId) {
         HeritageItem item = heritageItemService.selectHeritageItemByItemId(itemId);
+        if (item == null) {
+            return error("展品不存在或已删除");
+        }
         // 安全校验：如果查出来的展品不是我的，禁止查看
-        if (!item.getCreateBy().equals(SecurityUtils.getUsername())) {
+        if (!SecurityUtils.getUsername().equals(item.getCreateBy())) {
             return error("您无权访问该资源");
         }
         return success(item);
@@ -173,8 +176,11 @@ public class HeritageItemController extends BaseController {
     @DeleteMapping("/myDel/{itemId}")
     public AjaxResult myRemove(@PathVariable Long itemId) {
         HeritageItem item = heritageItemService.selectHeritageItemByItemId(itemId);
+        if (item == null) {
+            return error("展品不存在或已删除");
+        }
         // 安全检查：只有本人才能删除
-        if (!item.getCreateBy().equals(SecurityUtils.getUsername())) {
+        if (!SecurityUtils.getUsername().equals(item.getCreateBy())) {
             return error("您无权删除他人的作品");
         }
         return toAjax(heritageItemService.deleteHeritageItemByItemId(itemId));
@@ -183,9 +189,15 @@ public class HeritageItemController extends BaseController {
     // 4. 用户修改接口
     @PutMapping("/myEdit")
     public AjaxResult myEdit(@RequestBody HeritageItem heritageItem) {
+        if (heritageItem == null || heritageItem.getItemId() == null) {
+            return error("请求参数不完整");
+        }
         HeritageItem original = heritageItemService.selectHeritageItemByItemId(heritageItem.getItemId());
+        if (original == null) {
+            return error("展品不存在或已删除");
+        }
         // 核心：防止越权修改别人的数据
-        if (!original.getCreateBy().equals(SecurityUtils.getUsername())) {
+        if (!SecurityUtils.getUsername().equals(original.getCreateBy())) {
             return error("非本人发布，禁止修改");
         }
         // 修改后再次强制进入“审核中”状态
