@@ -1,0 +1,10 @@
+{
+  "files.encoding": "utf8",
+  "files.autoGuessEncoding": true,
+  "files.associations": {
+    "*.mdc": "markdown"
+  },
+  "[markdown]": {
+    "files.encoding": "utf8"
+  }
+}

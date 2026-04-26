@@ -1,0 +1,18 @@
+---
+description: 工作区编码与 Git 暂存说明
+alwaysApply: true
+---
+
+# 工作区：文档编码与 Git 纳入方式
+
+## 文档或 MD 出现乱码时
+
+- 一般**不必**为乱码专门安装扩展；乱码多因**文件是 GBK/GB2312**，却按 **UTF-8** 打开。在 Cursor/VS Code 中可用**通过编码重新打开**、**通过编码保存** 纠正。
+- 本仓库在 `.vscode/settings.json` 中已设：默认 `UTF-8`、并开启 `files.autoGuessEncoding`；Markdown 相关片段里对 **UTF-8** 做了约束。
+- **已显示乱码的文件可一次修好**：点状态栏**编码** → **通过编码重新打开** → 选 **GBK** 或 **Simplified Chinese (GB2312)** 等，正文正常后 → **通过编码保存** → 选 **UTF-8**。
+- 协作者与 CI 场景下，**文本请统一用 UTF-8（无 BOM）** 保存。
+
+## 工作区里有文件但未进 Git 时
+
+- **Git 不会在**你保存时自动 `git add`；新文件在侧栏**源代码管理**里为**未跟踪**，需手动**暂存**，或按你在对话中要求的提交流程执行 `git add .`（与 `git-commit-workflow` 规则中的步骤一致）。
+- 路径若在 **`.gitignore`** 中（如本仓库的 `target/`、`profile/upload/`），`git add .` **不会** 纳入；若确需版本管理，应**调整** `.gitignore`，而不是期待自动加入。

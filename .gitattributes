@@ -1,0 +1,20 @@
+# 将常见源码与文档视为文本，行尾由 Git 按系统规范化（* text=auto），减少合并噪音。
+* text=auto
+*.md text
+*.mdc text
+*.java text
+*.xml text
+*.yml text
+*.yaml text
+*.properties text
+*.json text
+*.html text
+*.js text
+*.vue text
+*.ts text
+*.css text
+*.scss text
+*.sql text
+*.sh text eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
