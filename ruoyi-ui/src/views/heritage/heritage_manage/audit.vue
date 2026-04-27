@@ -5,6 +5,9 @@
       <div class="title-group">
         <h2 class="page-title">审核中心<span class="page-title-meta">· 待处理 {{ total }} 项</span></h2>
       </div>
+      <div class="header-actions">
+        <right-toolbar :search="false" @queryTable="getList" class="header-inline-tools" />
+      </div>
     </div>
 
     <!-- 2. 待审核列表 -->

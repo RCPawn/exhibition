@@ -8,6 +8,7 @@
       <div class="header-actions">
         <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd">新增展品</el-button>
         <el-button class="industrial-export-btn" icon="Download" @click="handleExport">导出</el-button>
+        <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" class="header-inline-tools" />
       </div>
     </div>
 

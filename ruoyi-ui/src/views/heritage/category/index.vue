@@ -8,6 +8,7 @@
       <div class="header-actions">
         <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd" v-hasPermi="['heritage:category:add']">新增分类</el-button>
         <el-button class="industrial-export-btn" icon="Download" @click="handleExport" v-hasPermi="['heritage:category:export']">导出</el-button>
+        <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" class="header-inline-tools" />
       </div>
     </div>
 

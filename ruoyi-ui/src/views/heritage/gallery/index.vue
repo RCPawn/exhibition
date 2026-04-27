@@ -17,6 +17,7 @@
             @click="handleExport"
             v-hasPermi="['heritage:gallery:export']"
         >导出</el-button>
+        <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" class="header-inline-tools" />
       </div>
     </div>
 
@@ -45,24 +46,6 @@
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
-
-    <div class="heritage-toolbar">
-      <el-button
-          type="primary"
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['heritage:gallery:edit']"
-      >修改</el-button>
-      <el-button
-          type="danger"
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['heritage:gallery:remove']"
-      >删除</el-button>
-      <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" class="heritage-toolbar-trailing" />
-    </div>
 
     <el-table
         v-loading="loading"
@@ -183,8 +166,6 @@ const loading = ref(true)
 const showSearch = ref(true)
 const ids = ref([])
 const checkedHeritageGalleryImage = ref([])
-const single = ref(true)
-const multiple = ref(true)
 const total = ref(0)
 const title = ref("")
 
@@ -250,8 +231,6 @@ function resetQuery() {
 /** 多选框选中数据 */
 function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.galleryId)
-  single.value = selection.length != 1
-  multiple.value = !selection.length
 }
 
 /** 新增按钮操作 */

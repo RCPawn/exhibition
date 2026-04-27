@@ -7,6 +7,7 @@
       </div>
       <div class="header-actions">
         <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd">录入新音轨</el-button>
+        <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" class="header-inline-tools" />
       </div>
     </div>
 

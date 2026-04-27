@@ -5,7 +5,10 @@
       <div class="title-group">
         <h2 class="page-title">我的发布</h2>
       </div>
-      <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd">发布新展品</el-button>
+      <div class="header-actions">
+        <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd">发布新展品</el-button>
+        <right-toolbar :search="false" @queryTable="getList" class="header-inline-tools" />
+      </div>
     </div>
 
     <!-- 2. 数据表格 -->

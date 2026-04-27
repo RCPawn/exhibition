@@ -53,6 +53,20 @@
     flex-shrink: 0;
   }
 
+  /* 与顶栏主按钮同排：隐藏搜索 / 刷新等 */
+  .header-actions .header-inline-tools {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 4px;
+    padding-left: 10px;
+    border-left: 1px solid var(--el-border-color-lighter);
+  }
+
+  .header-actions .header-inline-tools :deep(.el-row) {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
   // primary / outline primary: same theme as Element Plus
   .industrial-add-btn,
   .industrial-export-btn {
