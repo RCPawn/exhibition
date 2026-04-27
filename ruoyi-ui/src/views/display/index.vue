@@ -1,26 +1,33 @@
 <template>
   <div class="exhibit-container">
-    <!-- 1. 顶部搜索栏：吸顶效果 -->
+    <!-- 1. 顶部搜索：与轮播/名录同宽轨道；半透明浮在轮播之上（B 站式重叠） -->
     <div class="search-section">
-      <div class="search-bar">
-        <el-input
-            v-model="queryParams.itemName"
-            placeholder="搜索白族非遗瑰宝..."
-            prefix-icon="Search"
-            clearable
-            @keyup.enter="handleQuery"
-            class="poizon-input"
-        />
-        <el-button type="primary" class="poizon-btn" @click="handleQuery">探索</el-button>
+      <div class="search-strip-inner">
+        <div class="search-bar">
+          <el-input
+              v-model="queryParams.itemName"
+              placeholder="搜索白族非遗瑰宝..."
+              clearable
+              @keyup.enter="handleQuery"
+              class="poizon-input"
+          />
+          <button type="button" class="search-icon-btn" aria-label="搜索" @click="handleQuery">
+            <el-icon><Search /></el-icon>
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- 2. 沉浸式轮播图：占据大比例视觉 -->
-    <div class="hero-carousel">
-      <el-carousel :interval="5000" :height="`${carouselHeightPx}px`" indicator-position="outside">
-        <el-carousel-item v-for="item in bannerList" :key="item.id">
+    <!-- 2. 轮播推荐（保留全屏轮播体验，高度随视口微调） -->
+    <div v-if="bannerList.length" class="hero-carousel">
+      <el-carousel
+        :interval="5000"
+        :height="`${carouselHeightPx}px`"
+        :indicator-position="carouselIndicatorPosition"
+      >
+        <el-carousel-item v-for="item in bannerList" :key="item.itemId">
           <div class="carousel-content">
-            <img :src="getAssetUrl(item.coverImage)" class="carousel-img" />
+            <img :src="getAssetUrl(item.coverImage)" class="carousel-img" alt="" />
             <div class="carousel-info">
               <span class="tag">今日推荐</span>
               <h2 class="title">{{ item.itemName }}</h2>
@@ -34,21 +41,37 @@
     <!-- 3. 非遗文化列表：极简工业风卡片 -->
     <div class="content-section">
       <div class="section-header">
-        <h3 class="section-title">白族非遗名录 / <span>HERITAGE LIST</span></h3>
-        <div class="filter-tabs">
-          <span :class="{ active: !queryParams.categoryId }" @click="filterByCategory(null)">全部</span>
-          <!-- 分类：1-技艺, 2-服饰, 3-建筑, 4-活动 -->
-          <span v-for="cat in categoryList" :key="cat.id"
-                :class="{ active: queryParams.categoryId === cat.id }"
-                @click="filterByCategory(cat.id)">
-            {{ cat.name }}
-          </span>
+        <h3 class="section-title">
+          白族非遗名录
+          <span class="section-title-en">HERITAGE LIST</span>
+        </h3>
+        <div class="filter-tabs" role="tablist" aria-label="分类筛选">
+          <span
+            role="tab"
+            :class="{ active: !queryParams.categoryId }"
+            @click="filterByCategory(null)"
+          >全部</span>
+          <span
+            v-for="cat in categoryList"
+            :key="cat.id"
+            role="tab"
+            :class="{ active: queryParams.categoryId === cat.id }"
+            @click="filterByCategory(cat.id)"
+          >{{ cat.name }}</span>
         </div>
       </div>
 
       <el-row :gutter="25" v-loading="loading">
         <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="item in heritageList" :key="item.itemId">
-          <div class="poizon-card" @click="goToDetail(item.itemId)">
+          <div
+            class="poizon-card"
+            tabindex="0"
+            role="button"
+            :aria-label="`查看 ${item.itemName} 详情`"
+            @click="goToDetail(item.itemId)"
+            @keydown.enter.prevent="goToDetail(item.itemId)"
+            @keydown.space.prevent="goToDetail(item.itemId)"
+          >
             <div class="card-image-wrapper">
               <el-image :src="getAssetUrl(item.coverImage)" fit="cover">
                 <template #placeholder>
@@ -59,14 +82,14 @@
                 </template>
               </el-image>
               <div class="card-tag">{{ item.categoryName }}</div>
+              <!-- 仅悬停/键盘聚焦时：中央遮罩 + 查看详情 -->
+              <div class="card-hover-hint" aria-hidden="true">
+                <span class="card-hover-hint__text">查看详情</span>
+              </div>
             </div>
             <div class="card-content">
               <h4 class="item-name">{{ item.itemName }}</h4>
               <p class="item-intro">{{ item.description || '白族传统文化艺术瑰宝，传承百年的非物质文化遗产...' }}</p>
-              <div class="card-footer">
-                <span class="view-more">查看详情</span>
-                <el-icon><Right /></el-icon>
-              </div>
             </div>
           </div>
         </el-col>
@@ -94,19 +117,56 @@ import { ref, reactive, onMounted, getCurrentInstance, computed } from 'vue';
 import { useWindowSize } from '@vueuse/core';
 import { useRoute, useRouter } from 'vue-router';
 import { listHeritage_manage } from "@/api/heritage/heritage_manage";
-import { Plus, Right, Search } from "@element-plus/icons-vue";
+import { Search } from "@element-plus/icons-vue";
 import SiteFooter from "@/components/SiteFooter.vue";
 
 const route = useRoute();
 const router = useRouter();
 const { proxy } = getCurrentInstance();
-const { height: windowHeight } = useWindowSize();
+const { height: windowHeight, width: windowWidth } = useWindowSize();
 
-/** 轮播高度：笔记本偏矮时加高，避免标题+描述被 overflow 裁切；大屏上限放宽 */
+/**
+ * 轮播高度：按「视口 − 顶栏 − 搜索区」后的可用首屏空间取比例。
+ * 大屏仍可较高；15.6 寸常见 768～900 高时压低比例与上限，让名录区同一屏内多露一些，避免「只剩冰山一角」。
+ */
 const carouselHeightPx = computed(() => {
   const h = windowHeight.value || 800;
-  return Math.min(560, Math.max(360, Math.round(h * 0.48)));
+  const w = windowWidth.value || 1366;
+  const layoutNav = 52;
+  /** 搜索行已压扁，少扣高度，把像素让给轮播 */
+  /** 卡片已去掉「查看详情」行，首屏可多让给轮播 */
+  const searchBlock = Math.min(62, Math.max(36, Math.round(h * 0.052)));
+  const usable = Math.max(260, h - layoutNav - searchBlock);
+  /** 笔记本一屏：轮播尽量高，仍预留名录标题 + 一行卡片（含标题+简介） */
+  const laptopish = w <= 1680 && h <= 960;
+
+  let ratio = 0.53;
+  if (h < 760) ratio = 0.39;
+  else if (h < 820) ratio = 0.42;
+  else if (h < 900) ratio = 0.45;
+  else if (h < 1000) ratio = 0.48;
+  else if (h < 1080) ratio = 0.50;
+  else if (h < 1200) ratio = 0.52;
+
+  if (laptopish) {
+    ratio = Math.min(0.60, ratio + 0.09);
+  }
+
+  if (w <= 1440 && h <= 900) {
+    ratio = Math.min(ratio, laptopish ? 0.55 : 0.48);
+  }
+
+  let px = Math.round(usable * ratio);
+  const cap = h < 820 ? 515 : h < 900 ? 590 : h < 1080 ? 635 : 715;
+  const floor = h < 760 ? 278 : 300;
+  px = Math.min(cap, Math.max(floor, px));
+  return px;
 });
+
+/** 矮屏指示器放外侧会多占一截高度，改为默认（叠在图内）减轻纵向挤压 */
+const carouselIndicatorPosition = computed(() =>
+  (windowHeight.value || 800) < 860 ? 'none' : 'outside'
+);
 
 // --- 数据响应式变量 ---
 const loading = ref(true);
@@ -195,53 +255,139 @@ onMounted(() => {
 <style lang="scss" scoped>
 /* 保持原有样式不变 */
 .exhibit-container {
+  /* 轮播 + 名录 + 搜索轨道统一宽度与左右留白 */
+  --exhibit-inner-max: 1400px;
+  --exhibit-inner-pad: clamp(14px, 2.4vw, 28px);
+  /* 仅与「药丸搜索条」视觉重叠，略小于原整行，减少挡住轮播主体 */
+  --exhibit-search-overlap: clamp(40px, 7vh, 54px);
+
   background-color: #fff;
   min-height: 100vh;
 
   .search-section {
     position: sticky;
     top: 0;
-    z-index: 100;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    padding: clamp(15px, 2vh, 20px) 0; // 响应式内边距
-    display: flex;
-    justify-content: center;
-    border-bottom: 1px solid #eee;
+    z-index: 30;
+    padding: clamp(6px, 1vh, 10px) 0;
+    /* 整行透明，轮播可从两侧透出；毛玻璃只落在搜索药丸上 */
+    background: transparent;
+    border-bottom: none;
+    pointer-events: none;
+
+    .search-strip-inner {
+      max-width: var(--exhibit-inner-max);
+      margin: 0 auto;
+      padding: 0 var(--exhibit-inner-pad);
+      width: 100%;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+    }
 
     .search-bar {
+      pointer-events: auto;
       display: flex;
-      width: min(600px, 80vw); // 响应式宽度,最大600px,最小80vw
-      gap: 10px;
+      width: 100%;
+      max-width: min(520px, 92vw);
+      gap: 0;
+      align-items: stretch;
+      padding: 4px 4px 4px 12px;
+      /* 保留搜索条圆角；无外描边，避免与输入聚焦态叠出「双边框」 */
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.42);
+      backdrop-filter: blur(22px) saturate(180%);
+      -webkit-backdrop-filter: blur(22px) saturate(180%);
+      border: none;
+      box-shadow:
+        0 1px 1px rgba(255, 255, 255, 0.55) inset,
+        0 4px 18px rgba(0, 0, 0, 0.07);
+
+      &:focus-within {
+        background: rgba(255, 255, 255, 0.5);
+        box-shadow:
+          0 1px 1px rgba(255, 255, 255, 0.6) inset,
+          0 4px 22px rgba(0, 0, 0, 0.09);
+      }
 
       .poizon-input {
+        flex: 1;
+        min-width: 0;
+        align-self: center;
         :deep(.el-input__wrapper) {
+          min-height: 34px;
           border-radius: 0;
-          box-shadow: none;
-          background-color: #f5f5f5;
-          border: 1px solid transparent;
-          transition: all 0.3s;
-          &.is-focus {
-            border-color: #000;
-            background-color: #fff;
+          box-shadow: none !important;
+          outline: none;
+          background-color: transparent;
+          border: none !important;
+          padding-left: 2px;
+          padding-right: 4px;
+          transition: background 0.2s ease;
+          &.is-focus,
+          &:hover {
+            box-shadow: none !important;
+            border: none !important;
           }
+          &.is-focus {
+            /* 不再单独铺一层底，整条由 .search-bar:focus-within 统一提亮 */
+            background-color: transparent;
+          }
+        }
+
+        :deep(.el-input__inner) {
+          font-size: 14px;
         }
       }
 
-      .poizon-btn {
-        background-color: #000;
+      /* 与输入同一毛玻璃条，仅悬停轻微反馈（B 站式融合） */
+      .search-icon-btn {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        align-self: center;
+        width: 38px;
+        height: 30px;
+        margin: 0 2px 0 0;
+        padding: 0;
         border: none;
-        border-radius: 0;
-        padding: 0 30px;
-        font-weight: bold;
+        border-radius: 6px;
+        background: transparent;
+        color: rgba(0, 0, 0, 0.42);
+        cursor: pointer;
+        transition: color 0.2s ease, background 0.2s ease;
+
+        .el-icon {
+          font-size: 17px;
+        }
+
+        &:hover {
+          color: rgba(0, 0, 0, 0.72);
+          background: rgba(0, 0, 0, 0.05);
+        }
+
+        &:active {
+          background: rgba(0, 0, 0, 0.08);
+        }
       }
     }
   }
 
   .hero-carousel {
-    max-width: 1400px;
-    margin: clamp(15px, 2vh, 20px) auto; // 响应式外边距
-    padding: 0 clamp(15px, 2vw, 20px); // 响应式内边距
+    position: relative;
+    z-index: 1;
+    max-width: var(--exhibit-inner-max);
+    margin: calc(-1 * var(--exhibit-search-overlap)) auto clamp(8px, 1.2vh, 14px);
+    padding: 0 var(--exhibit-inner-pad);
+    border-radius: 0;
+    overflow: visible;
+    box-sizing: border-box;
+
+    :deep(.el-carousel__container) {
+      border-radius: 0;
+      overflow: hidden;
+    }
 
     .carousel-content {
       position: relative;
@@ -252,7 +398,12 @@ onMounted(() => {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 1s;
+        object-position: center 28%;
+        transition: transform 0.6s ease;
+      }
+
+      &:hover .carousel-img {
+        transform: scale(1.02);
       }
 
       .carousel-info {
@@ -327,28 +478,40 @@ onMounted(() => {
   }
 
   .content-section {
-    max-width: 1400px;
+    max-width: var(--exhibit-inner-max);
     margin: 0 auto;
-    padding: clamp(30px, 4vh, 40px) clamp(15px, 2vw, 20px); // 响应式内边距
+    padding: clamp(10px, 1.5vh, 18px) var(--exhibit-inner-pad);
+    box-sizing: border-box;
 
     .section-header {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
       align-items: flex-end;
-      margin-bottom: 30px;
-      border-bottom: 2px solid #000;
-      padding-bottom: 10px;
+      gap: 8px 16px;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 
       .section-title {
-        font-size: 24px;
+        margin: 0;
+        font-size: clamp(17px, 1.35vw, 22px);
         font-weight: 900;
-        span {
-          font-size: 14px;
-          color: #999;
-          margin-left: 10px;
-        }
+        line-height: 1.2;
+        color: #000;
       }
 
+      .section-title-en {
+        display: inline-block;
+        margin-left: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        color: #888;
+        vertical-align: middle;
+      }
+
+      /* 分类筛选：恢复原文本链 + 下划线激活态 */
       .filter-tabs {
         span {
           margin-left: 20px;
@@ -356,6 +519,11 @@ onMounted(() => {
           font-size: 14px;
           color: #666;
           transition: color 0.3s;
+
+          &:hover {
+            color: #000;
+          }
+
           &.active {
             color: #000;
             font-weight: bold;
@@ -368,76 +536,148 @@ onMounted(() => {
 
   .poizon-card {
     background: #fff;
-    margin-bottom: 30px;
+    margin-bottom: 22px;
     cursor: pointer;
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     border: 1px solid #f0f0f0;
 
-    &:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    &:hover,
+    &:focus-visible {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
 
-      .card-image-wrapper img {
+      .card-image-wrapper :deep(img) {
         transform: scale(1.05);
       }
     }
 
+    &:hover .card-image-wrapper .card-hover-hint,
+    &:focus-visible .card-image-wrapper .card-hover-hint {
+      opacity: 1;
+      visibility: visible;
+      transition:
+        opacity 0.32s ease,
+        visibility 0s linear 0s;
+    }
+
+    &:hover .card-image-wrapper .card-hover-hint__text,
+    &:focus-visible .card-image-wrapper .card-hover-hint__text {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      transition:
+        opacity 0.34s ease 0.05s,
+        transform 0.38s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.05s;
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(0, 0, 0, 0.55);
+      outline-offset: 2px;
+    }
+
+    &:focus:not(:focus-visible) {
+      outline: none;
+    }
+
     .card-image-wrapper {
       position: relative;
-      height: 280px;
+      height: 248px;
       overflow: hidden;
       background-color: #f9f9f9;
+      isolation: isolate;
 
-      .el-image {
+      /* 封面图压在底层，避免盖住叠在上面的提示层 */
+      .el-image,
+      :deep(.el-image__wrapper) {
+        position: relative;
+        z-index: 0;
+        display: block;
         width: 100%;
         height: 100%;
       }
 
+      :deep(.el-image__inner) {
+        position: relative;
+        z-index: 0;
+        transition: transform 0.35s ease;
+      }
+
       .card-tag {
         position: absolute;
-        top: 15px;
-        right: 15px;
-        background: rgba(0,0,0,0.7);
+        top: 12px;
+        right: 12px;
+        z-index: 4;
+        background: rgba(0, 0, 0, 0.7);
         color: #fff;
-        padding: 4px 10px;
-        font-size: 11px;
+        padding: 3px 8px;
+        font-size: 10px;
         backdrop-filter: blur(5px);
+      }
+
+      /* 默认隐藏；悬停/聚焦时中央遮罩 +「查看详情」 */
+      .card-hover-hint {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        z-index: 3;
+        pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.28s ease,
+          visibility 0s linear 0.28s;
+        background: rgba(12, 12, 14, 0.48);
+        backdrop-filter: blur(6px) saturate(120%);
+        -webkit-backdrop-filter: blur(6px) saturate(120%);
+        /* 边缘略收光，中间略亮，更柔和 */
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+      }
+
+      .card-hover-hint__text {
+        color: #fff;
+        font-size: clamp(14px, 1.1vw, 16px);
+        font-weight: 600;
+        letter-spacing: 0.22em;
+        padding-left: 0.12em;
+        line-height: 1.5;
+        opacity: 0;
+        transform: translateY(10px) scale(0.96);
+        text-shadow: 0 2px 16px rgba(0, 0, 0, 0.45);
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+        transition:
+          opacity 0.22s ease,
+          transform 0.22s ease;
       }
     }
 
     .card-content {
-      padding: 20px;
+      padding: 10px 14px 12px;
 
       .item-name {
-        font-size: 18px;
-        margin: 0 0 10px 0;
+        font-size: 16px;
+        font-weight: 800;
+        margin: 0 0 6px 0;
         color: #000;
+        line-height: 1.35;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
 
       .item-intro {
-        font-size: 13px;
-        color: #888;
-        line-height: 1.6;
-        height: 42px;
+        font-size: 12px;
+        color: #777;
+        line-height: 1.5;
+        height: 36px;
+        margin: 0;
         overflow: hidden;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
-      }
-
-      .card-footer {
-        margin-top: 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-top: 1px solid #f5f5f5;
-        padding-top: 15px;
-
-        .view-more {
-          font-size: 12px;
-          font-weight: bold;
-          letter-spacing: 1px;
-        }
       }
     }
   }
@@ -446,6 +686,90 @@ onMounted(() => {
     margin-top: 40px;
     display: flex;
     justify-content: center;
+  }
+}
+
+/* 15.6 寸级笔记本：收紧纵向留白、略降卡片图高，让「搜索 + 轮播 + 名录标题 + 至少一行卡片」更易同屏出现 */
+@media (max-width: 1680px) and (max-height: 940px) {
+  .exhibit-container {
+    --exhibit-inner-pad: clamp(12px, 2vw, 20px);
+    --exhibit-search-overlap: clamp(36px, 6.5vh, 48px);
+
+    .search-section {
+      padding: clamp(4px, 0.8vh, 8px) 0;
+
+      .search-bar {
+        max-width: min(480px, 94vw);
+        padding: 3px 3px 3px 10px;
+
+        .poizon-input :deep(.el-input__wrapper) {
+          min-height: 32px;
+        }
+
+        .search-icon-btn {
+          width: 36px;
+          height: 28px;
+
+          .el-icon {
+            font-size: 16px;
+          }
+        }
+      }
+    }
+
+    .hero-carousel {
+      margin-top: calc(-1 * var(--exhibit-search-overlap));
+      margin-bottom: clamp(8px, 1vh, 12px);
+    }
+
+    .content-section {
+      padding: clamp(10px, 1.5vh, 18px) var(--exhibit-inner-pad);
+
+      .section-header {
+        margin-bottom: 8px;
+        padding-bottom: 5px;
+      }
+    }
+
+    .poizon-card {
+      margin-bottom: 16px;
+
+      .card-image-wrapper {
+        height: 200px;
+      }
+
+      .card-content {
+        padding: 10px 12px 8px;
+      }
+    }
+
+    .pagination-wrapper {
+      margin-top: 24px;
+    }
+  }
+}
+
+@media (max-width: 1440px) and (max-height: 820px) {
+  .exhibit-container {
+    .hero-carousel .carousel-content .carousel-info {
+      bottom: clamp(8px, 1.5vh, 20px);
+      max-height: min(52%, calc(100% - 12px));
+
+      .title {
+        font-size: clamp(18px, 2.8vw, 28px);
+        margin: 6px 0 4px;
+      }
+
+      .desc {
+        font-size: clamp(12px, 1.2vw, 14px);
+        line-height: 1.45;
+      }
+    }
+
+    .poizon-card .card-image-wrapper {
+      height: 200px;
+    }
+
   }
 }
 </style>

@@ -403,7 +403,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/display-archive-toolbar.scss';
+@use '@/assets/styles/display-archive-toolbar.scss' as *;
 
 $bg-paper: #ffffff;
 $ink: #1A1A1A;

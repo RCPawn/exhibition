@@ -147,9 +147,11 @@ $bai-red: #C62828;
 $ink-black: #000000;
 $paper-bg: #ffffff;
 
-/* 首页专属：使用 min-height 确保至少一屏，flex 布局确保 footer 贴底 */
+/* 首页：min-height 与顶栏变量一致，避免顶栏 52px 仍按 60px 扣减出现底部白条 */
 .hero-page {
-  min-height: calc(100dvh - 60px);
+  min-height: calc(100vh - var(--layout-navbar-height, 52px));
+  min-height: calc(100dvh - var(--layout-navbar-height, 52px));
+  width: 100%;
   background: $paper-bg;
   display: flex;
   flex-direction: column;
@@ -186,11 +188,12 @@ $paper-bg: #ffffff;
   justify-content: space-between;
   width: 100%;
   max-width: 1600px;
+  margin: 0 auto;
   padding: 0 clamp(40px, 4.5vw, 80px);
   gap: clamp(24px, 3.5vw, 56px);
 
-  /* 内容区域垂直居中偏上，视觉更平衡 */
-  transform: translateY(-3vh);
+  /* 略上移，避免大屏顶空过多；幅度减小减少与底栏挤压感 */
+  transform: translateY(-1.5vh);
 }
 
 /* 左侧文字区域 */
@@ -202,9 +205,14 @@ $paper-bg: #ffffff;
   .category-tag {
     font-size: clamp(11px, 1.1vw, 13px);
     font-weight: 900;
-    color: #b7b7b7;
-    letter-spacing: 4px;
+    color: #8a8a8a;
+    letter-spacing: 3px;
     margin-bottom: clamp(10px, 1.3vh, 14px);
+    display: inline-block;
+    padding: 4px 10px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.65);
   }
 
   .main-title {
@@ -350,28 +358,29 @@ $paper-bg: #ffffff;
   }
 }
 
-/* 按钮 */
+/* 按钮：细线框 + 克制位移，与门户窄线框风格一致 */
 .cta-area {
   .industrial-btn {
     background: $ink-black;
     color: #fff;
-    border: none;
-    padding: clamp(14px, 1.6vh, 18px) clamp(38px, 4.5vw, 56px);
+    border: 1px solid $ink-black;
+    padding: clamp(12px, 1.5vh, 16px) clamp(34px, 4vw, 52px);
     font-size: clamp(13px, 1.2vw, 15px);
     font-weight: 900;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     cursor: pointer;
-    transition: all 0.28s ease;
-    box-shadow: 0 0 0 0 rgba(51, 154, 240, 0);
+    border-radius: 2px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    box-shadow: none;
 
     &:hover {
-      transform: translate(-3px, -3px);
-      box-shadow: 8px 8px 0px $bai-cyan;
+      transform: translate(-2px, -2px);
+      box-shadow: 4px 4px 0 $bai-cyan;
     }
 
     &:active {
       transform: translate(0, 0);
-      box-shadow: 0 0 0 0 rgba(51, 154, 240, 0);
+      box-shadow: none;
     }
   }
 }

@@ -127,7 +127,7 @@ onMounted(getList);
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/display-archive-toolbar.scss';
+@use '@/assets/styles/display-archive-toolbar.scss' as *;
 
 // 白族传统色彩
 $bai-cyan: #3B82F6;      // 白族青

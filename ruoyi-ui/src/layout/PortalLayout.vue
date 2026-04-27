@@ -9,7 +9,11 @@
 
         <nav class="main-nav">
           <router-link to="/display/home" class="nav-item">首页</router-link>
-          <router-link to="/display/gallery" class="nav-item">在线展厅</router-link>
+          <router-link
+            to="/display/gallery"
+            class="nav-item"
+            :class="{ 'router-link-active': isExhibitNavActive }"
+          >在线展厅</router-link>
           <router-link to="/display/acoustic" class="nav-item">三道余音</router-link>
           <router-link to="/display/images" class="nav-item">纸上乾坤</router-link>
           <router-link to="/display/genealogy" class="nav-item">传承图谱</router-link>
@@ -46,14 +50,22 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import useUserStore from '@/store/modules/user'
 import { ArrowDown, User, Star, Edit, SwitchButton } from '@element-plus/icons-vue'
 import defaultAvatar from '@/assets/images/profile.jpg'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
+
+/** 展品详情与展厅列表同属「在线展厅」，避免详情页无高亮与悬浮下划线突然出现导致跳动 */
+const isExhibitNavActive = computed(() => {
+  const p = route.path
+  return p === '/display/gallery' || p.startsWith('/display/detail/')
+})
 
 const handleCommand = (command) => {
   switch (command) {
@@ -88,12 +100,14 @@ $ink-black: #1A1A1A;
   flex-direction: column;
   background-color: #fff;
   position: relative;
+  /* 子页（如展品详情）用同一变量扣减顶栏高度 */
+  --layout-navbar-height: 52px;
 }
 
 .portal-header {
-  height: 60px;
+  height: var(--layout-navbar-height, 52px);
   flex-shrink: 0;
-  border-bottom: 2px solid $ink-black;
+  border-bottom: 1px solid rgba(26, 26, 26, 0.1);
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -124,12 +138,33 @@ $ink-black: #1A1A1A;
   display: flex;
   gap: clamp(10px, 1.8vw, 40px);
   .nav-item {
-    text-decoration: none; color: #999; font-size: clamp(11px, 0.85vw, 13px); font-weight: 900;
-    transition: all 0.3s; padding: 5px 0;
+    text-decoration: none;
+    color: #999;
+    font-size: clamp(11px, 0.85vw, 13px);
+    font-weight: 900;
+    transition: color 0.2s ease;
+    padding: 5px 0;
     white-space: nowrap;
-    &:hover, &.router-link-active {
+    /* 下划线占位，避免仅悬浮时出现条带导致布局跳动 */
+    &::after {
+      content: '';
+      display: block;
+      height: 2px;
+      margin-top: 4px;
+      background: transparent;
+      transition: background-color 0.2s ease;
+    }
+    &:hover {
       color: $ink-black;
-      &::after { content: ''; display: block; height: 2px; background: $ink-black; margin-top: 4px; }
+    }
+    &:hover::after {
+      background: $ink-black;
+    }
+    &.router-link-active {
+      color: $ink-black;
+    }
+    &.router-link-active::after {
+      background: $ink-black;
     }
   }
 }
@@ -137,7 +172,7 @@ $ink-black: #1A1A1A;
 @media screen and (max-width: 1180px) {
   .portal-header {
     height: auto;
-    min-height: 52px;
+    min-height: var(--layout-navbar-height, 52px);
     padding-top: 8px;
     padding-bottom: 8px;
   }
@@ -166,7 +201,7 @@ $ink-black: #1A1A1A;
   .user-name { font-size: 13px; font-weight: 900; color: $ink-black; }
 }
 
-/* 主内容区：自适应高度，允许子页面自由滚动 */
+/* 主内容区：占满顶栏以下剩余高度（flex 子项），具体 min-height 由各子页自理 */
 .portal-main {
   flex: 1;
   min-height: 0;

@@ -1,6 +1,6 @@
 <template>
   <div class="trinity-detail-container" v-loading="loading">
-    <main class="trinity-main">
+    <main class="trinity-main" :class="{ 'social-collapsed': commentsCollapsed }">
       <!-- 第一轴：3D 展示区 -->
       <section class="axis-3d">
         <!-- 【修复点 1】将原本突兀的顶部栏重构为悬浮控件，消除后台“双导航栏”的错觉 -->
@@ -16,16 +16,21 @@
 
         <model-viewer
             v-if="form.modelFile"
+            ref="modelViewerRef"
             :src="getAssetUrl(form.modelFile)"
             auto-rotate
+            :auto-rotate-delay="2000"
             camera-controls
-            shadow-intensity="1.5"
+            shadow-intensity="1.75"
             environment-image="neutral"
-            exposure="1"
-            camera-orbit="0deg 75deg 250%"
-            min-camera-orbit="auto auto 150%"
-            max-camera-orbit="auto auto 500%"
+            exposure="1.12"
+            :camera-orbit="defaultCameraOrbit"
+            :min-camera-orbit="minOrbit"
+            :max-camera-orbit="maxOrbit"
+            field-of-view="30deg"
+            interaction-prompt="none"
             class="viewer-instance"
+            @load="onModelViewerLoad"
         >
           <div slot="poster" class="model-loading">
             <div class="spinner"></div>
@@ -103,44 +108,60 @@
         </div>
       </section>
 
-      <!-- 第三轴：讨论区 -->
+      <!-- 第三轴：讨论区（可向右折叠为窄条） -->
       <section class="axis-social">
-        <div class="social-wrapper">
-          <h4 class="social-header">讨论区 ({{ totalComments }})</h4>
+        <button
+          type="button"
+          class="social-collapse-handle"
+          :title="commentsCollapsed ? '展开讨论区' : '收起讨论区'"
+          :aria-expanded="!commentsCollapsed"
+          @click="commentsCollapsed = !commentsCollapsed"
+        >
+          <el-icon class="handle-chevron"><DArrowLeft v-if="commentsCollapsed" /><DArrowRight v-else /></el-icon>
+          <span class="handle-label">{{ commentsCollapsed ? '讨论' : '收起' }}</span>
+        </button>
+
+        <div class="social-wrapper" :class="{ 'is-hidden': commentsCollapsed }">
+          <header class="social-head-row">
+            <h4 class="social-header">讨论区 <span class="count-badge">{{ totalComments }}</span></h4>
+          </header>
 
           <div class="input-container">
             <el-input
                 v-model="newComment"
                 type="textarea"
-                placeholder="分享你的见解..."
-                :rows="4"
+                placeholder="分享你的见解…"
+                :rows="3"
                 resize="none"
                 class="poizon-input"
                 maxlength="200"
                 show-word-limit
             />
-            <button class="post-button" @click="handlePostComment" :disabled="submitting">
-              {{ submitting ? 'POSTING...' : 'POST' }}
+            <button class="post-button" type="button" @click="handlePostComment" :disabled="submitting">
+              {{ submitting ? '发送中…' : '发表评论' }}
             </button>
           </div>
 
           <div class="comment-scroller" v-loading="commentLoading">
-            <div v-if="commentList.length > 0">
+            <div v-if="commentList.length > 0" class="comment-list">
               <div class="comment-item" v-for="item in commentList" :key="item.commentId">
-                <div class="c-top">
-                  <div class="user-info">
-                    <img :src="getAvatarUrl(item.avatar)" class="u-avatar" alt="avatar"/>
-                    <span class="u-name">{{ item.nickName || '匿名用户' }}</span>
-                  </div>
-                  <span class="c-time">{{ parseTime(item.createTime, '{m}-{d} {h}:{i}') }}</span>
+                <div class="c-avatar-col">
+                  <img :src="getAvatarUrl(item.avatar)" class="u-avatar" alt="" />
                 </div>
-                <div class="c-content-box">
-                  <p>{{ item.content }}</p>
+                <div class="c-body-col">
+                  <div class="c-meta">
+                    <span class="u-name">{{ item.nickName || '匿名用户' }}</span>
+                    <time class="c-time">{{ parseTime(item.createTime, '{y}-{m}-{d} {h}:{i}') }}</time>
+                  </div>
+                  <div class="c-content-box">
+                    <p>{{ item.content }}</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div v-else class="empty-comments">
-              <span>暂无评论，快来抢沙发</span>
+              <p class="empty-title">还没有评论</p>
+              <p class="empty-hint">欢迎留下第一条看法</p>
             </div>
           </div>
         </div>
@@ -150,18 +171,26 @@
 </template>
 
 <script setup>
-import { ref, onMounted, getCurrentInstance } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getHeritage_manage, updateHeritageCount } from "@/api/heritage/heritage_manage";
 import { listComment, addComment } from "@/api/heritage/comment";
 import { listCategory } from "@/api/heritage/category";
-import { ArrowLeft, Star, StarFilled, Pointer, View } from '@element-plus/icons-vue';
+import { ArrowLeft, View, DArrowLeft, DArrowRight } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import defAva from '@/assets/images/profile.jpg';
 
-const { proxy } = getCurrentInstance();
+/** 第三段为视距，数值越小画面越近（旧版 250% 过远；与门户 hero 约 102% 同量级） */
+const defaultCameraOrbit = '0deg 70deg 105%';
+const minOrbit = 'auto auto 68%';
+const maxOrbit = 'auto auto 480%';
+
 const route = useRoute();
 const router = useRouter();
+
+const modelViewerRef = ref(null);
+/** 讨论区向右折叠为窄条时，前两列均分剩余宽度 */
+const commentsCollapsed = ref(false);
 
 const loading = ref(true);
 const commentLoading = ref(false);
@@ -265,6 +294,21 @@ const handleAction = async (type) => {
   } catch (err) { console.error(err); }
 };
 
+function applyDefaultCamera() {
+  const el = modelViewerRef.value;
+  if (!el) return;
+  el.cameraOrbit = defaultCameraOrbit;
+  el.fieldOfView = '30deg';
+}
+
+function onModelViewerLoad() {
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      applyDefaultCamera();
+    });
+  });
+}
+
 onMounted(() => {
   getCategoryList();
   loadDetail();
@@ -273,30 +317,41 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-/* 【修复点 2】锁定容器绝对边界，移除破坏若依布局的 margin: -20px，防止挤压左侧菜单 */
+/* 门户/后台顶栏一致；不再减 --layout-tags-height，避免门户底部留白 */
 .trinity-detail-container {
+  --detail-top: var(--layout-navbar-height, 60px);
   position: relative;
   width: 100%;
-  height: calc(100vh - var(--layout-navbar-height, 60px) - var(--layout-tags-height, 34px));
+  min-height: 0;
+  height: calc(100vh - var(--detail-top));
+  height: calc(100dvh - var(--detail-top));
+  max-height: calc(100dvh - var(--detail-top));
   display: flex;
   flex-direction: column;
   background: #fff;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .trinity-main {
   flex: 1;
+  min-height: 0;
   width: 100%;
   display: flex;
   overflow: hidden;
+  align-items: stretch;
 
-  /* 3D区 */
+  /* 3D区：与信息区均分剩余空间，评论展开/收起时自适应占满视口 */
   .axis-3d {
-    flex: 0 0 clamp(35%, 40vw, 42%); // 响应式宽度,防止窄屏过窄
-    background: #f8f8f8;
+    flex: 1 1 0;
+    min-height: 0;
+    min-width: 0;
+    width: 0;
+    /* 展厅模型区：纯色底，略偏暖灰，衬托模型、不抢视线 */
+    background: #e8e6e3;
     position: relative;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
 
     /* 悬浮控制组件 */
@@ -340,7 +395,14 @@ onMounted(() => {
       }
     }
 
-    .viewer-instance { width: 100%; height: 100%; outline: none; }
+    .viewer-instance {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      outline: none;
+      --poster-color: transparent;
+    }
 
     .model-loading {
       width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
@@ -350,6 +412,8 @@ onMounted(() => {
     }
 
     .no-model-state {
+      position: relative;
+      z-index: 2;
       width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
       .fallback-content {
         display: flex; flex-direction: column; align-items: center; gap: 20px;
@@ -363,71 +427,302 @@ onMounted(() => {
     }
 
     .interaction-guide {
-      position: absolute; bottom: 25px; left: 25px; display: flex; align-items: center; gap: 8px;
+      position: absolute;
+      z-index: 3;
+      bottom: 25px;
+      left: 25px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       span { font-size: 9px; color: #ccc; letter-spacing: 1px; font-weight: bold; }
       .pulse-dot { width: 6px; height: 6px; background: #000; border-radius: 50%; animation: pulse 2s infinite; }
     }
   }
 
-  /* 信息区 */
+  /* 信息区（中间）：与右侧讨论区同一套底色与分隔线 */
   .axis-info {
-    flex: 0 0 clamp(32%, 38vw, 40%); // 响应式宽度
-    border-right: 1px solid #eee;
+    flex: 1 1 0;
+    min-height: 0;
+    min-width: 0;
+    width: 0;
+    background: linear-gradient(180deg, #fafbfc 0%, #f3f4f6 100%);
+    border-right: 1px solid rgba(15, 23, 42, 0.08);
     overflow: hidden;
     .scroll-wrapper {
       height: 100%;
       overflow-y: auto;
-      padding: clamp(30px, 4vh, 50px) clamp(25px, 3vw, 45px); // 响应式内边距
-      &::-webkit-scrollbar { width: 4px; }
-      &::-webkit-scrollbar-thumb { background: #000; }
+      -webkit-font-smoothing: antialiased;
+      padding: clamp(28px, 4vh, 48px) clamp(22px, 3vw, 42px);
+      &::-webkit-scrollbar {
+        width: 5px;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.12);
+        border-radius: 4px;
+      }
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
     }
   }
 
   /* 讨论区 */
   .axis-social {
-    flex: 1;
-    min-width: 280px; // 降低最小宽度,适配小屏
-    background: #fcfcfc;
+    --social-handle-w: 36px;
+    flex: 0 0 min(400px, 32vw);
+    max-width: 440px;
+    min-height: 0;
+    min-width: 0;
+    background: linear-gradient(180deg, #fafbfc 0%, #f3f4f6 100%);
+    border-left: 1px solid rgba(15, 23, 42, 0.08);
     overflow: hidden;
-    .social-wrapper {
-      height: 100%;
-      overflow-y: auto;
-      padding: clamp(30px, 4vh, 50px) clamp(20px, 2.5vw, 35px); // 响应式内边距
-      &::-webkit-scrollbar { width: 0; }
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transition: flex-basis 0.38s cubic-bezier(0.33, 1, 0.68, 1), max-width 0.38s cubic-bezier(0.33, 1, 0.68, 1);
+
+    .social-collapse-handle {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: var(--social-handle-w);
+      z-index: 5;
+      border: none;
+      padding: 0 4px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.55);
+      border-right: 1px solid rgba(15, 23, 42, 0.1);
+      color: #334155;
+      transition: background 0.2s, color 0.2s;
+
+      .handle-chevron {
+        font-size: 13px;
+      }
+
+      .handle-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        user-select: none;
+      }
+
+      &:hover {
+        background: #fff;
+        color: #0f172a;
+      }
     }
-    .social-header { font-size: 12px; font-weight: 900; letter-spacing: 2px; margin-bottom: 30px; color: #000; }
+
+    .social-wrapper {
+      flex: 1;
+      min-height: 0;
+      min-width: 0;
+      margin-left: var(--social-handle-w);
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: clamp(22px, 3.5vh, 40px) clamp(16px, 2vw, 28px) clamp(22px, 3.5vh, 40px) clamp(12px, 1.5vw, 20px);
+      transition: opacity 0.28s ease, transform 0.28s ease;
+
+      &::-webkit-scrollbar {
+        width: 5px;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: rgba(15, 23, 42, 0.15);
+        border-radius: 4px;
+      }
+
+      &.is-hidden {
+        opacity: 0;
+        transform: translateX(12px);
+        pointer-events: none;
+        visibility: hidden;
+        position: absolute;
+        inset: 0 0 0 var(--social-handle-w);
+        height: 100%;
+      }
+    }
+
+    .social-head-row {
+      margin-bottom: 20px;
+    }
+
+    .social-header {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      margin: 0;
+      color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+
+      .count-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0;
+        color: #334155;
+        background: transparent;
+        border: 1px solid rgba(15, 23, 42, 0.14);
+        border-radius: 4px;
+      }
+    }
 
     .input-container {
-      margin-bottom: 45px;
-      .poizon-input :deep(.el-textarea__inner) { border-radius: 0; border: 2px solid #eee; font-size: 13px; &:focus { border-color: #000; } }
+      margin-bottom: 24px;
+
+      .poizon-input :deep(.el-textarea__inner) {
+        border-radius: 4px;
+        border: 1px solid rgba(15, 23, 42, 0.12);
+        font-size: 14px;
+        line-height: 1.6;
+        padding: 10px 12px;
+        background: #fff;
+        box-shadow: none;
+
+        &:focus {
+          border-color: rgba(15, 23, 42, 0.35);
+          box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
+        }
+      }
+
       .post-button {
-        width: 100%; height: 50px; background: #000; color: #fff; border: none; font-weight: 900; letter-spacing: 3px; margin-top: 10px; cursor: pointer; transition: opacity 0.2s;
-        &:hover { opacity: 0.8; }
-        &:disabled { opacity: 0.5; cursor: not-allowed; }
+        width: 100%;
+        height: 40px;
+        margin-top: 10px;
+        border: 1px solid #1a1a1a;
+        border-radius: 4px;
+        background: #1a1a1a;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease, opacity 0.2s;
+
+        &:hover:not(:disabled) {
+          background: #333;
+          border-color: #333;
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
       }
     }
 
     .comment-scroller {
-      .comment-item {
-        margin-bottom: 30px;
-        .c-top {
-          display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px;
-          .user-info {
-            display: flex; align-items: center; gap: 8px;
-            .u-avatar { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #eee; }
-            .u-name { font-size: 12px; font-weight: 900; color: #000; }
-          }
-          .c-time { font-size: 10px; color: #ccc; font-weight: bold; letter-spacing: 0.5px; }
-        }
-        .c-content-box {
-          font-size: 14px; color: #333; line-height: 1.8; padding: 16px;
-          background: #fff; border: 1px solid #f0f0f0; border-radius: 2px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-          word-break: break-all;
-        }
-      }
-      .empty-comments { text-align: center; color: #ccc; font-size: 12px; margin-top: 50px; }
+      min-height: 120px;
     }
+
+    .comment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .comment-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 10px 10px 10px 8px;
+      background: #fff;
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      border-radius: 4px;
+      box-shadow: none;
+    }
+
+    .c-avatar-col {
+      flex-shrink: 0;
+    }
+
+    .u-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      display: block;
+    }
+
+    .c-body-col {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .c-meta {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .u-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .c-time {
+      font-size: 12px;
+      color: #94a3b8;
+      white-space: nowrap;
+    }
+
+    .c-content-box {
+      font-size: 14px;
+      color: #334155;
+      line-height: 1.75;
+      word-break: break-word;
+
+      p {
+        margin: 0;
+      }
+    }
+
+    .empty-comments {
+      text-align: center;
+      padding: 28px 14px;
+      border-radius: 4px;
+      border: 1px dashed rgba(15, 23, 42, 0.14);
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .empty-title {
+      margin: 0 0 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .empty-hint {
+      margin: 0;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+  }
+
+  &.social-collapsed .axis-social {
+    flex: 0 0 var(--social-handle-w);
+    max-width: var(--social-handle-w);
+    min-width: var(--social-handle-w);
+    border-left: 1px solid rgba(15, 23, 42, 0.08);
   }
 }
 
@@ -435,12 +730,13 @@ onMounted(() => {
   margin-bottom: clamp(25px, 3vh, 35px);
   .category-label { 
     font-size: clamp(10px, 1vw, 11px); // 响应式字体
-    color: #888; 
+    color: #6b6b6b; 
     font-weight: 500; 
     letter-spacing: 1px;
     display: inline-block;
-    padding: 3px 10px;
-    background: #f5f5f5;
+    padding: 4px 11px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: 12px;
   }
   .main-title { 
