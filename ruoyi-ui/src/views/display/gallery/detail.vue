@@ -67,7 +67,7 @@
               v-for="item in relatedItems"
               :key="item.galleryId"
               class="resource-card"
-              @click="router.push(`/display/gallery/detail/${item.galleryId}`)"
+              @click="router.push(`/display/images/detail/${item.galleryId}`)"
           >
             <img :src="getAssetUrl(item.coverUrl)" />
             <div class="resource-info">
@@ -156,9 +156,14 @@ $ink-black: #1A1A1A;
 $paper-bg: #FAFAFA;
 
 .detail-wrapper {
+  --detail-pad-x: clamp(14px, 3.5vw, 40px);
+  --detail-pad-top: clamp(64px, 9vw, 100px);
+  --detail-bottom-space: calc(clamp(88px, 11vh, 140px) + env(safe-area-inset-bottom, 0px));
+  --detail-section-gap: clamp(22px, 3.2vw, 44px);
   background-color: $paper-bg;
-  min-height: calc(100vh - 70px);
-  min-height: calc(100dvh - 70px);
+  /* 门户顶栏高度由 PortalLayout 注入；后台等环境无变量时用 70px */
+  min-height: calc(100vh - var(--layout-navbar-height, 70px));
+  min-height: calc(100dvh - var(--layout-navbar-height, 70px));
   position: relative;
   overflow-x: hidden;
 }
@@ -175,7 +180,7 @@ $paper-bg: #FAFAFA;
   width: 100%;
   max-width: min(1440px, 96vw);
   margin: 0 auto;
-  padding: clamp(72px, 10vw, 100px) clamp(14px, 3.5vw, 40px) clamp(96px, 12vh, 140px);
+  padding: var(--detail-pad-top) var(--detail-pad-x) var(--detail-bottom-space);
   position: relative;
   z-index: 10;
   box-sizing: border-box;
@@ -200,17 +205,17 @@ $paper-bg: #FAFAFA;
   font-weight: 500;
   transition: all 0.3s;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  
+
   .el-icon {
-    font-size: 16px;
+    font-size: clamp(14px, 0.5vw + 12px, 17px);
   }
-  
+
   &:hover {
     color: #409eff;
     border-color: #c6e2ff;
     background: #ecf5ff;
   }
-  
+
   &:active {
     transform: scale(0.98);
   }
@@ -218,7 +223,7 @@ $paper-bg: #FAFAFA;
 
 .detail-header {
   text-align: center;
-  margin-bottom: clamp(24px, 3.5vw, 44px);
+  margin-bottom: var(--detail-section-gap);
   padding-inline: clamp(4px, 2vw, 24px);
 
   .main-title {
@@ -262,7 +267,7 @@ $paper-bg: #FAFAFA;
 }
 
 .main-gallery {
-  margin-bottom: clamp(28px, 4vw, 48px);
+  margin-bottom: var(--detail-section-gap);
 
   .gallery-frame {
     background: #2d4a3e;
@@ -382,7 +387,7 @@ $paper-bg: #FAFAFA;
   .resource-divider {
     height: 1px;
     background: #ddd;
-    margin-bottom: 24px;
+    margin-bottom: clamp(16px, 2vw, 24px);
   }
 
   .resource-grid {
@@ -407,10 +412,10 @@ $paper-bg: #FAFAFA;
       }
 
       .resource-info {
-        padding: 12px;
+        padding: clamp(10px, 1.2vw, 14px);
 
         h4 {
-          font-size: 14px;
+          font-size: clamp(13px, 0.35vw + 11px, 15px);
           font-weight: 500;
           color: #333;
           margin: 0;
@@ -441,6 +446,8 @@ $paper-bg: #FAFAFA;
 
   .main-gallery .gallery-frame {
     padding: clamp(20px, 5vw, 36px) clamp(10px, 3vw, 20px);
+    /* 底部翻页钮贴底时给主图区留白，避免与说明文字重叠 */
+    padding-bottom: clamp(52px, 16vw, 72px);
 
     .nav-btn {
       &.prev-btn,
@@ -484,4 +491,29 @@ $paper-bg: #FAFAFA;
     max-height: min(78dvh, 1000px);
   }
 }
-</style>
+
+/* 窄屏：缩略图横向滑动，多图时不换行占满竖向空间 */
+@media (max-width: 640px) {
+  .thumbnail-list {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    padding-bottom: 8px;
+  }
+
+  .thumbnail-list .thumb-item {
+    scroll-snap-align: start;
+  }
+}
+
+/* 矮屏（笔记本横条窗、分屏）：压缩主图可视高度 */
+@media (max-height: 560px) and (min-width: 480px) {
+  .main-gallery .gallery-frame .main-image-wrapper .main-image {
+    max-height: min(48vh, 380px);
+    max-height: min(48dvh, 380px);
+  }
+}

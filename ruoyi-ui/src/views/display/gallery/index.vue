@@ -138,11 +138,11 @@ $paper-bg: #ffffff;
 .gallery-wrapper {
   --gallery-pad-x: clamp(14px, 3.2vw, 48px);
   --gallery-pad-top: clamp(14px, 2.2vw, 28px);
-  --gallery-bottom-space: clamp(96px, 12vh, 140px);
+  --gallery-bottom-space: calc(clamp(96px, 12vh, 140px) + env(safe-area-inset-bottom, 0px));
   --masonry-gap: clamp(16px, 1.8vw, 32px);
   background-color: $paper-bg;
-  min-height: calc(100vh - 70px);
-  min-height: calc(100dvh - 70px);
+  min-height: calc(100vh - var(--layout-navbar-height, 70px));
+  min-height: calc(100dvh - var(--layout-navbar-height, 70px));
   position: relative;
   overflow-x: hidden;
 }
