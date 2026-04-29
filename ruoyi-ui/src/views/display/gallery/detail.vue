@@ -517,3 +517,4 @@ $paper-bg: #FAFAFA;
     max-height: min(48dvh, 380px);
   }
 }
+</style>
