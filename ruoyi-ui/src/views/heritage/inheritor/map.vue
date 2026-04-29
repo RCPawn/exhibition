@@ -49,30 +49,50 @@
             <el-icon><ArrowLeft/></el-icon>
             <span>返回封面</span>
           </div>
-          <div class="nav-center">白族非遗传承谱系</div>
-          <div class="nav-right">数据已同步</div>
+          <div class="nav-center">
+            <span class="nav-title">白族非遗传承谱系</span>
+            <span v-if="activeCategoryName" class="nav-breadcrumb">· {{ activeCategoryName }}</span>
+          </div>
+          <div class="nav-right hint-muted">拖拽画布平移 · 滚轮缩放</div>
         </nav>
 
-        <!-- 主图区 -->
-        <section class="graph-container" ref="graphRef">
-          <!-- ECharts 图谱将渲染于此 -->
-        </section>
-        
-        <!-- 颜色图例（在graph-container外部，避免被overflow: hidden裁剪） -->
-        <div class="color-legend">
-          <div class="legend-title">图例说明</div>
-          <div class="legend-item">
-            <span class="legend-dot" style="background: #1A4A7F;"></span>
-            <span>顶级非遗分类</span>
+        <div class="deck-main">
+          <div class="graph-stack">
+            <section class="graph-container" ref="graphRef" />
+            <div class="graph-empty-hint" v-if="!selectedNode">
+              <span>点选节点可在右侧查看传承说明</span>
+            </div>
+            <!-- 顶栏横向图例，避免与底部 Tab 抢视觉 -->
+            <div class="color-legend color-legend--top">
+              <span class="legend-inline">
+                <span class="legend-dot" style="background: #1A4A7F;"></span>技艺项目
+              </span>
+              <span class="legend-inline">
+                <span class="legend-dot" style="background: #2E86AB;"></span>子分类
+              </span>
+              <span class="legend-inline">
+                <span class="legend-dot" style="background: #C62828;"></span>传承人
+              </span>
+            </div>
           </div>
-          <div class="legend-item">
-            <span class="legend-dot" style="background: #2E86AB;"></span>
-            <span>非遗子分类</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-dot" style="background: #C62828;"></span>
-            <span>传承人</span>
-          </div>
+
+          <transition name="detail-slide">
+            <aside v-if="selectedNode" class="node-detail-panel" key="detail">
+              <div class="panel-head">
+                <span class="panel-kicker">{{ typeLabel(selectedNode.category) }}</span>
+                <button type="button" class="panel-close" aria-label="关闭" @click="clearSelection">×</button>
+              </div>
+              <dict-tag
+                v-if="selectedNode.category === 2 && selectedNode.level"
+                :options="heritage_level"
+                :value="selectedNode.level"
+                class="panel-level"
+              />
+              <h2 class="panel-title">{{ selectedNode.name }}</h2>
+              <div class="panel-intro" v-html="selectedNode.intro || '暂无详细描述'"></div>
+              <p class="panel-footnote">连线表示谱系中的传承从属关系，与数据一致。</p>
+            </aside>
+          </transition>
         </div>
 
         <!-- 底部悬浮导航 -->
@@ -90,38 +110,19 @@
             </div>
           </div>
         </div>
-
-        <!-- 悬浮信息卡片 -->
-        <transition name="tooltip-fade">
-          <div class="node-tooltip" v-if="tooltipData" :style="tooltipStyle">
-            <div class="tooltip-header">
-              <span class="tooltip-type">{{ tooltipData.category === 0 ? '技艺项目' : (tooltipData.category === 1 ? '子分类' : '传承人') }}</span>
-              <dict-tag
-                  v-if="tooltipData.category === 2 && tooltipData.level"
-                  :options="heritage_level"
-                  :value="tooltipData.level"
-                  class="level-badge"
-              />
-            </div>
-            <h3 class="tooltip-name">{{ tooltipData.name }}</h3>
-            <div class="tooltip-intro" v-html="tooltipData.intro || '暂无详细描述'"></div>
-          </div>
-        </transition>
       </div>
     </transition>
   </div>
 </template>
 
 <script setup name="HeritageGenealogy">
-import { ref, onMounted, computed, getCurrentInstance, nextTick, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, computed, getCurrentInstance, nextTick, onUnmounted, watch } from 'vue'
 import { treeselect } from "@/api/heritage/category"
 import { listInheritor } from "@/api/heritage/inheritor"
 import * as echarts from 'echarts'
 import { ArrowLeft } from '@element-plus/icons-vue'
 
 const { proxy } = getCurrentInstance()
-const router = useRouter()
 const { heritage_level } = proxy.useDict('heritage_level')
 
 const loading = ref(true)
@@ -132,11 +133,172 @@ const activeCatId = ref(null)
 const graphRef = ref(null)
 let myChart = null
 
-const tooltipData = ref(null)
-const tooltipStyle = ref({})
+/** 与接口构建的 nodes/links 一致，用于窗口变化时仅重算坐标、不重拉接口 */
+const graphPayload = ref({ nodes: [], links: [] })
+const selectedNode = ref(null)
 
 let startX = 0, startY = 0, startTime = 0
+let resizeTimer = null
+
 const modelSrc = computed(() => import.meta.env.VITE_APP_BASE_API + "/profile/model/book.glb")
+
+const activeCategoryName = computed(() => {
+  const id = activeCatId.value
+  if (!id || !categoryTree.value.length) return ''
+  const hit = categoryTree.value.find(c => c.categoryId === id)
+  return hit ? hit.categoryName : ''
+})
+
+function typeLabel(cat) {
+  if (cat === 0) return '技艺项目'
+  if (cat === 1) return '子分类'
+  return '传承人'
+}
+
+function clearSelection() {
+  selectedNode.value = null
+}
+
+/**
+ * 在相同 nodes / links 下做分层排布（像素坐标，原点在画布左上），不增删边，仅补充 x、y。
+ */
+function computeTreeLayout(nodes, links, w, h) {
+  const pad = { t: 36, r: 28, b: 100, l: 28 }
+  const innerW = Math.max(120, w - pad.l - pad.r)
+  const cx = pad.l + innerW / 2
+
+  const children = new Map()
+  for (const e of links) {
+    if (!children.has(e.source)) children.set(e.source, [])
+    children.get(e.source).push(e.target)
+  }
+
+  const pos = new Map()
+
+  pos.set('root', { x: cx, y: pad.t + 36 })
+
+  const d1 = children.get('root') || []
+  const n1 = d1.length
+  d1.forEach((id, i) => {
+    const x = n1 <= 1 ? cx : pad.l + ((i + 1) / (n1 + 1)) * innerW
+    pos.set(id, { x, y: pad.t + 130 })
+  })
+
+  const baseY = Math.min(pad.t + 240, h - pad.b - 40)
+  const MAX_PER_ROW = 6
+  const ROW_GAP = 76
+
+  d1.forEach((pid) => {
+    const kids = (children.get(pid) || []).filter(k => String(k).startsWith('m_'))
+    const px = pos.get(pid)?.x ?? cx
+    kids.forEach((kid, j) => {
+      const row = Math.floor(j / MAX_PER_ROW)
+      const rowStart = row * MAX_PER_ROW
+      const rowKids = kids.slice(rowStart, rowStart + MAX_PER_ROW)
+      const nk = rowKids.length
+      const idxInRow = j - rowStart
+      const maxSpread = nk <= 1 ? 0 : Math.min(68, innerW / (nk + 1))
+      const offset = (idxInRow - (nk - 1) / 2) * maxSpread
+      pos.set(kid, { x: px + offset, y: baseY + row * ROW_GAP })
+    })
+  })
+
+  return nodes.map((n) => {
+    const p = pos.get(n.id)
+    if (p) {
+      return { ...n, x: p.x, y: p.y }
+    }
+    return { ...n, x: cx, y: h / 2 }
+  })
+}
+
+function bindChartEvents() {
+  if (!myChart || myChart.isDisposed()) return
+  myChart.off('click')
+  myChart.on('click', (params) => {
+    if (params.dataType === 'node' && params.data) {
+      selectedNode.value = { ...params.data }
+    }
+  })
+}
+
+function buildChartOption(laidOutNodes, links) {
+  return {
+    animationDuration: 800,
+    animationEasingUpdate: 'cubicOut',
+    series: [{
+      type: 'graph',
+      layout: 'none',
+      data: laidOutNodes,
+      links,
+      roam: true,
+      draggable: false,
+      label: {
+        show: true,
+        position: 'bottom',
+        color: '#333',
+        fontWeight: '600',
+        fontSize: 13,
+        textBorderColor: '#fff',
+        textBorderWidth: 3
+      },
+      lineStyle: {
+        color: '#b0b0b0',
+        width: 2,
+        curveness: 0.12,
+        opacity: 0.75
+      },
+      itemStyle: {
+        color: (params) => {
+          const colors = ['#1A4A7F', '#2E86AB', '#C62828']
+          return colors[params?.data?.category] || '#999'
+        },
+        borderColor: '#fff',
+        borderWidth: 3,
+        shadowBlur: 16,
+        shadowColor: 'rgba(0,0,0,0.12)'
+      },
+      emphasis: {
+        focus: 'adjacency',
+        lineStyle: { width: 3, opacity: 1, color: '#5D4037' },
+        itemStyle: {
+          shadowBlur: 22,
+          shadowColor: 'rgba(0,0,0,0.22)'
+        }
+      }
+    }]
+  }
+}
+
+const renderGraph = (nodes, links) => {
+  if (!graphRef.value) return
+
+  const w = graphRef.value.clientWidth || 800
+  const h = graphRef.value.clientHeight || 520
+  const laidOut = computeTreeLayout(nodes, links, w, h)
+
+  if (!myChart) {
+    myChart = echarts.init(graphRef.value, null, { renderer: 'canvas' })
+  }
+  myChart.setOption(buildChartOption(laidOut, links), { notMerge: true })
+  bindChartEvents()
+}
+
+function scheduleRelayout() {
+  clearTimeout(resizeTimer)
+  resizeTimer = setTimeout(() => {
+    const { nodes, links } = graphPayload.value
+    if (nodes.length && graphRef.value) {
+      renderGraph(nodes, links)
+    } else {
+      myChart?.resize()
+    }
+  }, 120)
+}
+
+function onWindowResize() {
+  scheduleRelayout()
+}
 
 const initData = async () => {
   loading.value = true
@@ -151,8 +313,8 @@ const initData = async () => {
 }
 
 function handleMouseDown(e) {
-  startX = e.clientX;
-  startY = e.clientY;
+  startX = e.clientX
+  startY = e.clientY
   startTime = Date.now()
 }
 
@@ -176,11 +338,12 @@ const initGraphOnEnter = () => {
 
 const handleCloseDeck = () => {
   showDeck.value = false
+  selectedNode.value = null
+  graphPayload.value = { nodes: [], links: [] }
   if (myChart) {
     myChart.dispose()
     myChart = null
   }
-  tooltipData.value = null
   setTimeout(() => {
     isEntering.value = false
   }, 500)
@@ -188,15 +351,14 @@ const handleCloseDeck = () => {
 
 const handleSelectCategory = async (cat) => {
   activeCatId.value = cat.categoryId
+  selectedNode.value = null
 
-  // 阿里巴巴矢量图标库的SVG path
-  // 皇冠 -> 顶级分类，非遗标 -> 子分类，人像 -> 传承人
   const nodes = [{
     id: 'root',
     name: cat.categoryName,
     category: 0,
-    symbolSize: 80,
-    intro: '技艺分类'
+    symbolSize: 72,
+    intro: '当前谱系根节点为所选技艺分类，与子分类、传承人之间的连线与后台数据一致。'
   }]
   const links = []
 
@@ -206,7 +368,7 @@ const handleSelectCategory = async (cat) => {
         id: `c_${child.categoryId}`,
         name: child.categoryName,
         category: 1,
-        symbolSize: 55,
+        symbolSize: 50,
         intro: '子分类'
       })
       links.push({ source: 'root', target: `c_${child.categoryId}` })
@@ -220,7 +382,7 @@ const handleSelectCategory = async (cat) => {
         id: `m_${master.inheritorId}`,
         name: master.name,
         category: 2,
-        symbolSize: 65,
+        symbolSize: 58,
         level: master.level,
         intro: master.introduction || '这位传承人致力于非遗技艺的传承与保护'
       })
@@ -228,110 +390,29 @@ const handleSelectCategory = async (cat) => {
     })
   }
 
-  renderGraph(nodes, links)
-}
-
-const renderGraph = (nodes, links) => {
-  if (!graphRef.value) return
-  if (myChart) myChart.dispose()
-
-  myChart = echarts.init(graphRef.value, null, { renderer: 'canvas' })
-
-  myChart.setOption({
-    animationDuration: 1500,
-    animationEasingUpdate: 'quinticInOut',
-    series: [{
-      type: 'graph',
-      layout: 'force',
-      data: nodes,
-      links: links,
-      roam: true,
-      draggable: true,
-      label: {
-        show: true,
-        position: 'bottom',
-        color: '#333',
-        fontWeight: '600',
-        fontSize: 14,
-        textBorderColor: '#fff',
-        textBorderWidth: 3,
-      },
-      force: {
-        repulsion: 2500,
-        gravity: 0.08,
-        edgeLength: 180,
-        layoutAnimation: true
-      },
-      lineStyle: {
-        color: '#999',
-        width: 2,
-        curveness: 0.3,
-        opacity: 0.6
-      },
-      itemStyle: {
-        color: (params) => {
-          const colors = ['#1A4A7F', '#2E86AB', '#C62828']
-          return colors[params?.data?.category] || '#999'
-        },
-        borderColor: '#fff',
-        borderWidth: 3,
-        shadowBlur: 20,
-        shadowColor: 'rgba(0,0,0,0.15)'
-      },
-      emphasis: {
-        focus: 'adjacency',
-        lineStyle: { width: 4, opacity: 1 },
-        itemStyle: {
-          shadowBlur: 25,
-          shadowColor: 'rgba(0,0,0,0.25)'
-        }
-      },
-
-    }]
-  })
-
-  // 鼠标悬浮显示信息（优化事件处理）
-  myChart.on('mouseover', function(params) {
-    if (params.dataType === 'node' && params.data) {
-      tooltipData.value = params.data
-      updateTooltipPosition(params.event)
-    }
-  })
-
-  myChart.on('mouseout', function(params) {
-    if (params.dataType === 'node') {
-      // 延迟隐藏，避免快速移动时闪烁
-      setTimeout(() => {
-        if (!myChart || myChart.isDisposed()) return
-        tooltipData.value = null
-      }, 100)
-    }
-  })
-
-  myChart.on('mousemove', function(params) {
-    if (params.dataType === 'node' && tooltipData.value) {
-      updateTooltipPosition(params.event)
-    }
-  })
-
-  window.addEventListener('resize', () => myChart?.resize())
-}
-
-const updateTooltipPosition = (event) => {
-  const container = graphRef.value?.getBoundingClientRect()
-  if (!container) return
-
-  const x = event.offsetX || (event.clientX - container.left)
-  const y = event.offsetY || (event.clientY - container.top)
-
-  tooltipStyle.value = {
-    left: `${x + 20}px`,
-    top: `${y - 20}px`
+  graphPayload.value = {
+    nodes: JSON.parse(JSON.stringify(nodes)),
+    links: links.map(l => ({ ...l }))
   }
+
+  await nextTick()
+  renderGraph(graphPayload.value.nodes, graphPayload.value.links)
 }
 
-onMounted(initData)
+onMounted(() => {
+  initData()
+  window.addEventListener('resize', onWindowResize)
+})
+
+watch(selectedNode, () => {
+  if (graphPayload.value.nodes.length) {
+    nextTick(() => scheduleRelayout())
+  }
+})
+
 onUnmounted(() => {
+  window.removeEventListener('resize', onWindowResize)
+  clearTimeout(resizeTimer)
   if (myChart) myChart.dispose()
 })
 </script>
@@ -346,11 +427,18 @@ $accent: #FFD700;
 .genealogy-container {
   position: relative;
   width: 100%;
-  height: calc(100vh - var(--layout-navbar-height, 60px) - var(--layout-tags-height, 34px));
+  /* 门户无 TagsView，勿扣减 tags 高度，否则底部会多出一条留白 */
+  height: calc(100vh - var(--layout-navbar-height, 52px));
   background-color: #ffffff;
   overflow: hidden;
   font-family: "Songti SC", "SimSun", serif;
   perspective: 2000px;
+}
+
+@supports (height: 1dvh) {
+  .genealogy-container {
+    height: calc(100dvh - var(--layout-navbar-height, 52px));
+  }
 }
 
 .paper-bg {
@@ -498,13 +586,15 @@ $accent: #FFD700;
   display: flex;
   flex-direction: column;
   background: #fff;
+  min-height: 0;
 
   .deck-nav {
-    height: clamp(50px, 6vh, 60px); // 响应式导航栏高度
+    flex-shrink: 0;
+    height: clamp(50px, 6vh, 60px);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 clamp(20px, 3vw, 40px); // 响应式内边距
+    padding: 0 clamp(16px, 3vw, 40px);
     font-weight: 900;
     font-size: 12px;
     background: #fafafa;
@@ -520,89 +610,218 @@ $accent: #FFD700;
     }
 
     .nav-center {
-      font-size: 16px;
-      letter-spacing: 2px;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      text-align: center;
+      max-width: min(560px, 46vw);
+
+      .nav-title {
+        font-size: clamp(14px, 1.1vw, 16px);
+        letter-spacing: 2px;
+        color: #1a1a1a;
+      }
+
+      .nav-breadcrumb {
+        font-size: clamp(13px, 1vw, 15px);
+        letter-spacing: 1px;
+        color: #5d4037;
+        font-weight: 800;
+      }
     }
+
+    .hint-muted {
+      font-size: 11px;
+      font-weight: 700;
+      color: #aaa;
+      letter-spacing: 0.5px;
+      max-width: 140px;
+      text-align: right;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 640px) {
+      .hint-muted { display: none; }
+      .nav-center { max-width: 100%; }
+    }
+  }
+
+  .deck-main {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .graph-stack {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
   }
 
   .graph-container {
     flex: 1;
+    min-height: 0;
     position: relative;
     overflow: hidden;
-    background: radial-gradient(circle at center, #fff 0%, #f5f5f5 100%);
+    background: radial-gradient(circle at 50% 35%, #fff 0%, #f3f2ef 100%);
   }
 
-  .color-legend {
+  .graph-empty-hint {
     position: absolute;
-    bottom: clamp(80px, 10vh, 90px); // 响应式位置
-    right: clamp(20px, 3vw, 40px); // 响应式位置
-    z-index: 999;
-    background: rgba(255,255,255,0.96);
+    left: 50%;
+    bottom: clamp(88px, 14vh, 120px);
+    transform: translateX(-50%);
+    z-index: 50;
+    pointer-events: none;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(93, 64, 55, 0.45);
+    letter-spacing: 2px;
+    white-space: nowrap;
+  }
+
+  .color-legend--top {
+    position: absolute;
+    top: clamp(10px, 1.5vh, 16px);
+    right: clamp(12px, 2vw, 24px);
+    z-index: 55;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px 16px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border-radius: 12px;
-    padding: clamp(12px, 1.5vh, 16px) clamp(16px, 2vw, 20px); // 响应式内边距
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    border: 1px solid rgba(0,0,0,0.08);
-    min-width: 140px;
-    max-width: 200px;
-      
-    .legend-title {
-      font-size: 13px;
-      font-weight: 800;
-      color: #222;
-      margin-bottom: 12px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #f0f0f0;
-      letter-spacing: 1px;
-    }
-      
-    .legend-item {
-      display: flex;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+
+    .legend-inline {
+      display: inline-flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-      font-size: 13px;
-      color: #444;
-      font-weight: 600;
-        
-      &:last-child {
-        margin-bottom: 0;
-      }
-        
-      .legend-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        display: inline-block;
-        flex-shrink: 0;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      }
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #555;
     }
-      
-    // 小屏幕适配
-    @media (max-width: 768px) {
-      bottom: 80px;
-      right: 20px;
-      padding: 12px 16px;
-      min-width: 140px;
-        
-      .legend-title {
-        font-size: 12px;
-        margin-bottom: 10px;
-        padding-bottom: 8px;
-      }
-        
-      .legend-item {
-        gap: 8px;
-        margin-bottom: 6px;
-        font-size: 12px;
-          
-        .legend-dot {
-          width: 10px;
-          height: 10px;
-        }
-      }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+  }
+
+  .node-detail-panel {
+    flex-shrink: 0;
+    width: min(300px, 88vw);
+    box-sizing: border-box;
+    padding: clamp(16px, 2vh, 24px);
+    border-left: 1px solid #eceae4;
+    background: linear-gradient(180deg, #fdfcfa 0%, #faf8f4 100%);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .panel-kicker {
+      font-size: 10px;
+      letter-spacing: 3px;
+      font-weight: 900;
+      color: #999;
+    }
+
+    .panel-close {
+      border: none;
+      background: transparent;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      color: #bbb;
+      padding: 0 4px;
+      &:hover { color: #333; }
+    }
+
+    .panel-level {
+      margin-bottom: 10px;
+      :deep(.el-tag) { font-size: 11px; }
+    }
+
+    .panel-title {
+      margin: 0 0 14px 0;
+      font-size: clamp(1.15rem, 2vw, 1.35rem);
+      font-weight: 900;
+      color: #1a1a1a;
+      line-height: 1.35;
+    }
+
+    .panel-intro {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.85;
+      margin-bottom: 20px;
+    }
+
+    .panel-footnote {
+      font-size: 11px;
+      color: #aaa;
+      line-height: 1.6;
+      margin: 0;
+      padding-top: 12px;
+      border-top: 1px dashed #e5e2dc;
+    }
+  }
+
+  .detail-slide-enter-active,
+  .detail-slide-leave-active {
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+  }
+
+  .detail-slide-enter-from,
+  .detail-slide-leave-to {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+
+  @media (max-width: 768px) {
+    .deck-main {
+      flex-direction: column;
+    }
+
+    .node-detail-panel {
+      width: 100%;
+      max-height: min(42vh, 320px);
+      border-left: none;
+      border-top: 1px solid #eceae4;
+    }
+
+    .graph-empty-hint {
+      bottom: auto;
+      top: clamp(52px, 10vh, 72px);
+      white-space: normal;
+      text-align: center;
+      max-width: 90%;
+    }
+
+    .color-legend--top {
+      left: 12px;
+      right: 12px;
+      justify-content: center;
+      border-radius: 12px;
     }
   }
 
@@ -667,66 +886,6 @@ $accent: #FFD700;
       }
     }
   }
-
-  .node-tooltip {
-    position: absolute;
-    z-index: 200;
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    min-width: 280px;
-    max-width: 350px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-    border: 1px solid #eee;
-    pointer-events: none;
-
-    .tooltip-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid #f0f0f0;
-
-      .tooltip-type {
-        font-size: 11px;
-        color: #999;
-        font-weight: 900;
-        letter-spacing: 2px;
-      }
-
-      .level-badge {
-        :deep(.el-tag) {
-          font-size: 11px;
-        }
-      }
-    }
-
-    .tooltip-name {
-      font-size: 20px;
-      font-weight: 900;
-      color: #000;
-      margin: 0 0 12px 0;
-    }
-
-    .tooltip-intro {
-      font-size: 13px;
-      color: #666;
-      line-height: 1.8;
-      margin: 0;
-    }
-  }
-}
-
-.tooltip-fade-enter-active,
-.tooltip-fade-leave-active {
-  transition: all 0.3s ease;
-}
-
-.tooltip-fade-enter-from,
-.tooltip-fade-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
 }
 
 @keyframes pulse {
