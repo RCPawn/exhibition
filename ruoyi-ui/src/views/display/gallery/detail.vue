@@ -158,6 +158,7 @@ $paper-bg: #FAFAFA;
 .detail-wrapper {
   background-color: $paper-bg;
   min-height: calc(100vh - 70px);
+  min-height: calc(100dvh - 70px);
   position: relative;
   overflow-x: hidden;
 }
@@ -171,29 +172,31 @@ $paper-bg: #FAFAFA;
 }
 
 .detail-container {
-  max-width: 1200px;
+  width: 100%;
+  max-width: min(1440px, 96vw);
   margin: 0 auto;
-  padding: 40px 20px 120px;
+  padding: clamp(72px, 10vw, 100px) clamp(14px, 3.5vw, 40px) clamp(96px, 12vh, 140px);
   position: relative;
   z-index: 10;
+  box-sizing: border-box;
 }
 
 // 返回按钮
 .back-btn {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  top: clamp(12px, 2vw, 24px);
+  left: clamp(12px, 2.5vw, 28px);
   z-index: 100;
   background: #fff;
   border: 1px solid #dcdfe6;
   border-radius: 6px;
-  padding: 8px 16px;
+  padding: clamp(6px, 1vw, 10px) clamp(12px, 1.8vw, 18px);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
   color: #606266;
-  font-size: 14px;
+  font-size: clamp(12px, 0.35vw + 11px, 14px);
   font-weight: 500;
   transition: all 0.3s;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -215,31 +218,37 @@ $paper-bg: #FAFAFA;
 
 .detail-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: clamp(24px, 3.5vw, 44px);
+  padding-inline: clamp(4px, 2vw, 24px);
 
   .main-title {
-    font-size: 28px;
+    font-size: clamp(1.25rem, 1.2vw + 0.85rem, 2rem);
     font-weight: 600;
     color: $ink-black;
     margin: 0 0 12px 0;
-    line-height: 1.4;
+    line-height: 1.35;
+    word-break: break-word;
   }
 
   .meta-info {
     display: flex;
     justify-content: center;
-    gap: 40px;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: clamp(12px, 2.5vw, 36px);
     margin-bottom: 20px;
 
     .meta-item {
-      font-size: 13px;
+      font-size: clamp(12px, 0.25vw + 11px, 14px);
       color: #666;
       display: flex;
       align-items: center;
       gap: 6px;
+      text-align: left;
 
       .el-icon {
-        font-size: 14px;
+        font-size: clamp(13px, 0.3vw + 12px, 15px);
+        flex-shrink: 0;
       }
     }
   }
@@ -248,87 +257,96 @@ $paper-bg: #FAFAFA;
     height: 1px;
     background: linear-gradient(to right, transparent, #ddd, transparent);
     margin: 0 auto;
-    max-width: 600px;
+    max-width: min(640px, 88vw);
   }
 }
 
 .main-gallery {
-  margin-bottom: 40px;
+  margin-bottom: clamp(28px, 4vw, 48px);
 
   .gallery-frame {
     background: #2d4a3e;
-    padding: 60px 80px;
+    padding: clamp(28px, 4.5vw, 56px) clamp(16px, 5vw, 88px);
     position: relative;
-    border-radius: 4px;
+    border-radius: clamp(4px, 0.4vw, 8px);
 
     .nav-btn {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      width: 48px;
-      height: 48px;
+      width: clamp(36px, 3.5vw, 52px);
+      height: clamp(36px, 3.5vw, 52px);
       background: rgba(255,255,255,0.1);
       border: none;
       border-radius: 50%;
       color: #fff;
-      font-size: 24px;
+      font-size: clamp(18px, 1.8vw, 26px);
       cursor: pointer;
       transition: all 0.3s;
       display: flex;
       align-items: center;
       justify-content: center;
+      z-index: 2;
 
       &:hover {
         background: rgba(255,255,255,0.2);
       }
 
       &.prev-btn {
-        left: 20px;
+        left: clamp(8px, 1.8vw, 28px);
       }
 
       &.next-btn {
-        right: 20px;
+        right: clamp(8px, 1.8vw, 28px);
       }
     }
 
     .main-image-wrapper {
       position: relative;
+      margin-inline: auto;
+      max-width: 100%;
 
       .main-image {
         width: 100%;
-        max-height: 600px;
+        max-height: min(72vh, 920px);
+        max-height: min(72dvh, 920px);
         object-fit: contain;
         display: block;
+        margin: 0 auto;
       }
 
       .image-caption {
         text-align: center;
-        color: rgba(255,255,255,0.8);
-        font-size: 14px;
-        margin-top: 16px;
+        color: rgba(255,255,255,0.85);
+        font-size: clamp(12px, 0.35vw + 11px, 15px);
+        margin-top: clamp(10px, 1.5vw, 18px);
+        line-height: 1.5;
+        padding-inline: clamp(8px, 2vw, 24px);
       }
     }
 
     .image-counter {
       position: absolute;
-      bottom: 20px;
-      right: 30px;
-      color: rgba(255,255,255,0.7);
-      font-size: 14px;
+      bottom: clamp(10px, 2vw, 22px);
+      right: clamp(12px, 2.5vw, 32px);
+      color: rgba(255,255,255,0.75);
+      font-size: clamp(12px, 0.3vw + 11px, 14px);
     }
   }
 }
 
 .thumbnail-list {
   display: flex;
-  gap: 16px;
+  gap: clamp(10px, 1.4vw, 18px);
   justify-content: center;
   flex-wrap: wrap;
-  margin-bottom: 60px;
+  margin-bottom: clamp(40px, 6vw, 72px);
+  padding-inline: clamp(4px, 1vw, 12px);
 
   .thumb-item {
-    width: 120px;
-    height: 80px;
+    width: clamp(72px, 12vw, 132px);
+    height: clamp(48px, 8vw, 88px);
+    flex-shrink: 0;
     cursor: pointer;
     border: 2px solid transparent;
     transition: all 0.3s;
@@ -352,10 +370,10 @@ $paper-bg: #FAFAFA;
 }
 
 .other-resources {
-  margin-top: 60px;
+  margin-top: clamp(40px, 5vw, 72px);
 
   .section-title {
-    font-size: 20px;
+    font-size: clamp(1rem, 0.6vw + 0.85rem, 1.35rem);
     font-weight: 600;
     color: $ink-black;
     margin: 0 0 12px 0;
@@ -369,8 +387,8 @@ $paper-bg: #FAFAFA;
 
   .resource-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, clamp(200px, 42vw, 320px)), 1fr));
+    gap: clamp(14px, 2vw, 24px);
 
     .resource-card {
       cursor: pointer;
@@ -411,33 +429,59 @@ $paper-bg: #FAFAFA;
 }
 
 @media (max-width: 768px) {
+  .detail-container {
+    padding-top: clamp(56px, 14vw, 72px);
+  }
+
   .back-btn {
-    top: 10px;
-    left: 10px;
-    padding: 6px 12px;
-    font-size: 12px;
-    
     .el-icon {
       font-size: 14px;
     }
   }
-  
+
   .main-gallery .gallery-frame {
-    padding: 40px 20px;
+    padding: clamp(20px, 5vw, 36px) clamp(10px, 3vw, 20px);
 
     .nav-btn {
-      width: 36px;
-      height: 36px;
-      font-size: 18px;
+      &.prev-btn,
+      &.next-btn {
+        top: auto;
+        bottom: clamp(8px, 2vw, 14px);
+        transform: none;
+      }
 
-      &.prev-btn { left: 10px; }
-      &.next-btn { right: 10px; }
+      &.prev-btn {
+        left: clamp(8px, 2vw, 14px);
+      }
+
+      &.next-btn {
+        right: clamp(8px, 2vw, 14px);
+      }
+    }
+
+    .image-counter {
+      bottom: auto;
+      top: clamp(8px, 2vw, 12px);
+      right: clamp(8px, 2vw, 12px);
     }
   }
+}
 
-  .thumbnail-list .thumb-item {
-    width: 80px;
-    height: 60px;
+@media (min-width: 769px) and (max-width: 1199px) {
+  .main-gallery .gallery-frame .main-image-wrapper .main-image {
+    max-height: min(68vh, 720px);
+    max-height: min(68dvh, 720px);
+  }
+}
+
+@media (min-width: 1920px) {
+  .detail-container {
+    max-width: min(1560px, 94vw);
+  }
+
+  .main-gallery .gallery-frame .main-image-wrapper .main-image {
+    max-height: min(78vh, 1000px);
+    max-height: min(78dvh, 1000px);
   }
 }
 </style>

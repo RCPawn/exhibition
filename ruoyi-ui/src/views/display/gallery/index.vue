@@ -136,8 +136,13 @@ $ink-black: #1A1A1A;     // 墨黑
 $paper-bg: #ffffff;
 
 .gallery-wrapper {
+  --gallery-pad-x: clamp(14px, 3.2vw, 48px);
+  --gallery-pad-top: clamp(14px, 2.2vw, 28px);
+  --gallery-bottom-space: clamp(96px, 12vh, 140px);
+  --masonry-gap: clamp(16px, 1.8vw, 32px);
   background-color: $paper-bg;
   min-height: calc(100vh - 70px);
+  min-height: calc(100dvh - 70px);
   position: relative;
   overflow-x: hidden;
 }
@@ -151,27 +156,82 @@ $paper-bg: #ffffff;
 }
 
 .content-container {
-  max-width: 1600px;
+  width: 100%;
+  max-width: min(1760px, 100%);
   margin: 0 auto;
-  padding: 24px 40px 120px;
+  padding: var(--gallery-pad-top) var(--gallery-pad-x) var(--gallery-bottom-space);
   position: relative;
   z-index: 10;
+  box-sizing: border-box;
 }
 
-// 瀑布流网格
+/* 与内容区对齐，避免工具栏与网格左右缩进不一致 */
+:deep(.archive-toolbar) {
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+  padding-right: 0;
+  margin-bottom: clamp(14px, 1.6vw, 24px);
+}
+
+/* 工具栏标题随屏宽略缩放，与门户顶栏协调 */
+:deep(.archive-toolbar .toolbar-title) {
+  font-size: clamp(1.125rem, 0.6vw + 1rem, 1.5rem);
+}
+
+:deep(.archive-toolbar .toolbar-lede) {
+  max-width: min(560px, 100%);
+}
+
+@media (min-width: 1100px) {
+  :deep(.archive-toolbar .toolbar-lede) {
+    max-width: min(640px, 48vw);
+  }
+}
+
+:deep(.archive-toolbar .search-box .search-input) {
+  width: clamp(160px, 22vw, 220px);
+}
+
+:deep(.archive-toolbar .search-box.is-focused .search-input) {
+  width: clamp(200px, 28vw, 300px);
+}
+
+// 瀑布流网格：列数随视口递增，兼顾 15.6 寸与 27 寸
 .masonry-grid {
-  column-count: 3;
-  column-gap: 30px;
-  padding: 10px;
+  column-count: 2;
+  column-gap: var(--masonry-gap);
+  padding: clamp(4px, 0.8vw, 12px) 0;
+}
+
+@media (min-width: 900px) {
+  .masonry-grid {
+    column-count: 3;
+  }
+}
+
+@media (min-width: 1440px) {
+  .masonry-grid {
+    column-count: 4;
+  }
+}
+
+@media (min-width: 2000px) {
+  .masonry-grid {
+    column-count: 5;
+  }
 }
 
 // 简洁卡片样式
 .gallery-card {
   background: #fff;
   cursor: pointer;
-  margin-bottom: 30px;
+  margin-bottom: var(--masonry-gap);
   break-inside: avoid;
   transition: all 0.3s ease;
+  border-radius: clamp(2px, 0.2vw, 6px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
 
   &:hover {
     box-shadow: 0 4px 16px rgba(0,0,0,0.1);
@@ -213,11 +273,11 @@ $paper-bg: #ffffff;
   }
 
   .card-info {
-    padding: 20px 16px;
+    padding: clamp(12px, 1.5vw, 20px) clamp(12px, 1.2vw, 16px);
     text-align: center;
 
     .card-title {
-      font-size: 14px;
+      font-size: clamp(13px, 0.85vw + 10px, 15px);
       font-weight: 500;
       color: #333;
       margin: 0 0 8px 0;
@@ -229,7 +289,7 @@ $paper-bg: #ffffff;
     }
 
     .card-date {
-      font-size: 12px;
+      font-size: clamp(11px, 0.35vw + 10px, 13px);
       color: #999;
       display: block;
     }
@@ -245,29 +305,18 @@ $paper-bg: #ffffff;
   z-index: 100;
 }
 
-// 响应式设计
-@media (max-width: 1200px) {
-  .masonry-grid {
-    column-count: 2;
-  }
-}
-
 @media (max-width: 768px) {
-  .content-container {
-    padding: 30px 20px 120px;
-  }
-
   .masonry-grid {
-    column-count: 2;
-    column-gap: 20px;
+    column-gap: clamp(12px, 3vw, 20px);
   }
 
   .gallery-card {
-    margin-bottom: 20px;
+    margin-bottom: clamp(14px, 3vw, 22px);
   }
 }
 
-@media (max-width: 480px) {
+/* 最窄单列，须放在其它 max-width 规则之后以免被覆盖 */
+@media (max-width: 599px) {
   .masonry-grid {
     column-count: 1;
   }
