@@ -25,36 +25,40 @@
         <div class="header-divider"></div>
       </div>
 
-      <!-- 主图展示区 -->
+      <!-- 主图展示区（说明叠在画框下缘，省纵向空间，接近常见非遗/文博站） -->
       <div class="main-gallery">
         <div class="gallery-frame">
-          <button class="nav-btn prev-btn" @click="prevImage">
+          <button type="button" class="nav-btn prev-btn" @click="prevImage">
             <el-icon><ArrowLeft /></el-icon>
           </button>
 
           <div class="main-image-wrapper">
-            <img :src="getAssetUrl(currentImage)" class="main-image" />
-            <div class="image-caption">{{ currentCaption }}</div>
+            <img :src="getAssetUrl(currentImage)" class="main-image" alt="" />
+            <div v-if="currentCaption" class="image-caption">{{ currentCaption }}</div>
           </div>
 
-          <button class="nav-btn next-btn" @click="nextImage">
+          <button type="button" class="nav-btn next-btn" @click="nextImage">
             <el-icon><ArrowRight /></el-icon>
           </button>
 
-          <div class="image-counter">{{ currentIndex + 1 }}/{{ images.length }}</div>
+          <div v-if="images.length" class="image-counter">{{ currentIndex + 1 }}/{{ images.length }}</div>
         </div>
       </div>
 
-      <!-- 缩略图列表 -->
+      <!-- 缩略图：固定高度单行横滑，避免多行占高 -->
       <div class="thumbnail-list" v-if="images.length > 0">
         <div
-            v-for="(img, index) in images"
-            :key="index"
-            class="thumb-item"
-            :class="{ active: index === currentIndex }"
-            @click="selectImage(index)"
+          v-for="(img, index) in images"
+          :key="index"
+          class="thumb-item"
+          :class="{ active: index === currentIndex }"
+          role="button"
+          tabindex="0"
+          @click="selectImage(index)"
+          @keydown.enter.prevent="selectImage(index)"
+          @keydown.space.prevent="selectImage(index)"
         >
-          <img :src="getAssetUrl(img.imageUrl)" />
+          <img :src="getAssetUrl(img.imageUrl)" alt="" />
         </div>
       </div>
 
@@ -156,16 +160,33 @@ $ink-black: #1A1A1A;
 $paper-bg: #FAFAFA;
 
 .detail-wrapper {
-  --detail-pad-x: clamp(14px, 3.5vw, 40px);
-  --detail-pad-top: clamp(64px, 9vw, 100px);
-  --detail-bottom-space: calc(clamp(88px, 11vh, 140px) + env(safe-area-inset-bottom, 0px));
-  --detail-section-gap: clamp(22px, 3.2vw, 44px);
+  --detail-pad-x: clamp(14px, 3.2vw, 36px);
+  --detail-pad-top: clamp(46px, 5vw, 72px);
+  --detail-bottom-space: calc(clamp(76px, 8.5vh, 112px) + env(safe-area-inset-bottom, 0px));
+  --detail-section-gap: clamp(10px, 1.5vw, 20px);
+  /*
+   * 一屏纵览：说明叠在画框内、缩略图为单行固定高，故预留主要含顶栏 + 页头 + 画框边 + 缩略条 + 底栏。
+   */
+  --detail-image-max: min(
+    54vh,
+    calc(100vh - var(--layout-navbar-height, 70px) - clamp(188px, 22vh, 268px)),
+    680px
+  );
   background-color: $paper-bg;
-  /* 门户顶栏高度由 PortalLayout 注入；后台等环境无变量时用 70px */
   min-height: calc(100vh - var(--layout-navbar-height, 70px));
   min-height: calc(100dvh - var(--layout-navbar-height, 70px));
   position: relative;
   overflow-x: hidden;
+}
+
+@supports (height: 1dvh) {
+  .detail-wrapper {
+    --detail-image-max: min(
+      54dvh,
+      calc(100dvh - var(--layout-navbar-height, 70px) - clamp(188px, 22dvh, 268px)),
+      680px
+    );
+  }
 }
 
 .paper-texture {
@@ -224,14 +245,14 @@ $paper-bg: #FAFAFA;
 .detail-header {
   text-align: center;
   margin-bottom: var(--detail-section-gap);
-  padding-inline: clamp(4px, 2vw, 24px);
+  padding-inline: clamp(4px, 2vw, 20px);
 
   .main-title {
-    font-size: clamp(1.25rem, 1.2vw + 0.85rem, 2rem);
+    font-size: clamp(1.05rem, 0.85vw + 0.75rem, 1.5rem);
     font-weight: 600;
     color: $ink-black;
-    margin: 0 0 12px 0;
-    line-height: 1.35;
+    margin: 0 0 clamp(4px, 1vw, 10px) 0;
+    line-height: 1.25;
     word-break: break-word;
   }
 
@@ -240,8 +261,8 @@ $paper-bg: #FAFAFA;
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    gap: clamp(12px, 2.5vw, 36px);
-    margin-bottom: 20px;
+    gap: clamp(8px, 1.5vw, 20px);
+    margin-bottom: clamp(6px, 1.2vw, 12px);
 
     .meta-item {
       font-size: clamp(12px, 0.25vw + 11px, 14px);
@@ -268,12 +289,13 @@ $paper-bg: #FAFAFA;
 
 .main-gallery {
   margin-bottom: var(--detail-section-gap);
+  min-width: 0;
 
   .gallery-frame {
     background: #2d4a3e;
-    padding: clamp(28px, 4.5vw, 56px) clamp(16px, 5vw, 88px);
+    padding: clamp(12px, 2vw, 28px) clamp(12px, 3vw, 56px);
     position: relative;
-    border-radius: clamp(4px, 0.4vw, 8px);
+    border-radius: clamp(4px, 0.35vw, 8px);
 
     .nav-btn {
       position: absolute;
@@ -313,27 +335,37 @@ $paper-bg: #FAFAFA;
 
       .main-image {
         width: 100%;
-        max-height: min(72vh, 920px);
-        max-height: min(72dvh, 920px);
+        max-height: var(--detail-image-max);
         object-fit: contain;
         display: block;
         margin: 0 auto;
       }
 
+      /* 叠在画框下缘（文博站常见），不占主纵向流 */
       .image-caption {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1;
+        padding: clamp(20px, 4vw, 36px) clamp(10px, 2vw, 20px) clamp(8px, 1.5vw, 12px);
         text-align: center;
-        color: rgba(255,255,255,0.85);
-        font-size: clamp(12px, 0.35vw + 11px, 15px);
-        margin-top: clamp(10px, 1.5vw, 18px);
-        line-height: 1.5;
-        padding-inline: clamp(8px, 2vw, 24px);
+        font-size: clamp(11px, 0.3vw + 10px, 14px);
+        line-height: 1.45;
+        color: rgba(255, 255, 255, 0.95);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
+        max-height: 38%;
+        overflow-y: auto;
+        pointer-events: none;
       }
     }
 
     .image-counter {
       position: absolute;
-      bottom: clamp(10px, 2vw, 22px);
-      right: clamp(12px, 2.5vw, 32px);
+      top: clamp(8px, 1.5vw, 14px);
+      right: clamp(10px, 2vw, 20px);
+      z-index: 2;
       color: rgba(255,255,255,0.75);
       font-size: clamp(12px, 0.3vw + 11px, 14px);
     }
@@ -342,20 +374,37 @@ $paper-bg: #FAFAFA;
 
 .thumbnail-list {
   display: flex;
-  gap: clamp(10px, 1.4vw, 18px);
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: clamp(40px, 6vw, 72px);
-  padding-inline: clamp(4px, 1vw, 12px);
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  height: 52px;
+  padding: 4px 0;
+  margin-bottom: clamp(14px, 2vh, 24px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scroll-behavior: smooth;
 
   .thumb-item {
-    width: clamp(72px, 12vw, 132px);
-    height: clamp(48px, 8vw, 88px);
+    flex: 0 0 72px;
+    width: 72px;
+    height: 44px;
     flex-shrink: 0;
     cursor: pointer;
     border: 2px solid transparent;
-    transition: all 0.3s;
+    border-radius: 4px;
     overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    scroll-snap-align: start;
+
+    &:focus-visible {
+      outline: 2px solid #409eff;
+      outline-offset: 2px;
+    }
 
     &:hover {
       border-color: #2d4a3e;
@@ -363,6 +412,7 @@ $paper-bg: #FAFAFA;
 
     &.active {
       border-color: #2d4a3e;
+      box-shadow: 0 0 0 1px rgba(45, 74, 62, 0.35);
     }
 
     img {
@@ -474,39 +524,42 @@ $paper-bg: #FAFAFA;
   }
 }
 
-@media (min-width: 769px) and (max-width: 1199px) {
-  .main-gallery .gallery-frame .main-image-wrapper .main-image {
-    max-height: min(68vh, 720px);
-    max-height: min(68dvh, 720px);
+/* 笔记本常见高度：略减预留，主图仍可读 */
+@media (max-height: 820px) {
+  .detail-wrapper {
+    --detail-image-max: min(58vh, calc(100vh - clamp(232px, 24vh, 300px)), 720px);
+    --detail-pad-top: clamp(48px, 6vh, 72px);
+    --detail-section-gap: clamp(12px, 1.8vh, 22px);
   }
 }
 
+@supports (height: 1dvh) {
+  @media (max-height: 820px) {
+    .detail-wrapper {
+      --detail-image-max: min(58dvh, calc(100dvh - clamp(232px, 24dvh, 300px)), 720px);
+      --detail-pad-top: clamp(48px, 6dvh, 72px);
+      --detail-section-gap: clamp(12px, 1.8dvh, 22px);
+    }
+  }
+}
+
+/* 大屏：略放宽主图上限，仍用 calc 约束一屏，不单独堆高 vh% */
 @media (min-width: 1920px) {
   .detail-container {
     max-width: min(1560px, 94vw);
   }
 
-  .main-gallery .gallery-frame .main-image-wrapper .main-image {
-    max-height: min(78vh, 1000px);
-    max-height: min(78dvh, 1000px);
+  .detail-wrapper {
+    --detail-image-max: min(56vh, calc(100vh - clamp(240px, 22vh, 300px)), 720px);
+    --detail-pad-top: clamp(44px, 4.5vw, 64px);
   }
 }
 
-/* 窄屏：缩略图横向滑动，多图时不换行占满竖向空间 */
-@media (max-width: 640px) {
-  .thumbnail-list {
-    justify-content: flex-start;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: thin;
-    padding-bottom: 8px;
-  }
-
-  .thumbnail-list .thumb-item {
-    scroll-snap-align: start;
+@supports (height: 1dvh) {
+  @media (min-width: 1920px) {
+    .detail-wrapper {
+      --detail-image-max: min(56dvh, calc(100dvh - clamp(240px, 22dvh, 300px)), 720px);
+    }
   }
 }
 
@@ -515,6 +568,17 @@ $paper-bg: #FAFAFA;
   .main-gallery .gallery-frame .main-image-wrapper .main-image {
     max-height: min(48vh, 380px);
     max-height: min(48dvh, 380px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back-btn,
+  .thumb-item {
+    transition: none;
+  }
+
+  .back-btn:active {
+    transform: none;
   }
 }
 </style>

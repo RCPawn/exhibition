@@ -156,6 +156,8 @@ $paper-bg: #ffffff;
 }
 
 .content-container {
+  container-type: inline-size;
+  container-name: gallerylist;
   width: 100%;
   max-width: min(1760px, 100%);
   margin: 0 auto;
@@ -198,28 +200,33 @@ $paper-bg: #ffffff;
   width: clamp(200px, 28vw, 300px);
 }
 
-// 瀑布流网格：列数随视口递增，兼顾 15.6 寸与 27 寸
+/* 流体列宽：列数随内容区宽度自动变化，优于固定 column-count 阶梯（参考 MDN multi-column） */
 .masonry-grid {
-  column-count: 2;
+  column-width: clamp(168px, 22cqw, 300px);
   column-gap: var(--masonry-gap);
   padding: clamp(4px, 0.8vw, 12px) 0;
 }
 
-@media (min-width: 900px) {
+/* 无容器查询内核：回退为 vw 近似 */
+@supports not (container-type: inline-size) {
   .masonry-grid {
-    column-count: 3;
+    column-width: clamp(168px, 26vw, 300px);
   }
 }
 
-@media (min-width: 1440px) {
-  .masonry-grid {
-    column-count: 4;
+@supports (container-type: inline-size) {
+  @container gallerylist (max-width: 520px) {
+    .masonry-grid {
+      column-count: 1;
+      column-width: auto;
+    }
   }
 }
 
-@media (min-width: 2000px) {
+@media (max-width: 520px) {
   .masonry-grid {
-    column-count: 5;
+    column-count: 1;
+    column-width: auto;
   }
 }
 
@@ -239,6 +246,14 @@ $paper-bg: #ffffff;
 
     .card-image img {
       opacity: 0.9;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:hover {
+      transform: none;
     }
   }
 
@@ -296,7 +311,23 @@ $paper-bg: #ffffff;
   }
 }
 
-// 底部装饰保留
+/* 大屏且屏高充足：略收纵向留白，多露出半行瀑布，与 27" 一屏浏览协调 */
+@media (min-width: 1440px) and (min-height: 900px) {
+  .gallery-wrapper {
+    --gallery-pad-top: clamp(10px, 1.4vw, 20px);
+    --gallery-bottom-space: calc(clamp(80px, 9vh, 120px) + env(safe-area-inset-bottom, 0px));
+    --masonry-gap: clamp(14px, 1.5vw, 26px);
+  }
+}
+
+/* 笔记本常见高度：略压底栏占位，避免首屏只剩半张卡 */
+@media (max-height: 820px) {
+  .gallery-wrapper {
+    --gallery-pad-top: clamp(10px, 1.6vw, 18px);
+    --gallery-bottom-space: calc(clamp(76px, 10vh, 110px) + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 .bottom-decor {
   position: fixed;
   bottom: 0;
@@ -305,20 +336,14 @@ $paper-bg: #ffffff;
   z-index: 100;
 }
 
-@media (max-width: 768px) {
+/* 最窄单列 */
+@media (max-width: 599px) {
   .masonry-grid {
     column-gap: clamp(12px, 3vw, 20px);
   }
 
   .gallery-card {
     margin-bottom: clamp(14px, 3vw, 22px);
-  }
-}
-
-/* 最窄单列，须放在其它 max-width 规则之后以免被覆盖 */
-@media (max-width: 599px) {
-  .masonry-grid {
-    column-count: 1;
   }
 }
 </style>
