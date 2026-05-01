@@ -111,13 +111,13 @@ $dat-toolbar-seal-gallery: #b71c1c;
       line-height: 1.35;
 
       &.active {
-        background: $dat-toolbar-ink;
+        background: var(--hui-primary, #409eff);
         color: #fff;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        box-shadow: 0 1px 4px rgba(64, 158, 255, 0.35);
       }
 
       &:not(.active):hover {
-        color: #222;
+        color: var(--hui-text, #303133);
         background: rgba(255, 255, 255, 0.65);
       }
     }

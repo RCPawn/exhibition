@@ -34,7 +34,11 @@
       <el-table-column label="提交日期" align="center" prop="createTime" width="158" />
       <el-table-column label="操作" align="center" width="120" fixed="right" class-name="heritage-op-col">
         <template #default="scope">
-          <button class="industrial-audit-btn" @click="handleOpenAudit(scope.row)">
+          <button
+            type="button"
+            class="hui-btn-primary hui-btn-primary--sm"
+            @click="handleOpenAudit(scope.row)"
+          >
             进入审核
           </button>
         </template>
@@ -103,7 +107,9 @@
           </el-form>
 
           <div class="submit-wrap">
-            <el-button class="confirm-btn" @click="submitAudit">确认并同步状态</el-button>
+            <button type="button" class="hui-btn-primary hui-btn-primary--lg" @click="submitAudit">
+              确认并同步状态
+            </button>
           </div>
         </div>
       </div>
@@ -172,17 +178,11 @@ onMounted(() => getList());
 <style scoped lang="scss">
 .item-name-bold { font-weight: 600; color: #303133; font-size: 13px; }
 
-.industrial-audit-btn {
-  background: #000; color: #fff; border: none; padding: 8px 15px;
-  font-size: 11px; font-weight: 900; cursor: pointer;
-  &:hover { background: #333; }
-}
-
 /* 审核分屏布局 */
 .audit-split-layout {
   display: flex; height: 65vh; gap: 30px;
 
-  .axis-label { font-size: 12px; font-weight: 900; color: #ccc; margin-bottom: 20px; border-left: 3px solid #000; padding-left: 10px; }
+  .axis-label { font-size: 12px; font-weight: 900; color: #909399; margin-bottom: 20px; border-left: 3px solid var(--el-color-primary, #409eff); padding-left: 10px; }
 
   .preview-axis {
     flex: 1.6; display: flex; flex-direction: column; border-right: 1px solid #eee; padding-right: 20px;
@@ -200,10 +200,10 @@ onMounted(() => getList());
     flex: 1; display: flex; flex-direction: column;
     .industrial-radio {
       display: flex; flex-direction: column; gap: 10px; width: 100%;
-      :deep(.el-radio) { margin-right: 0; width: 100%; height: 45px; border-radius: 0; border: 1px solid #eee; &.is-checked { border-color: #000; .el-radio__label { color: #000; } } }
-      :deep(.el-radio__input.is-checked .el-checkbox__inner) { background-color: #000; border-color: #000; }
+      :deep(.el-radio) { margin-right: 0; width: 100%; height: 45px; border-radius: 0; border: 1px solid #eee; &.is-checked { border-color: var(--el-color-primary); .el-radio__label { color: var(--el-color-primary); } } }
+      :deep(.el-radio__input.is-checked .el-radio__inner) { background-color: var(--el-color-primary); border-color: var(--el-color-primary); }
     }
-    .submit-wrap { margin-top: auto; .confirm-btn { width: 100%; height: 50px; background: #000; color: #fff; border: none; border-radius: 0; font-weight: 900; letter-spacing: 2px; &:hover { background: #333; } } }
+    .submit-wrap { margin-top: auto; }
   }
 }
 

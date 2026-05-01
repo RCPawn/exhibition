@@ -45,15 +45,14 @@
       <div class="archive-deck" v-if="showDeck">
         <!-- 顶部标题栏 -->
         <nav class="deck-nav">
-          <div class="nav-left" @click="handleCloseDeck">
-            <el-icon><ArrowLeft/></el-icon>
-            <span>返回封面</span>
+          <div class="nav-left">
+            <AppBackButton plain variant="deck" preset="cover" @click="handleCloseDeck" />
           </div>
           <div class="nav-center">
             <span class="nav-title">白族非遗传承谱系</span>
             <span v-if="activeCategoryName" class="nav-breadcrumb">· {{ activeCategoryName }}</span>
           </div>
-          <div class="nav-right hint-muted">拖拽画布平移 · 滚轮缩放</div>
+          <div class="nav-right hint-muted">拖拽平移 · 滚轮缩放</div>
         </nav>
 
         <div class="deck-main">
@@ -120,7 +119,7 @@ import { ref, onMounted, computed, getCurrentInstance, nextTick, onUnmounted, wa
 import { treeselect } from "@/api/heritage/category"
 import { listInheritor } from "@/api/heritage/inheritor"
 import * as echarts from 'echarts'
-import { ArrowLeft } from '@element-plus/icons-vue'
+import AppBackButton from '@/components/AppBackButton.vue'
 
 const { proxy } = getCurrentInstance()
 const { heritage_level } = proxy.useDict('heritage_level')
@@ -601,12 +600,9 @@ $accent: #FFD700;
     border-bottom: 1px solid #eee;
 
     .nav-left {
-      cursor: pointer;
-      user-select: none;
       display: flex;
       align-items: center;
-      gap: 8px;
-      &:hover { color: #999; }
+      flex-shrink: 0;
     }
 
     .nav-center {
@@ -873,10 +869,11 @@ $accent: #FFD700;
         }
 
         &.active {
-          background: #000;
+          background: var(--hui-primary, #409eff);
+          box-shadow: 0 2px 10px rgba(64, 158, 255, 0.35);
 
           .tab-index {
-            color: rgba(255,255,255,0.5);
+            color: rgba(255, 255, 255, 0.85);
           }
 
           .tab-label {

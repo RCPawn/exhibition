@@ -3,11 +3,7 @@
     <div class="paper-texture"></div>
 
     <div class="detail-container">
-      <!-- 返回按钮 -->
-      <button class="back-btn" @click="goBack">
-        <el-icon><ArrowLeftBold /></el-icon>
-        <span>返回</span>
-      </button>
+      <AppBackButton variant="gallery" preset="simple" fallback="/display/gallery" />
 
       <!-- 头部信息 -->
       <div class="detail-header">
@@ -93,7 +89,8 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getGallery } from "@/api/heritage/gallery";
 import InteractiveBar from "@/components/InteractiveBar";
-import { Document, Clock, ArrowLeft, ArrowRight, ArrowLeftBold } from '@element-plus/icons-vue';
+import AppBackButton from "@/components/AppBackButton.vue";
+import { Document, Clock, ArrowLeft, ArrowRight } from '@element-plus/icons-vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -149,10 +146,6 @@ const getDetail = async () => {
 };
 
 onMounted(getDetail);
-
-const goBack = () => {
-  router.back();
-};
 </script>
 
 <style scoped lang="scss">
@@ -205,41 +198,6 @@ $paper-bg: #FAFAFA;
   position: relative;
   z-index: 10;
   box-sizing: border-box;
-}
-
-// 返回按钮
-.back-btn {
-  position: absolute;
-  top: clamp(12px, 2vw, 24px);
-  left: clamp(12px, 2.5vw, 28px);
-  z-index: 100;
-  background: #fff;
-  border: 1px solid #dcdfe6;
-  border-radius: 6px;
-  padding: clamp(6px, 1vw, 10px) clamp(12px, 1.8vw, 18px);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #606266;
-  font-size: clamp(12px, 0.35vw + 11px, 14px);
-  font-weight: 500;
-  transition: all 0.3s;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-
-  .el-icon {
-    font-size: clamp(14px, 0.5vw + 12px, 17px);
-  }
-
-  &:hover {
-    color: #409eff;
-    border-color: #c6e2ff;
-    background: #ecf5ff;
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
 }
 
 .detail-header {

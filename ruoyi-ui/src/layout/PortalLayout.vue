@@ -7,17 +7,19 @@
           <span class="logo-text">非遗档案</span>
         </div>
 
-        <nav class="main-nav">
-          <router-link to="/display/home" class="nav-item">首页</router-link>
-          <router-link
-            to="/display/gallery"
-            class="nav-item"
-            :class="{ 'router-link-active': isExhibitNavActive }"
-          >在线展厅</router-link>
-          <router-link to="/display/acoustic" class="nav-item">三道余音</router-link>
-          <router-link to="/display/images" class="nav-item">纸上乾坤</router-link>
-          <router-link to="/display/genealogy" class="nav-item">传承图谱</router-link>
-        </nav>
+        <div class="header-center">
+          <nav class="main-nav">
+            <router-link to="/display/home" class="nav-item">首页</router-link>
+            <router-link
+              to="/display/gallery"
+              class="nav-item"
+              :class="{ 'router-link-active': isExhibitNavActive }"
+            >在线展厅</router-link>
+            <router-link to="/display/acoustic" class="nav-item">三道余音</router-link>
+            <router-link to="/display/images" class="nav-item">纸上乾坤</router-link>
+            <router-link to="/display/genealogy" class="nav-item">传承图谱</router-link>
+          </nav>
+        </div>
 
         <div class="user-actions">
           <PortalRealmSwitcher surface="light" class="user-actions__switcher" />
@@ -131,7 +133,18 @@ $ink-black: #1A1A1A;
   }
 }
 
+/* 中间导航独占可伸缩区并居中，避免右侧切换/登录区挤压链接文字 */
+.header-center {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+}
+
 .logo-box {
+  flex-shrink: 0;
   cursor: pointer;
   display: flex; align-items: center; gap: 8px;
   .logo-seal {
@@ -194,11 +207,16 @@ $ink-black: #1A1A1A;
     order: 2;
     margin-left: auto;
   }
-  .main-nav {
+  .header-center {
     order: 3;
     flex-basis: 100%;
     justify-content: center;
-    margin-top: 6px;
+    padding-top: 4px;
+  }
+  .main-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 0;
   }
 }
 
@@ -213,6 +231,7 @@ $ink-black: #1A1A1A;
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .user-actions__switcher {

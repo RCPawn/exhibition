@@ -5,13 +5,14 @@
       <section class="axis-3d">
         <!-- 【修复点 1】将原本突兀的顶部栏重构为悬浮控件，消除后台“双导航栏”的错觉 -->
         <div class="floating-nav">
-          <div class="nav-back-block" @click="router.back()">
-            <el-icon><ArrowLeft /></el-icon>
-            <span>返回 / BACK</span>
+          <div class="floating-nav__start">
+            <AppBackButton variant="floating" preset="portal" fallback="/display/home" />
           </div>
-          <transition name="el-fade-in">
-            <span v-if="isCollected" class="collected-status-tag">★ 已收藏展品</span>
-          </transition>
+          <div class="floating-nav__end">
+            <transition name="el-fade-in">
+              <span v-if="isCollected" class="collected-status-tag">★ 已收藏展品</span>
+            </transition>
+          </div>
         </div>
 
         <model-viewer
@@ -126,20 +127,27 @@
             <h4 class="social-header">讨论区 <span class="count-badge">{{ totalComments }}</span></h4>
           </header>
 
-          <div class="input-container">
+          <div class="comment-composer">
             <el-input
-                v-model="newComment"
-                type="textarea"
-                placeholder="分享你的见解…"
-                :rows="3"
-                resize="none"
-                class="poizon-input"
-                maxlength="200"
-                show-word-limit
+              v-model="newComment"
+              type="textarea"
+              :placeholder="composerPlaceholder"
+              :rows="3"
+              resize="none"
+              class="composer-input"
+              maxlength="200"
             />
-            <button class="post-button" type="button" @click="handlePostComment" :disabled="submitting">
-              {{ submitting ? '发送中…' : '发表评论' }}
-            </button>
+            <div class="comment-composer__overlay-tools">
+              <span class="comment-composer__count">{{ newComment.length }}/200</span>
+              <button
+                type="button"
+                class="comment-composer__submit"
+                @click="handlePostComment"
+                :disabled="submitting"
+              >
+                {{ submitting ? '\u53d1\u9001\u4e2d\u2026' : '\u53d1\u8868\u8bc4\u8bba' }}
+              </button>
+            </div>
           </div>
 
           <div class="comment-scroller" v-loading="commentLoading">
@@ -177,9 +185,10 @@ import { getHeritage_manage, updateHeritageCount } from "@/api/heritage/heritage
 import { listComment, addComment } from "@/api/heritage/comment";
 import { listCategory } from "@/api/heritage/category";
 import { getToken } from '@/utils/auth';
-import { ArrowLeft, View, DArrowLeft, DArrowRight } from '@element-plus/icons-vue';
+import { View, DArrowLeft, DArrowRight } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import defAva from '@/assets/images/profile.jpg';
+import AppBackButton from '@/components/AppBackButton.vue';
 
 /** 第三段为视距，数值越小画面越近（旧版 250% 过远；与门户 hero 约 102% 同量级） */
 const defaultCameraOrbit = '0deg 70deg 105%';
@@ -188,6 +197,8 @@ const maxOrbit = 'auto auto 480%';
 
 const route = useRoute();
 const router = useRouter();
+
+const composerPlaceholder = '\u5206\u4eab\u4f60\u7684\u89c1\u89e3\u2026'
 
 const modelViewerRef = ref(null);
 /** 讨论区向右折叠为窄条时，前两列均分剩余宽度 */
@@ -365,7 +376,7 @@ onMounted(() => {
     align-items: stretch;
     justify-content: center;
 
-    /* 悬浮控制组件 */
+    /* 仅左右两块可点，中间区域不拦截 3D 操作，避免误触缩放 */
     .floating-nav {
       position: absolute;
       top: 25px;
@@ -374,41 +385,35 @@ onMounted(() => {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      z-index: 100;
-      pointer-events: none; /* 让空白处鼠标穿透，不影响 3D 旋转 */
+      z-index: 10000;
+      pointer-events: none;
+    }
 
-      .nav-back-block {
-        pointer-events: auto; /* 按钮恢复点击 */
-        background: #000;
-        color: #fff;
-        height: 38px;
-        padding: 0 20px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        cursor: pointer;
-        font-size: 11px;
-        font-weight: 900;
-        letter-spacing: 2px;
-        transition: background 0.2s;
-        &:hover { background: #333; }
-      }
+    .floating-nav__start,
+    .floating-nav__end {
+      pointer-events: auto;
+      flex: 0 0 auto;
+      max-width: min(100%, 320px);
+    }
 
-      .collected-status-tag {
-        pointer-events: auto;
-        background: #ffd700;
-        color: #000;
-        font-size: 10px;
-        padding: 6px 14px;
-        font-weight: 900;
-        letter-spacing: 1.5px;
-        box-shadow: 4px 4px 0 #000;
-      }
+    .floating-nav__end {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .floating-nav .collected-status-tag {
+      background: #ffd700;
+      color: #000;
+      font-size: 10px;
+      padding: 6px 14px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      box-shadow: 4px 4px 0 #000;
     }
 
     .viewer-instance {
       position: relative;
-      z-index: 2;
+      z-index: 1;
       width: 100%;
       height: 100%;
       outline: none;
@@ -445,6 +450,9 @@ onMounted(() => {
       display: flex;
       align-items: center;
       gap: 8px;
+      pointer-events: none;
+      user-select: none;
+
       span { font-size: 9px; color: #ccc; letter-spacing: 1px; font-weight: bold; }
       .pulse-dot { width: 6px; height: 6px; background: #000; border-radius: 50%; animation: pulse 2s infinite; }
     }
@@ -593,47 +601,88 @@ onMounted(() => {
       }
     }
 
-    .input-container {
+    .input-container,
+    .comment-composer {
       margin-bottom: 24px;
+    }
 
-      .poizon-input :deep(.el-textarea__inner) {
-        border-radius: 4px;
-        border: 1px solid rgba(15, 23, 42, 0.12);
-        font-size: 14px;
-        line-height: 1.6;
-        padding: 10px 12px;
-        background: #fff;
+    .comment-composer {
+      position: relative;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .comment-composer .composer-input :deep(.el-textarea__inner) {
+      border: none;
+      border-radius: 0;
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 12px 14px 46px;
+      background: #fff;
+      box-shadow: none;
+      min-height: 96px;
+
+      &:focus {
         box-shadow: none;
+      }
+    }
 
-        &:focus {
-          border-color: rgba(15, 23, 42, 0.35);
-          box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
-        }
+    .comment-composer__overlay-tools {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 6px 8px 8px 10px;
+      background: linear-gradient(
+        to top,
+        rgba(255, 255, 255, 0.98) 40%,
+        rgba(255, 255, 255, 0.88) 72%,
+        rgba(255, 255, 255, 0)
+      );
+      pointer-events: none;
+    }
+
+    .comment-composer__count {
+      font-size: 12px;
+      color: #94a3b8;
+      font-variant-numeric: tabular-nums;
+      margin-right: auto;
+      padding-left: 2px;
+      pointer-events: auto;
+    }
+
+    .comment-composer__submit {
+      appearance: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      border-radius: 6px;
+      background: var(--el-color-primary, #409eff);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+      transition: filter 0.2s ease, opacity 0.2s ease, transform 0.15s ease;
+      pointer-events: auto;
+
+      &:hover:not(:disabled) {
+        filter: brightness(1.06);
       }
 
-      .post-button {
-        width: 100%;
-        height: 40px;
-        margin-top: 10px;
-        border: 1px solid #1a1a1a;
-        border-radius: 4px;
-        background: #1a1a1a;
-        color: #fff;
-        font-size: 13px;
-        font-weight: 600;
-        letter-spacing: 0.08em;
-        cursor: pointer;
-        transition: background 0.15s ease, border-color 0.15s ease, opacity 0.2s;
+      &:active:not(:disabled) {
+        transform: scale(0.98);
+      }
 
-        &:hover:not(:disabled) {
-          background: #333;
-          border-color: #333;
-        }
-
-        &:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
+      &:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
       }
     }
 
