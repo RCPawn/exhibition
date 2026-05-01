@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
@@ -37,6 +38,7 @@ public class HeritageGalleryController extends BaseController {
     /**
      * 查询图集管理列表
      */
+    @Anonymous
     @GetMapping("/list")
     public TableDataInfo list(HeritageGallery heritageGallery) {
         startPage();
@@ -59,6 +61,7 @@ public class HeritageGalleryController extends BaseController {
     /**
      * 获取图集管理详细信息
      */
+    @Anonymous
     @GetMapping(value = "/{galleryId}")
     public AjaxResult getInfo(@PathVariable("galleryId") Long galleryId) {
         return success(heritageGalleryService.selectHeritageGalleryByGalleryId(galleryId));

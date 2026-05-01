@@ -93,7 +93,7 @@
   }
 
   .industrial-export-btn {
-    background: var(--el-bg-color) !important;
+    background: #ffffff !important;
     color: var(--el-color-primary) !important;
     border: 1px solid var(--el-color-primary) !important;
   }
@@ -187,6 +187,14 @@
 
     .el-table__cell {
       padding: 5px 10px !important;
+    }
+
+    .el-table__body .el-table__cell {
+      color: #606266 !important;
+    }
+
+    .el-table__row:hover > td.el-table__cell {
+      color: #606266 !important;
     }
 
     .el-table__row {

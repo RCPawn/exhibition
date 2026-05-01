@@ -2,7 +2,15 @@ import defaultSettings from '@/settings'
 import { useDark, useToggle } from '@vueuse/core'
 import { useDynamicTitle } from '@/utils/dynamicTitle'
 
-const isDark = useDark()
+/**
+ * 默认浅色后台（与若依原版一致）。
+ * 使用独立 storageKey，避免沿用 vueuse-color-scheme 里因「跟随系统深色」写入的 dark 导致整站表格/表单全黑。
+ * 需要暗黑模式时仍可通过布局设置里的主题切换（若启用）或此处 toggleTheme 打开。
+ */
+const isDark = useDark({
+  storageKey: 'ruoyi-color-scheme',
+  initialValue: 'light'
+})
 const toggleDark = useToggle(isDark)
 
 const { sideTheme, showSettings, navType, tagsView, tagsIcon, fixedHeader, sidebarLogo, dynamicTitle, footerVisible, footerContent } = defaultSettings

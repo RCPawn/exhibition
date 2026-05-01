@@ -48,11 +48,6 @@ export const constantRoutes = [
         hidden: true
     },
     {
-        path: "/:pathMatch(.*)*",
-        component: () => import('@/views/error/404'),
-        hidden: true
-    },
-    {
         path: '/401',
         component: () => import('@/views/error/401'),
         hidden: true
@@ -60,6 +55,7 @@ export const constantRoutes = [
     {
         path: '',
         component: Layout,
+        // 根路径先进后台首页 /index；管理员保留，非管理员与无 token 由 permission.js 分流至门户
         redirect: '/index',
         children: [
             {
@@ -182,6 +178,12 @@ export const constantRoutes = [
                     meta: {title: '个人中心', icon: 'user'}
                 }
             ]
+    },
+    // 404 必须放在最后，避免拦截 /display/** 等具体路由
+    {
+        path: '/:pathMatch(.*)*',
+        component: () => import('@/views/error/404'),
+        hidden: true
     }
 ]
 

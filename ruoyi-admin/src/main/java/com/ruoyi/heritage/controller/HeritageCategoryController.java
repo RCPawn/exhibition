@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
@@ -38,6 +39,7 @@ public class HeritageCategoryController extends BaseController {
     /**
      * 获取分类树形下拉列表
      */
+    @Anonymous
     @GetMapping("/treeselect")
     public AjaxResult treeselect(HeritageCategory category) {
         List<HeritageCategory> categories = heritageCategoryService.selectHeritageCategoryList(category);
@@ -48,6 +50,7 @@ public class HeritageCategoryController extends BaseController {
      * 查询非遗分类列表
      */
 //    @PreAuthorize("@ss.hasPermi('heritage:category:list')")
+    @Anonymous
     @GetMapping("/list")
     public TableDataInfo list(HeritageCategory heritageCategory) {
         startPage();
@@ -71,6 +74,7 @@ public class HeritageCategoryController extends BaseController {
      * 获取非遗分类详细信息
      */
     // @PreAuthorize("@ss.hasPermi('heritage:category:query')")
+    @Anonymous
     @GetMapping(value = "/{categoryId}")
     public AjaxResult getInfo(@PathVariable("categoryId") Long categoryId) {
         return success(heritageCategoryService.selectHeritageCategoryByCategoryId(categoryId));

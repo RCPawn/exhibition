@@ -20,21 +20,24 @@
         </nav>
 
         <div class="user-actions">
-          <el-dropdown trigger="click" @command="handleCommand">
-            <div class="user-profile">
-              <img :src="userStore?.avatar || defaultAvatar" class="user-avatar" />
-              <span class="user-name">{{ userStore?.name || '未登录' }}</span>
-              <el-icon><ArrowDown /></el-icon>
-            </div>
-            <template #dropdown>
-              <el-dropdown-menu class="industrial-dropdown">
-                <el-dropdown-item command="profile" icon="User">个人信息</el-dropdown-item>
-                <el-dropdown-item command="collection" icon="Star">我的收藏</el-dropdown-item>
-                <el-dropdown-item command="publish" icon="Edit">我的发布</el-dropdown-item>
-                <el-dropdown-item divided command="logout" icon="SwitchButton">退出登录</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+          <PortalRealmSwitcher surface="light" class="user-actions__switcher" />
+          <template v-if="isLoggedIn">
+            <el-dropdown trigger="click" @command="handleCommand">
+              <div class="user-profile">
+                <img :src="userStore?.avatar || defaultAvatar" class="user-avatar" />
+                <span class="user-name">{{ userStore?.nickName || userStore?.name || '用户' }}</span>
+                <el-icon><ArrowDown /></el-icon>
+              </div>
+              <template #dropdown>
+                <el-dropdown-menu class="industrial-dropdown">
+                  <el-dropdown-item command="profile" icon="User">个人信息</el-dropdown-item>
+                  <el-dropdown-item command="collection" icon="Star">我的收藏</el-dropdown-item>
+                  <el-dropdown-item command="publish" icon="Edit">我的发布</el-dropdown-item>
+                  <el-dropdown-item divided command="logout" icon="SwitchButton">退出登录</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </template>
         </div>
       </div>
     </header>
@@ -51,28 +54,32 @@
 
 <script setup>
 import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import useUserStore from '@/store/modules/user'
-import { ArrowDown, User, Star, Edit, SwitchButton } from '@element-plus/icons-vue'
+import { ArrowDown } from '@element-plus/icons-vue'
 import defaultAvatar from '@/assets/images/profile.jpg'
+import PortalRealmSwitcher from '@/components/PortalRealmSwitcher.vue'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const { token } = storeToRefs(userStore)
+const isLoggedIn = computed(() => !!token.value)
 
-/** 展品详情与展厅列表同属「在线展厅」，避免详情页无高亮与悬浮下划线突然出现导致跳动 */
 const isExhibitNavActive = computed(() => {
   const p = route.path
   return p === '/display/gallery' || p.startsWith('/display/detail/')
 })
 
-const handleCommand = (command) => {
+function handleCommand(command) {
   switch (command) {
     case 'profile': router.push('/display/profile'); break
     case 'collection': router.push('/display/collection'); break
     case 'publish': router.push('/display/my-publish'); break
     case 'logout': handleLogout(); break
+    default: break
   }
 }
 
@@ -83,7 +90,7 @@ const handleLogout = () => {
     type: 'warning'
   }).then(() => {
     userStore.logOut().then(() => {
-      location.href = '/login';
+      router.replace({ path: '/display/home' })
     })
   })
 }
@@ -199,6 +206,17 @@ $ink-black: #1A1A1A;
   display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 5px 15px;
   .user-avatar { width: 32px; height: 32px; border: 1px solid $ink-black; }
   .user-name { font-size: 13px; font-weight: 900; color: $ink-black; }
+}
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.user-actions__switcher {
+  margin-right: 2px;
 }
 
 /* 主内容区：占满顶栏以下剩余高度（flex 子项），具体 min-height 由各子页自理 */

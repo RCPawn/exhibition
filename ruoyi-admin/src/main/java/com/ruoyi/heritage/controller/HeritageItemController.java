@@ -3,6 +3,7 @@ package com.ruoyi.heritage.controller;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
+import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.SecurityUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -60,6 +61,7 @@ public class HeritageItemController extends BaseController {
      * 展品交互统计 (前台调用)
      * type: 1-浏览(直接增加), 2-点赞(切换状态), 3-收藏(切换状态)
      */
+    @Anonymous
     @PostMapping("/count/{type}/{itemId}")
     public AjaxResult handleHeritageAction(@PathVariable("type") Integer type, @PathVariable("itemId") Long itemId) {
         // 1. 浏览量逻辑：无需判断用户，直接自增
@@ -67,9 +69,11 @@ public class HeritageItemController extends BaseController {
             return toAjax(heritageItemService.addViewCount(itemId));
         }
 
-        // 2. 点赞和收藏逻辑：进入 Service 层的 toggle 事务逻辑
-        // 内部会根据当前登录用户是否已有点赞记录，自动决定是 +1 还是 -1
+        // 2. 点赞和收藏：必须登录
         if (type == 2 || type == 3) {
+            if (SecurityUtils.getUserIdOrNull() == null) {
+                return error("请先登录后再进行点赞或收藏");
+            }
             return toAjax(heritageItemService.toggleAction(itemId, type));
         }
 
@@ -80,6 +84,7 @@ public class HeritageItemController extends BaseController {
      * 查询非遗展品列表
      */
 //    @PreAuthorize("@ss.hasPermi('heritage:heritage_manage:list')")
+    @Anonymous
     @GetMapping("/list")
     public TableDataInfo list(HeritageItem heritageItem) {
         startPage();
@@ -103,6 +108,7 @@ public class HeritageItemController extends BaseController {
      * 获取非遗展品详细信息
      */
 //    @PreAuthorize("@ss.hasPermi('heritage:heritage_manage:query')")
+    @Anonymous
     @GetMapping(value = "/{itemId}")
     public AjaxResult getInfo(@PathVariable("itemId") Long itemId) {
         return success(heritageItemService.selectHeritageItemByItemId(itemId));

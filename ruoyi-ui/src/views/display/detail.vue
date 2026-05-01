@@ -176,6 +176,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { getHeritage_manage, updateHeritageCount } from "@/api/heritage/heritage_manage";
 import { listComment, addComment } from "@/api/heritage/comment";
 import { listCategory } from "@/api/heritage/category";
+import { getToken } from '@/utils/auth';
 import { ArrowLeft, View, DArrowLeft, DArrowRight } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import defAva from '@/assets/images/profile.jpg';
@@ -265,6 +266,11 @@ const loadComments = async () => {
 };
 
 const handlePostComment = async () => {
+  if (!getToken()) {
+    ElMessage.warning('请先登录后再发表评论');
+    router.push({ path: '/login', query: { redirect: route.fullPath } });
+    return;
+  }
   if (!newComment.value.trim()) {
     ElMessage.warning("请输入评论内容");
     return;
@@ -282,6 +288,11 @@ const handlePostComment = async () => {
 
 const handleAction = async (type) => {
   const id = route.params.id;
+  if ((type === 2 || type === 3) && !getToken()) {
+    ElMessage.warning('请先登录后再进行点赞或收藏');
+    router.push({ path: '/login', query: { redirect: route.fullPath } });
+    return;
+  }
   try {
     await updateHeritageCount(type, id);
     if (type === 2) {

@@ -79,13 +79,40 @@ import { isRelogin } from '@/utils/request'
 import useUserStore from '@/store/modules/user'
 import useSettingsStore from '@/store/modules/settings'
 import usePermissionStore from '@/store/modules/permission'
+import { isBackstageUser } from '@/utils/backstage'
 
 NProgress.configure({ showSpinner: false })
 
 const whiteList = ['/login', '/register']
 
+/** 未登录可访问的门户展示页（不含个人中心、收藏、发布等） */
+const guestPortalPatterns = [
+    '/display/home',
+    '/display/gallery',
+    '/display/genealogy',
+    '/display/acoustic',
+    '/display/images',
+    '/display/detail/*',
+    '/display/images/detail/*'
+]
+
 const isWhiteList = (path) => {
     return whiteList.some(pattern => isPathMatch(pattern, path))
+}
+
+const isGuestPortalPath = (path) => {
+    return guestPortalPatterns.some(pattern => isPathMatch(pattern, path))
+}
+
+/** 登录页已执行 getInfo 后调用：注册动态路由（否则 roles 已存在时 permission 会跳过 generateRoutes） */
+export function registerDynamicRoutesAfterLogin() {
+    return usePermissionStore().generateRoutes().then(accessRoutes => {
+        accessRoutes.forEach(route => {
+            if (!isHttp(route.path)) {
+                router.addRoute(route)
+            }
+        })
+    })
 }
 
 router.beforeEach((to, from, next) => {
@@ -93,7 +120,7 @@ router.beforeEach((to, from, next) => {
     if (getToken()) {
         to.meta.title && useSettingsStore().setTitle(to.meta.title)
 
-        /* 1. 登录后访问登录页，跳转到根路径 */
+        /* 1. 登录后访问登录页：回系统根（经路由重定向至 /index），再由守卫按角色分流 */
         if (to.path === '/login') {
             next({ path: '/' })
             NProgress.done()
@@ -113,12 +140,8 @@ router.beforeEach((to, from, next) => {
                             }
                         })
 
-                        // === 核心分流逻辑 A：首次登录/刷新时的分流 ===
-                        const roles = useUserStore().roles;
-                        const isAdmin = roles.includes('admin'); // 判断是否为管理员
-
-                        // 如果不是管理员，且试图进入系统根目录或数据大屏，则导向门户首页
-                        if (!isAdmin && (to.path === '/index' || to.path === '/')) {
+                        // === 核心分流逻辑 A：首次登录/刷新时的分流（与若依角色/权限约定一致）===
+                        if (!isBackstageUser() && (to.path === '/index' || to.path === '/')) {
                             next({ path: '/display/home', replace: true })
                         } else {
                             next({ ...to, replace: true })
@@ -133,11 +156,7 @@ router.beforeEach((to, from, next) => {
                 })
             } else {
                 // === 核心分流逻辑 B：日常跳转时的权限隔离 ===
-                const roles = useUserStore().roles;
-                const isAdmin = roles.includes('admin');
-
-                // 防止普通用户通过修改 URL 强行进入 /index
-                if (!isAdmin && (to.path === '/index' || to.path === '/')) {
+                if (!isBackstageUser() && (to.path === '/index' || to.path === '/')) {
                     next({ path: '/display/home', replace: true })
                 } else {
                     next()
@@ -145,11 +164,17 @@ router.beforeEach((to, from, next) => {
             }
         }
     } else {
-        // 没有token
+        // 没有token：登录/注册白名单、门户公开展示、根路径进门户首页，其余进登录页
         if (isWhiteList(to.path)) {
             next()
+        } else if (to.path === '/' || to.path === '/index') {
+            next({ path: '/display/home', replace: true })
+            NProgress.done()
+        } else if (isGuestPortalPath(to.path)) {
+            to.meta.title && useSettingsStore().setTitle(to.meta.title)
+            next()
         } else {
-            next(`/login?redirect=${to.fullPath}`)
+            next(`/login?redirect=${encodeURIComponent(to.fullPath)}`)
             NProgress.done()
         }
     }

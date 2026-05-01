@@ -16,6 +16,10 @@
     </div>
 
     <div class="right-menu">
+      <PortalRealmSwitcher
+        :surface="realmSwitcherSurface"
+        class="navbar-realm right-menu-item"
+      />
       <template v-if="appStore.device !== 'mobile'">
 <!--        <header-search id="header-search" class="right-menu-item" />
 
@@ -65,6 +69,8 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import TopNav from '@/components/TopNav'
 import TopBar from './TopBar'
@@ -79,10 +85,17 @@ import RuoYiDoc from '@/components/RuoYi/Doc'
 import useAppStore from '@/store/modules/app'
 import useUserStore from '@/store/modules/user'
 import useSettingsStore from '@/store/modules/settings'
+import PortalRealmSwitcher from '@/components/PortalRealmSwitcher.vue'
 
 const appStore = useAppStore()
 const userStore = useUserStore()
 const settingsStore = useSettingsStore()
+const route = useRoute()
+
+/** 与 layout/index 一致：数据大屏等深蓝顶栏用 dark 胶囊对比度 */
+const realmSwitcherSurface = computed(() =>
+  route.matched.some((r) => r.meta && r.meta.adminScreenHeader === true) ? 'dark' : 'light'
+)
 
 function toggleSideBar() {
   appStore.toggleSideBar()
@@ -255,6 +268,14 @@ function toggleTheme() {
           }
         }
       }
+    }
+
+    .navbar-realm {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      font-size: 14px;
+      line-height: 1;
     }
 
     .avatar-container {

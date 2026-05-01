@@ -1,5 +1,6 @@
 package com.ruoyi.heritage.controller;
 
+import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
@@ -8,7 +9,6 @@ import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.heritage.domain.HeritageComment;
 import com.ruoyi.heritage.service.IHeritageCommentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +23,7 @@ public class HeritageCommentController extends BaseController {
     /**
      * 查询评论列表
      */
+    @Anonymous
     @GetMapping("/list")
     public TableDataInfo list(HeritageComment heritageComment) {
         startPage(); // 分页

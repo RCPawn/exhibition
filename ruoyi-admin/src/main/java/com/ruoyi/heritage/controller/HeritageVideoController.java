@@ -7,6 +7,7 @@ import com.ruoyi.common.utils.SecurityUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
@@ -23,6 +24,7 @@ public class HeritageVideoController extends BaseController {
     @Autowired
     private IHeritageVideoService heritageVideoService;
 
+    @Anonymous
     @GetMapping("/listArchive")
     public TableDataInfo listArchive(HeritageVideo video) {
         startPage();

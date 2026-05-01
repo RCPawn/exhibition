@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
@@ -39,6 +40,7 @@ public class HeritageAudioController extends BaseController {
      * 1. 门户/展厅专用接口：获取已发布的音频档案
      * 路径：GET /heritage/audio/listArchive
      */
+    @Anonymous
     @GetMapping("/listArchive")
     public TableDataInfo listArchive(HeritageAudio audio) {
         startPage();

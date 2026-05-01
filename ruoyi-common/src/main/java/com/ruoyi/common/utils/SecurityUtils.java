@@ -37,6 +37,31 @@ public class SecurityUtils
     }
 
     /**
+     * 未登录或匿名访问时返回 null，不抛异常（门户游客场景）
+     */
+    public static Long getUserIdOrNull()
+    {
+        try
+        {
+            Authentication authentication = getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated())
+            {
+                return null;
+            }
+            Object principal = authentication.getPrincipal();
+            if (!(principal instanceof LoginUser))
+            {
+                return null;
+            }
+            return ((LoginUser) principal).getUserId();
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+    }
+
+    /**
      * 获取部门ID
      **/
     public static Long getDeptId()

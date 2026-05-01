@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
@@ -46,6 +47,7 @@ public class HeritageInheritorController extends BaseController {
      * 查询非遗传承人列表
      */
     // @PreAuthorize("@ss.hasPermi('heritage:inheritor:list')")
+    @Anonymous
     @GetMapping("/list")
     public TableDataInfo list(HeritageInheritor heritageInheritor) {
         startPage();
@@ -69,6 +71,7 @@ public class HeritageInheritorController extends BaseController {
      * 获取非遗传承人详细信息
      */
     // @PreAuthorize("@ss.hasPermi('heritage:inheritor:query')")
+    @Anonymous
     @GetMapping(value = "/{inheritorId}")
     public AjaxResult getInfo(@PathVariable("inheritorId") Long inheritorId) {
         return success(heritageInheritorService.selectHeritageInheritorByInheritorId(inheritorId));
@@ -107,6 +110,7 @@ public class HeritageInheritorController extends BaseController {
     /**
      * 根据技艺分类获取传承人列表 (前台详情页调用)
      */
+    @Anonymous
     @GetMapping("/listByCategory/{categoryId}")
     public TableDataInfo listByCategory(@PathVariable("categoryId") Long categoryId) {
         HeritageInheritor inheritor = new HeritageInheritor();

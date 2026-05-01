@@ -90,10 +90,13 @@
 </template>
 
 <script setup>
+import { nextTick } from 'vue'
 import { getCodeImg } from "@/api/login"
 import Cookies from "js-cookie"
 import { encrypt, decrypt } from "@/utils/jsencrypt"
 import useUserStore from '@/store/modules/user'
+import { registerDynamicRoutesAfterLogin } from '@/permission'
+import { resolveLoginRedirect } from '@/utils/backstage'
 // import defaultSettings from '@/settings'
 import { User, Lock, CircleCheck } from '@element-plus/icons-vue'
 
@@ -141,14 +144,23 @@ function handleLogin() {
         Cookies.remove("password")
         Cookies.remove("rememberMe")
       }
-      userStore.login(loginForm.value).then(() => {
-        router.push({ path: redirect.value || "/" })
-      }).catch(() => {
-        loading.value = false
-        if (captchaEnabled.value) {
-          getCode()
-        }
-      })
+      userStore.login(loginForm.value)
+        .then(() => userStore.getInfo())
+        .then(() => registerDynamicRoutesAfterLogin())
+        .then(() => {
+          const path = resolveLoginRedirect(redirect.value)
+          return router.replace(path)
+        })
+        .then(() => nextTick())
+        .then(() => {
+          loading.value = false
+        })
+        .catch(() => {
+          loading.value = false
+          if (captchaEnabled.value) {
+            getCode()
+          }
+        })
     }
   })
 }

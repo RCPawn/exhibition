@@ -19,10 +19,8 @@ $menuText: #bfcbd9;
 // 侧边栏选中文字颜色 (亮蓝)
 $menuActiveText: #409eff;
 
-// 【核心修改】侧边栏背景色 -> 驾驶舱同款靛蓝
+// 侧栏：项目定制靛蓝（与数据大屏顶栏同色阶）
 $menuBg: #182640;
-
-// 【核心修改】侧边栏悬停背景色
 $menuHover: #121c30;
 
 // 浅色主题变量
@@ -119,7 +117,7 @@ html.dark {
   --el-border-color: #434343;
   --el-border-color-light: #434343;
 
-  /* 侧边栏 */
+  /* 侧边栏（与 :root 侧栏色一致） */
   --sidebar-bg: #182640;
   --sidebar-text: #ffffff;
   --menu-hover: #121c30;
@@ -233,7 +231,7 @@ html.dark {
   }
 }
 
-/* 数据大屏等路由（meta.adminScreenHeader）：顶栏与顶栏内页签与侧栏/大屏统一为深蓝 */
+/* 数据大屏等路由（meta.adminScreenHeader）：顶栏与页签与侧栏同色阶 */
 .app-wrapper.app-wrapper--admin-screen-header {
   --navbar-bg: #182640;
   --navbar-text: #bfcbd9;

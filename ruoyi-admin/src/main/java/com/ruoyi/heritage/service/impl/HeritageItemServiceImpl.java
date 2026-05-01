@@ -110,7 +110,7 @@ public class HeritageItemServiceImpl implements IHeritageItemService {
             }
 
             // 4. 【动态状态】 获取当前用户的点赞/收藏状态 (这部分千人千面，不能缓存)
-            Long userId = SecurityUtils.getUserId();
+            Long userId = SecurityUtils.getUserIdOrNull();
             if (userId != null) {
                 item.setIsLiked(actionMapper.checkStatus(userId, itemId, 2) > 0);
                 item.setIsCollected(actionMapper.checkStatus(userId, itemId, 3) > 0);
