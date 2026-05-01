@@ -162,49 +162,49 @@
         FROM heritage_item i
                  INNER JOIN heritage_category c ON i.category_id = c.category_id
                  INNER JOIN heritage_category p ON c.parent_id = p.category_id
-        WHERE i.del_flag = '0' GROUP BY p.category_name
+        WHERE i.del_flag = '0' AND i.status = 0 GROUP BY p.category_name
     </select>
 
     <select id="sumViewCount" resultType="Long">
-        SELECT COALESCE(SUM(view_count), 0) FROM heritage_item WHERE del_flag = '0'
+        SELECT COALESCE(SUM(view_count), 0) FROM heritage_item WHERE del_flag = '0' AND status = 0
     </select>
 
     <select id="countValidHeritageItems" resultType="Long">
-        SELECT COUNT(*) FROM heritage_item WHERE del_flag = '0'
+        SELECT COUNT(*) FROM heritage_item WHERE del_flag = '0' AND status = 0
     </select>
 
     <select id="sumTotalInteractions" resultType="Long">
-        SELECT COALESCE(SUM(like_count + favorite_count + comment_count), 0) FROM heritage_item WHERE del_flag = '0'
+        SELECT COALESCE(SUM(like_count + favorite_count + comment_count), 0) FROM heritage_item WHERE del_flag = '0' AND status = 0
     </select>
 
     <select id="selectResourceStats" resultType="com.ruoyi.heritage.domain.ChartDataVo">
-        SELECT '3D数字模型' as name, COUNT(*) as value FROM heritage_item WHERE model_file IS NOT NULL AND del_flag = '0'
+        SELECT '3D数字模型' as name, COUNT(*) as value FROM heritage_item WHERE model_file IS NOT NULL AND del_flag = '0' AND status = 0
         UNION ALL
-        SELECT '图文资料' as name, COUNT(*) as value FROM heritage_item WHERE model_file IS NULL AND del_flag = '0'
+        SELECT '图文资料' as name, COUNT(*) as value FROM heritage_item WHERE model_file IS NULL AND del_flag = '0' AND status = 0
     </select>
 
     <select id="selectInteractionStats" resultType="com.ruoyi.heritage.domain.ChartDataVo">
-        SELECT '点赞总量' as name, SUM(like_count) as value FROM heritage_item WHERE del_flag = '0'
+        SELECT '点赞总量' as name, SUM(like_count) as value FROM heritage_item WHERE del_flag = '0' AND status = 0
         UNION ALL
-        SELECT '收藏总量' as name, SUM(favorite_count) as value FROM heritage_item WHERE del_flag = '0'
+        SELECT '收藏总量' as name, SUM(favorite_count) as value FROM heritage_item WHERE del_flag = '0' AND status = 0
         UNION ALL
-        SELECT '评论总量' as name, SUM(comment_count) as value FROM heritage_item WHERE del_flag = '0'
+        SELECT '评论总量' as name, SUM(comment_count) as value FROM heritage_item WHERE del_flag = '0' AND status = 0
     </select>
 
     <select id="selectLatestItems" resultMap="HeritageItemResult">
-        SELECT item_id, item_name, cover_image, create_time FROM heritage_item WHERE del_flag = '0' ORDER BY create_time DESC LIMIT 5
+        SELECT item_id, item_name, cover_image, create_time FROM heritage_item WHERE del_flag = '0' AND status = 0 ORDER BY create_time DESC LIMIT 5
     </select>
 
     <select id="selectItemNames" resultType="com.ruoyi.heritage.domain.ChartDataVo">
-        SELECT item_name as name, view_count as value FROM heritage_item WHERE del_flag = '0' ORDER BY view_count DESC LIMIT 20
+        SELECT item_name as name, view_count as value FROM heritage_item WHERE del_flag = '0' AND status = 0 ORDER BY view_count DESC LIMIT 20
     </select>
 
     <select id="selectTop5Trend" resultType="com.ruoyi.heritage.domain.ChartDataVo">
-        SELECT item_name as name, view_count as value FROM heritage_item WHERE del_flag = '0' ORDER BY view_count DESC LIMIT 5
+        SELECT item_name as name, view_count as value FROM heritage_item WHERE del_flag = '0' AND status = 0 ORDER BY view_count DESC LIMIT 5
     </select>
 
     <select id="selectMostPopularItem" resultMap="HeritageItemResult">
-        SELECT * FROM heritage_item WHERE del_flag = '0' AND model_file IS NOT NULL ORDER BY view_count DESC LIMIT 1
+        SELECT * FROM heritage_item WHERE del_flag = '0' AND status = 0 AND model_file IS NOT NULL ORDER BY view_count DESC LIMIT 1
     </select>
 
 </mapper>

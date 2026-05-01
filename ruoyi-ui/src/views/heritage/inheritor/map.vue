@@ -1,5 +1,5 @@
 <template>
-  <div class="genealogy-container" v-loading="loading" element-loading-background="rgba(242, 240, 235, 1)">
+  <div class="genealogy-container" v-loading="loading" element-loading-background="#ffffff">
     <div class="paper-bg"></div>
     <div class="vignette-overlay"></div>
 
@@ -596,7 +596,7 @@ $accent: #FFD700;
     padding: 0 clamp(16px, 3vw, 40px);
     font-weight: 900;
     font-size: 12px;
-    background: #fafafa;
+    background: $bg-color;
     border-bottom: 1px solid #eee;
 
     .nav-left {
@@ -665,7 +665,7 @@ $accent: #FFD700;
     min-height: 0;
     position: relative;
     overflow: hidden;
-    background: radial-gradient(circle at 50% 35%, #fff 0%, #f3f2ef 100%);
+    background: $bg-color;
   }
 
   .graph-empty-hint {
@@ -722,7 +722,7 @@ $accent: #FFD700;
     box-sizing: border-box;
     padding: clamp(16px, 2vh, 24px);
     border-left: 1px solid #eceae4;
-    background: linear-gradient(180deg, #fdfcfa 0%, #faf8f4 100%);
+    background: $bg-color;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 

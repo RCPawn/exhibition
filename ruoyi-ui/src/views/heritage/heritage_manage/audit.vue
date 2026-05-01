@@ -205,7 +205,8 @@ const headerLineTooltip = computed(() => {
 const queryParams = reactive({
   pageNum: 1,
   pageSize: 10,
-  status: 1 // 【核心】写死只查询待审核数据
+  status: 1, // 【核心】写死只查询待审核数据
+  heritageAdminList: true
 });
 
 const auditForm = reactive({

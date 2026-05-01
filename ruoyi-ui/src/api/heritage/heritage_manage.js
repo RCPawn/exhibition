@@ -18,11 +18,12 @@ export function listHeritage_manage(query) {
     })
 }
 
-// 查询非遗展品详细
-export function getHeritage_manage(itemId) {
+// 查询非遗展品详细（后台传 { heritageAdminQuery: true } 可查看待审核等全状态）
+export function getHeritage_manage(itemId, params = {}) {
     return request({
         url: '/heritage/heritage_manage/' + itemId,
-        method: 'get'
+        method: 'get',
+        params
     })
 }
 

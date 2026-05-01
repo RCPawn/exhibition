@@ -124,17 +124,20 @@ $ink-black: #1A1A1A;
     max-width: min(1680px, 100%);
     margin: 0 auto;
     height: 100%;
-    display: flex;
+    /* 左右各 1fr、中间 auto：主导航相对整条顶栏几何居中；避免右侧「前台/后台」+ 用户区变宽时导航被挤向左侧 */
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    justify-content: space-between;
     gap: 12px;
   }
 }
 
-/* 中间导航独占可伸缩区并居中，避免右侧切换/登录区挤压链接文字 */
+/* 中间导航在 grid 第二列，相对视口居中，不受左右栏宽度差影响 */
 .header-center {
-  flex: 1 1 auto;
+  grid-column: 2;
+  justify-self: center;
   min-width: 0;
+  max-width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -142,6 +145,8 @@ $ink-black: #1A1A1A;
 }
 
 .logo-box {
+  grid-column: 1;
+  justify-self: start;
   flex-shrink: 0;
   cursor: pointer;
   display: flex; align-items: center; gap: 8px;
@@ -187,6 +192,19 @@ $ink-black: #1A1A1A;
   }
 }
 
+.user-actions {
+  grid-column: 3;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.user-actions__switcher {
+  margin-right: 2px;
+}
+
 @media screen and (max-width: 1180px) {
   .portal-header {
     height: auto;
@@ -195,19 +213,24 @@ $ink-black: #1A1A1A;
     padding-bottom: 8px;
   }
   .header-inner {
-    flex-wrap: wrap;
-    justify-content: flex-start;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    row-gap: 8px;
   }
   .logo-box {
-    order: 1;
+    grid-column: 1;
+    grid-row: 1;
   }
   .user-actions {
-    order: 2;
-    margin-left: auto;
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
   }
   .header-center {
-    order: 3;
-    flex-basis: 100%;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    justify-self: stretch;
     justify-content: center;
     padding-top: 4px;
   }
@@ -233,18 +256,6 @@ $ink-black: #1A1A1A;
     flex-shrink: 0;
   }
   .user-name { font-size: 13px; font-weight: 900; color: $ink-black; }
-}
-
-.user-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-.user-actions__switcher {
-  margin-right: 2px;
 }
 
 /* 主内容区：占满顶栏以下剩余高度（flex 子项），具体 min-height 由各子页自理 */

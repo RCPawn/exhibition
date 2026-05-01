@@ -18,7 +18,7 @@ public interface HeritageItemMapper {
     /** 查询展品详情 */
     HeritageItem selectHeritageItemByItemId(Long itemId);
 
-    /** 查询展品列表 (全量/管理员/展厅) */
+    /** 查询展品列表（后台可传 status；门户由 Controller 强制 status=0） */
     List<HeritageItem> selectHeritageItemList(HeritageItem heritageItem);
 
     /** 查询个人发布的展品列表 (UGC 隔离) */
@@ -80,7 +80,7 @@ public interface HeritageItemMapper {
     Long sumViewCount();
 
     /**
-     * 未逻辑删除的展品总条数（与无筛选的 {@link #selectHeritageItemList} 在参数为 null 时一致）
+     * 已上架（status=0）且未逻辑删除的展品条数，用于驾驶舱「展品总数」等公开统计
      */
     Long countValidHeritageItems();
 

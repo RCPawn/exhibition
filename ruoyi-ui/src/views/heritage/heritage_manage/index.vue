@@ -171,7 +171,7 @@ const title = ref("");
 
 const data = reactive({
   form: {},
-  queryParams: { pageNum: 1, pageSize: 10, itemName: null, categoryId: null, status: null },
+  queryParams: { pageNum: 1, pageSize: 10, itemName: null, categoryId: null, status: null, heritageAdminList: true },
   rules: {
     itemName: [{ required: true, message: "展品名称不能为空", trigger: "blur" }],
     categoryId: [{ required: true, message: "分类不能为空", trigger: "change" }]
@@ -219,7 +219,7 @@ function handleSelectionChange(selection) {
 function handleAdd() { reset(); open.value = true; title.value = "添加非遗展品"; }
 function handleUpdate(row) {
   reset();
-  getHeritage_manage(row.itemId || ids.value).then(res => {
+  getHeritage_manage(row.itemId || ids.value, { heritageAdminQuery: true }).then(res => {
     form.value = res.data;
     open.value = true;
     title.value = "修改非遗展品";
