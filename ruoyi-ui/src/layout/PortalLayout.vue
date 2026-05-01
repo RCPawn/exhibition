@@ -24,11 +24,10 @@
         <div class="user-actions">
           <PortalRealmSwitcher surface="light" class="user-actions__switcher" />
           <template v-if="isLoggedIn">
-            <el-dropdown trigger="click" @command="handleCommand">
+            <el-dropdown trigger="hover" :show-timeout="80" :hide-timeout="220" @command="handleCommand">
               <div class="user-profile">
-                <img :src="userStore?.avatar || defaultAvatar" class="user-avatar" />
+                <img :src="userStore?.avatar || defaultAvatar" class="user-avatar" alt="" />
                 <span class="user-name">{{ userStore?.nickName || userStore?.name || '用户' }}</span>
-                <el-icon><ArrowDown /></el-icon>
               </div>
               <template #dropdown>
                 <el-dropdown-menu class="industrial-dropdown">
@@ -60,7 +59,6 @@ import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import useUserStore from '@/store/modules/user'
-import { ArrowDown } from '@element-plus/icons-vue'
 import defaultAvatar from '@/assets/images/profile.jpg'
 import PortalRealmSwitcher from '@/components/PortalRealmSwitcher.vue'
 
@@ -221,8 +219,19 @@ $ink-black: #1A1A1A;
 }
 
 .user-profile {
-  display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 5px 15px;
-  .user-avatar { width: 32px; height: 32px; border: 1px solid $ink-black; }
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 5px 15px;
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--navbar-avatar-radius, 6px);
+    border: 1px solid $ink-black;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
   .user-name { font-size: 13px; font-weight: 900; color: $ink-black; }
 }
 

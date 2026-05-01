@@ -120,7 +120,8 @@ function onRealmChange(val) {
   :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
     color: var(--el-color-primary, #409eff);
     background: var(--el-bg-color, #fff);
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12) !important;
+    /* 避免投影造成「选中项变大」的错觉，与未选项同轮廓 */
+    box-shadow: none !important;
   }
 
   :deep(.el-radio-button__original-radio:not(:checked) + .el-radio-button__inner:hover) {
@@ -141,7 +142,9 @@ function onRealmChange(val) {
 
   :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
     color: var(--el-color-primary, #409eff) !important;
-    background: #fff !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    box-shadow: none !important;
+    transform: none !important;
   }
 
   :deep(.el-radio-button__original-radio:not(:checked) + .el-radio-button__inner:hover) {

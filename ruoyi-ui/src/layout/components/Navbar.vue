@@ -45,7 +45,13 @@
         </el-tooltip>-->
       </template>
 
-      <el-dropdown @command="handleCommand" class="avatar-container right-menu-item hover-effect" trigger="hover">
+      <el-dropdown
+        trigger="hover"
+        :show-timeout="80"
+        :hide-timeout="220"
+        class="avatar-container right-menu-item hover-effect"
+        @command="handleCommand"
+      >
         <div class="avatar-wrapper">
           <img :src="userStore.avatar" class="user-avatar" />
           <span class="user-nickname"> {{ userStore.nickName }} </span>
@@ -298,11 +304,12 @@ function toggleTheme() {
 
         .user-avatar {
           cursor: pointer;
-          width: 34px;
-          height: 34px;
+          width: 32px;
+          height: 32px;
           margin-right: 0;
-          border-radius: 50%;
-          border: 2px solid var(--navbar-avatar-ring, rgba(0, 0, 0, 0.12));
+          border-radius: var(--navbar-avatar-radius, 6px);
+          border: 1px solid var(--navbar-avatar-border, #1a1a1a);
+          object-fit: cover;
           flex-shrink: 0;
         }
 

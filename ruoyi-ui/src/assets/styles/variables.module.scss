@@ -90,7 +90,9 @@ $--color-info: #909399;
   --navbar-text: #303133;
   --navbar-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   --navbar-row-hover: rgba(0, 0, 0, 0.06);
-  --navbar-avatar-ring: rgba(0, 0, 0, 0.12);
+  --navbar-avatar-border: #1a1a1a;
+  /* 顶栏头像：微圆角方形容器（前后台共用） */
+  --navbar-avatar-radius: 6px;
 
   --tags-bg: #ffffff;
   --tags-item-bg: #f0f2f5;
@@ -127,6 +129,7 @@ html.dark {
   --navbar-bg: #141414;
   --navbar-text: #ffffff;
   --navbar-hover: #141414;
+  --navbar-avatar-border: rgba(255, 255, 255, 0.42);
 
   /* 标签栏 */
   --tags-bg: #141414;
@@ -237,7 +240,7 @@ html.dark {
   --navbar-text: #bfcbd9;
   --navbar-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   --navbar-row-hover: rgba(255, 255, 255, 0.08);
-  --navbar-avatar-ring: rgba(255, 255, 255, 0.22);
+  --navbar-avatar-border: rgba(255, 255, 255, 0.45);
 
   --tags-bg: #182640;
   --tags-item-bg: #0f1828;
@@ -325,7 +328,7 @@ $--color-info: #909399;
   
   --navbar-bg: #ffffff;
   --navbar-text: #303133;
-  
+
   !* splitpanes default-theme 变量 *!
   --splitpanes-default-bg: #ffffff;
 

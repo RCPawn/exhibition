@@ -334,17 +334,27 @@ function handleScroll() {
   }
 
   &.tags-view-container--embedded .tags-view-wrapper .tags-view-item {
+    /* inline-block + 行高会导致「无关闭钮的 affix 页签」与带图标页签视觉高度不一致，改为 flex 固定高度 */
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 6px;
     margin-top: 0;
     vertical-align: middle;
-    height: 30px;
-    line-height: 28px;
+    height: 28px;
+    min-height: 28px;
+    max-height: 28px;
+    line-height: 1.2;
     padding: 0 10px 0 12px;
     border-radius: 8px;
     margin-left: 6px;
     font-size: 12px;
+    font-weight: 500;
     letter-spacing: 0.02em;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    transform: none;
+    box-sizing: border-box;
 
     &:first-of-type {
       margin-left: 2px;
@@ -355,9 +365,14 @@ function handleScroll() {
     }
 
     &.active {
-      /* 与未选中页签同高、同字重，仅颜色区分 */
-      font-weight: 400;
+      height: 28px;
+      min-height: 28px;
+      max-height: 28px;
+      line-height: 1.2;
+      padding: 0 10px 0 12px;
+      font-weight: 500;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+      transform: none;
     }
   }
 }
@@ -394,6 +409,11 @@ function handleScroll() {
       color: var(--el-color-primary, #409eff);
     }
   }
+}
+
+.tags-view-container--embedded .tags-view-wrapper .tags-view-item .el-icon-close {
+  vertical-align: middle;
+  align-self: center;
 }
 
 //reset element css of el-icon-close
