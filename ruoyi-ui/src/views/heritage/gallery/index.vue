@@ -1,51 +1,54 @@
 <template>
   <div class="app-container heritage-admin-page">
-    <div class="header-section">
-      <div class="title-group">
-        <h2 class="page-title">图集管理</h2>
-      </div>
-      <div class="header-actions">
-        <el-button
-            class="industrial-add-btn"
-            icon="Plus"
-            @click="handleAdd"
-            v-hasPermi="['heritage:gallery:add']"
-        >新增</el-button>
-        <el-button
-            class="industrial-export-btn"
-            icon="Download"
-            @click="handleExport"
-            v-hasPermi="['heritage:gallery:export']"
-        >导出</el-button>
-        <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" class="header-inline-tools" />
-      </div>
-    </div>
-
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" class="industrial-search-form" label-width="72px">
-      <el-form-item label="图集标题" prop="title">
-        <el-input
+    <div class="heritage-toolbar-row">
+      <h2 class="page-title heritage-toolbar-row__title">图集管理</h2>
+      <el-form
+        :model="queryParams"
+        ref="queryRef"
+        :inline="true"
+        class="heritage-toolbar-row__filters industrial-toolbar-form--no-label"
+        label-width="0"
+      >
+        <el-form-item prop="title">
+          <el-input
             v-model="queryParams.title"
             placeholder="图集标题"
             clearable
-            style="width: 200px"
+            style="width: 168px"
             @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="状态" clearable style="width: 120px">
-          <el-option
+          />
+        </el-form-item>
+        <el-form-item prop="status">
+          <el-select v-model="queryParams.status" placeholder="状态" clearable style="width: 120px">
+            <el-option
               v-for="dict in sys_normal_disable"
               :key="dict.value"
               :label="dict.label"
               :value="dict.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-      </el-form-item>
-    </el-form>
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+          <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+        </el-form-item>
+      </el-form>
+      <div class="heritage-toolbar-row__actions">
+        <el-button
+          class="industrial-add-btn"
+          icon="Plus"
+          @click="handleAdd"
+          v-hasPermi="['heritage:gallery:add']"
+        >新增</el-button>
+        <el-button
+          class="industrial-export-btn"
+          icon="Download"
+          @click="handleExport"
+          v-hasPermi="['heritage:gallery:export']"
+        >导出</el-button>
+        <right-toolbar :search="false" @queryTable="getList" class="header-inline-tools" />
+      </div>
+    </div>
 
     <el-table
         v-loading="loading"
@@ -163,7 +166,6 @@ const galleryList = ref([])
 const heritageGalleryImageList = ref([])
 const open = ref(false)
 const loading = ref(true)
-const showSearch = ref(true)
 const ids = ref([])
 const checkedHeritageGalleryImage = ref([])
 const total = ref(0)

@@ -1,29 +1,32 @@
 <template>
   <div class="app-container heritage-admin-page">
-    <div class="header-section">
-      <div class="title-group">
-        <h2 class="page-title">视频管理</h2>
-      </div>
-      <div class="header-actions">
+    <div class="heritage-toolbar-row">
+      <h2 class="page-title heritage-toolbar-row__title">视频管理</h2>
+      <el-form
+        :model="queryParams"
+        ref="queryRef"
+        :inline="true"
+        class="heritage-toolbar-row__filters industrial-toolbar-form--no-label"
+        label-width="0"
+      >
+        <el-form-item prop="title">
+          <el-input v-model="queryParams.title" placeholder="视频标题" clearable @keyup.enter="handleQuery" style="width: 168px" />
+        </el-form-item>
+        <el-form-item prop="status">
+          <el-select v-model="queryParams.status" placeholder="审核状态" clearable style="width: 120px">
+            <el-option v-for="dict in heritage_audit_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+          <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+        </el-form-item>
+      </el-form>
+      <div class="heritage-toolbar-row__actions">
         <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd">录入新视频</el-button>
-        <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" class="header-inline-tools" />
+        <right-toolbar :search="false" @queryTable="getList" class="header-inline-tools" />
       </div>
     </div>
-
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" class="industrial-search-form">
-      <el-form-item label="名称" prop="title">
-        <el-input v-model="queryParams.title" placeholder="视频标题" clearable @keyup.enter="handleQuery" style="width: 200px" />
-      </el-form-item>
-      <el-form-item label="状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="审核状态" clearable style="width: 120px">
-          <el-option v-for="dict in heritage_audit_status" :key="dict.value" :label="dict.label" :value="dict.value" />
-        </el-select>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-      </el-form-item>
-    </el-form>
 
     <el-table
         v-loading="loading"
@@ -192,7 +195,6 @@ const itemOptions = ref([]);
 const open = ref(false);
 const playOpen = ref(false);
 const loading = ref(true);
-const showSearch = ref(true);
 const ids = ref([]);
 const single = ref(true);
 const multiple = ref(true);

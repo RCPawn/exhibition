@@ -1,44 +1,45 @@
 <template>
   <div class="app-container heritage-admin-page">
-    <!-- 1. 顶部操作区 -->
-    <div class="header-section">
-      <div class="title-group">
-        <h2 class="page-title">非遗展品管理</h2>
-      </div>
-      <div class="header-actions">
-        <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd">新增展品</el-button>
-        <el-button class="industrial-export-btn" icon="Download" @click="handleExport">导出</el-button>
-        <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" class="header-inline-tools" />
-      </div>
-    </div>
-
-    <!-- 2. 搜索表单 -->
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" class="industrial-search-form">
-      <el-form-item label="名称" prop="itemName">
-        <el-input v-model="queryParams.itemName" placeholder="搜索名称" clearable @keyup.enter="handleQuery" style="width: 200px"/>
-      </el-form-item>
-      <el-form-item label="类别" prop="categoryId">
-        <el-cascader
+    <div class="heritage-toolbar-row">
+      <h2 class="page-title heritage-toolbar-row__title">非遗展品管理</h2>
+      <el-form
+        :model="queryParams"
+        ref="queryRef"
+        :inline="true"
+        class="heritage-toolbar-row__filters industrial-toolbar-form--no-label"
+        label-width="0"
+      >
+        <el-form-item prop="itemName">
+          <el-input v-model="queryParams.itemName" placeholder="名称" clearable @keyup.enter="handleQuery" style="width: 176px" />
+        </el-form-item>
+        <el-form-item prop="categoryId">
+          <el-cascader
             v-model="queryParams.categoryId"
             :options="categoryOptions"
             :props="{ value: 'categoryId', label: 'categoryName', children: 'children', emitPath: false, checkStrictly: true }"
-            placeholder="分类筛选"
+            placeholder="类别"
             clearable
             style="width: 200px"
-        />
-      </el-form-item>
-      <el-form-item label="状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="状态" clearable style="width: 100px">
-          <el-option v-for="dict in heritage_audit_status" :key="dict.value" :label="dict.label" :value="dict.value"/>
-        </el-select>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-      </el-form-item>
-    </el-form>
+          />
+        </el-form-item>
+        <el-form-item prop="status">
+          <el-select v-model="queryParams.status" placeholder="状态" clearable style="width: 112px">
+            <el-option v-for="dict in heritage_audit_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+          <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+        </el-form-item>
+      </el-form>
+      <div class="heritage-toolbar-row__actions">
+        <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd">新增展品</el-button>
+        <el-button class="industrial-export-btn" icon="Download" @click="handleExport">导出</el-button>
+        <right-toolbar :search="false" @queryTable="getList" class="header-inline-tools" />
+      </div>
+    </div>
 
-    <!-- 3. 数据表格 -->
+    <!-- 数据表格 -->
     <el-table
         v-loading="loading"
         :data="heritage_manageList"
@@ -162,7 +163,6 @@ const categoryOptions = ref([]);
 const flatCategories = ref([]);
 const open = ref(false);
 const loading = ref(true);
-const showSearch = ref(true);
 const ids = ref([]);
 const single = ref(true);
 const multiple = ref(true);

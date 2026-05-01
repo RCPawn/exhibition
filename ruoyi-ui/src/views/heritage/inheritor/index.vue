@@ -1,54 +1,51 @@
 <template>
   <div class="app-container heritage-admin-page">
-    <!-- 1. 顶部标题与操作区 -->
-    <div class="header-section">
-      <div class="title-group">
-        <h2 class="page-title">传承人管理</h2>
-      </div>
-      <div class="header-actions">
-        <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd" v-hasPermi="['heritage:inheritor:add']">新增传承人</el-button>
-        <el-button class="industrial-export-btn" icon="Download" @click="handleExport" v-hasPermi="['heritage:inheritor:export']">导出</el-button>
-        <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" class="header-inline-tools" />
-      </div>
-    </div>
-
-    <!-- 2. 检索表单：引入级联搜索 -->
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" class="industrial-search-form">
-      <el-form-item label="姓名" prop="name">
-        <el-input v-model="queryParams.name" placeholder="输入姓名" clearable style="width: 180px" @keyup.enter="handleQuery" />
-      </el-form-item>
-
-      <!-- 搜索栏级联选择 -->
-      <el-form-item label="所属项目" prop="categoryId">
-        <el-cascader
+    <div class="heritage-toolbar-row">
+      <h2 class="page-title heritage-toolbar-row__title">传承人管理</h2>
+      <el-form
+        :model="queryParams"
+        ref="queryRef"
+        :inline="true"
+        class="heritage-toolbar-row__filters industrial-toolbar-form--no-label"
+        label-width="0"
+      >
+        <el-form-item prop="name">
+          <el-input v-model="queryParams.name" placeholder="姓名" clearable style="width: 132px" @keyup.enter="handleQuery" />
+        </el-form-item>
+        <el-form-item prop="categoryId">
+          <el-cascader
             v-model="queryParams.categoryId"
             :options="categoryOptions"
             :props="{
-            value: 'categoryId',
-            label: 'categoryName',
-            children: 'children',
-            emitPath: false,
-            checkStrictly: true
-          }"
-            placeholder="选择项目大类/小类"
+              value: 'categoryId',
+              label: 'categoryName',
+              children: 'children',
+              emitPath: false,
+              checkStrictly: true
+            }"
+            placeholder="所属项目"
             clearable
-            style="width: 220px"
-        />
-      </el-form-item>
+            style="width: 200px"
+          />
+        </el-form-item>
+        <el-form-item prop="level">
+          <el-select v-model="queryParams.level" placeholder="称号级别" clearable style="width: 128px">
+            <el-option v-for="dict in heritage_level" :key="dict.value" :label="dict.label" :value="dict.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+          <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+        </el-form-item>
+      </el-form>
+      <div class="heritage-toolbar-row__actions">
+        <el-button class="industrial-add-btn" icon="Plus" @click="handleAdd" v-hasPermi="['heritage:inheritor:add']">新增传承人</el-button>
+        <el-button class="industrial-export-btn" icon="Download" @click="handleExport" v-hasPermi="['heritage:inheritor:export']">导出</el-button>
+        <right-toolbar :search="false" @queryTable="getList" class="header-inline-tools" />
+      </div>
+    </div>
 
-      <el-form-item label="级别" prop="level">
-        <el-select v-model="queryParams.level" placeholder="称号级别" clearable style="width: 130px">
-          <el-option v-for="dict in heritage_level" :key="dict.value" :label="dict.label" :value="dict.value" />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item>
-        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-      </el-form-item>
-    </el-form>
-
-    <!-- 3. 数据表格 -->
+    <!-- 数据表格 -->
     <el-table
         v-loading="loading"
         :data="inheritorList"
@@ -204,7 +201,6 @@ const { heritage_level, sys_normal_disable } = proxy.useDict('heritage_level', '
 const inheritorList = ref([])
 const open = ref(false)
 const loading = ref(true)
-const showSearch = ref(true)
 const ids = ref([])
 const single = ref(true)
 const multiple = ref(true)
