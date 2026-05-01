@@ -1,6 +1,6 @@
-# 🏛️ 非遗虚拟展陈与数据检测平台
+# 非遗虚拟展陈与数据监测平台
 
-> **以数字之光照亮千年文脉，让传统技艺在云端永续传承**
+> 面向白族非遗资源的 **Web 展陈、3D 互动与数据看板** 一体化系统，支持内容治理、用户行为与传播效果的可视化分析。
 
 <div align="center">
 
@@ -14,196 +14,240 @@
 
 ---
 
-## 📖 项目简介
+## 项目简介
 
-**白族非遗数字博物馆**是一个融合 **3D 可视化、交互式展陈、数据驾驶舱** 于一体的非物质文化遗产数字化保护与展示平台。系统以大理白族传统文化为核心，通过现代 Web 技术将扎染、木雕、建筑、服饰等珍贵非遗资源进行数字化重构，打造沉浸式的线上文化体验空间。
+**白族非遗数字博物馆** 将 **3D 展示、在线展陈、数据驾驶舱** 与 **后台内容管理** 结合，以大理白族文化（如扎染、木雕、建筑、服饰等）为业务载体，在 Web 端完成资源数字化呈现、传播与运营。
 
-### ✨ 核心理念
+**能力概览：**
 
-- 🎨 **数字孪生**：高精度 3D 模型还原非遗器物形态
-- 📚 **活态传承**：图谱化呈现师徒传承脉络与技艺演进
-- 📊 **数据赋能**：实时监测文化传播热度与用户行为
-- 🌐 **开放共享**：UGC 内容生态促进全民参与文化保护
+- **3D 与展陈**：基于 Web 的模型浏览、分类检索与详情阅读，支撑公开参观与教学演示。
+- **活态传承**：以图谱与档案形式组织传承人、技艺与关联资源。
+- **数据与质量**：看板统计、接口压测与内容审核、分类与展品维护，便于上线前性能与内容双把关。
 
 ---
 
-## 🎯 功能架构
+## 功能架构
 
+不从「功能清单」罗列价值：下面两张 **Mermaid** 图分别表达 **系统分层与调用关系**、**内容治理与用户行为的闭环**。在 GitHub / Gitee 等支持 Mermaid 的平台上可直接渲染；若本地预览不显示图，可将本节复制到 [Mermaid Live Editor](https://mermaid.live) 查看。
+
+### 分层与模块关系
+
+自上而下：**访客前台**由门户串联多条内容线，汇总至个人互动；**驾驶舱**与**后台**共用同一套业务服务；服务层统一访问 **MySQL** 与 **profile** 静态资源（模型、图、音、视频）。
+
+```mermaid
+flowchart TB
+  subgraph fe["前台 · 访客展陈"]
+    H["文化门户"]
+    E["在线展厅 · 3D"]
+    T["传承图谱"]
+    G["纸上乾坤"]
+    A["三道余音"]
+    U["个人中心 · 互动"]
+  end
+
+  subgraph dash["数据驾驶舱"]
+    D["看板 · 热词 · 镇馆 3D"]
+  end
+
+  subgraph adm["后台 · 内容治理"]
+    M["分类 / 展品 / 传承人 / 审核"]
+  end
+
+  subgraph svc["服务层"]
+    API["Spring Boot · heritage 等 API"]
+  end
+
+  subgraph res["数据与资源"]
+    DB[(MySQL)]
+    FS["profile · 模型与多媒体"]
+  end
+
+  H --> E
+  H --> T
+  H --> G
+  H --> A
+  E & T & G & A --> U
+
+  H & E & T & G & A & U --> API
+  D --> API
+  M --> API
+
+  API --> DB
+  API --> FS
 ```
-📦 白族非遗数字博物馆
-├── 🌏 数字驾驶舱          [✅ 已完成] 
-│   ├── ECharts 多维数据可视化
-│   ├── 3D 镇馆之宝展示
-│   └── 实时统计面板
-│
-├── 🏛️ 在线展厅            [✅ 已完成]
-│   ├── 分类筛选与智能搜索
-│   ├── 3D 模型交互查看
-│   └── 图文详情与社交互动
-│
-├── 📜 传承图谱            [✅ 已完成] 🌟 亮点
-│   ├── 3D 翻书式交互设计
-│   ├── 传承关系网络图
-│   └── 传承人档案库
-│
-├── 📸 纸上乾坤            [✅ 已完成]
-│   ├── 瀑布流图集展示
-│   └── 沉浸式看图模式
-│
-├── 🎵 三道余音            [✅ 已完成]
-│   ├── 音频播放与波形可视化
-│   └── 唱词同步展示
-│
-├── 👤 个人中心            [✅ 已完成]
-│   ├── 我的收藏 / 我的发布
-│   └── 评论管理
-│
-└── 🛠️ 后台管理系统        [✅ 已完成]
-    ├── 展品/传承人/分类管理
-    ├── 审核中心
-    └── 数据统计导出
+
+### 内容流与行为闭环
+
+左侧强调 **可运营链路**：元数据与多媒体经后台进入前台；右侧强调 **可观测链路**：浏览、收藏、评论等行为经服务层聚合，再回到驾驶舱（与本仓库中对大屏接口做压测的场景一致——聚合读路径往往是容量敏感点）。
+
+```mermaid
+flowchart LR
+  subgraph governance["内容治理"]
+    edit["编辑入库"] --> review["审核发布"]
+    review --> shelf["前台展品 / 图集 / 音频可见"]
+  end
+
+  subgraph observe["传播与观测"]
+    shelf --> visit["浏览与检索"]
+    visit --> action["收藏 · 评论 · 点赞等"]
+    action --> agg["统计聚合"]
+    agg --> cockpit["驾驶舱指标"]
+  end
 ```
 
----
-
-## 🚀 核心功能详解
-
-### 🌏 数字驾驶舱 - 数据总览中枢
-
-> **"一屏观全域，一网管全局"**
-
-数字驾驶舱作为系统的智慧大脑，通过 **ECharts 数据可视化 + 3D 场景融合** 技术，实时呈现非遗资源的分布态势与传播效果。
-
-**核心指标：**
-- 📊 非遗项目总量与分类占比
-- 🔥 累计浏览热度与互动趋势
-- 🏆 Top 5 热门藏品排行榜
-- ☁️ 非遗热词云图
-- 🎯 最新收录展品动态
-
-![image-20260404234438634](README.assets/image-20260404234438634.png)
-
-数字驾驶舱依赖多条聚合统计接口，在展会大屏、公开演示等场景下易出现短时集中访问。为验证后端在高并发下的表现，使用 **JMeter** 对大屏相关接口进行压测（如 Summary Report 中的吞吐量、平均响应时间与错误率等指标），便于在上线前发现瓶颈并配合连接池、缓存与 SQL 优化等手段调优。
-
-![大屏接口压测](README.assets/大屏接口压测.png)
+**阅读提示：** 第一张图回答「系统由哪些块组成、请求落到哪里」；第二张图回答「内容怎么上架、数据怎么回到大屏」。下文「界面与能力说明」中的截图按访客动线展开，可与第一张图中的前台子域一一对应。
 
 ---
 
-### 🏛️ 前台首页 - 文化门户
+## 界面与能力说明
 
-> **"风花雪月入画来，白族文化触手可及"**
+以下编排参考常见开源项目 README 的做法：**访客最关心的「数据大屏 + 前台动线」单独成块、大图居中**，便于一眼看清产品形态；**后台与运营类界面**仍用双栏压缩篇幅，需要部署或二次开发时再细看即可。
 
-精心设计的门户页面，以极简美学呈现白族文化精髓，引导用户快速进入探索之旅。
+### 📊 数字驾驶舱 · 一屏总览
 
-![image-20260409102800430](README.assets/image-20260409102800430.png)
+面向运营与公众演示场景，将 **藏品规模、分类结构、访问与互动趋势、热词云、最新入库** 等关键指标放在同一视图中；一侧保留 **3D 镇馆** 区域，适合展厅大屏或投影快速建立认知。
+
+<p align="center">
+  <img src="README.assets/数字驾驶舱.png" alt="数字驾驶舱" width="92%" />
+</p>
+
+<p align="center"><em>适合展会、汇报与教学演示：先在一屏内建立全局印象，再引导进入各业务模块。</em></p>
+
+### 🧪 大屏接口压测 · 上线前佐证
+
+驾驶舱依赖多条 **聚合统计接口**，在集中演示或短时高并发下容易被放大。示例使用 **JMeter** 对大屏相关接口进行压测，从 **吞吐量、平均响应、错误率** 等维度记录结果，便于与连接池、缓存、SQL 优化等措施对照，在上线前发现瓶颈。
+
+<p align="center">
+  <img src="README.assets/大屏接口压测.png" alt="大屏接口压测 JMeter" width="92%" />
+</p>
+
+<p align="center"><em>便于在技术文档或答辩材料中对照吞吐、延迟与错误率，与优化措施一并呈现。</em></p>
+
+### 🏠 文化门户首页
+
+入口页负责 **信息分层与浏览动线**：从品牌区到功能入口，风格上与整体 **黑白极简** 一致，降低首次访问的认知负担，引导用户进入展厅、专题与音频、图集等板块。
+
+<p align="center">
+  <img src="README.assets/文化门户首页.png" alt="文化门户首页" width="92%" />
+</p>
+
+<p align="center"><em>首页承担「从认识到行动」的引导：品牌 — 功能入口 — 深入展厅。</em></p>
+
+### 🎪 在线展厅 · 列表与检索
+
+前台列表支持 **分类筛选、关键词搜索与卡片化浏览**，便于从大量非遗条目中快速定位兴趣点；布局兼顾笔记本与常规桌面宽度。
+
+<p align="center">
+  <img src="README.assets/在线展厅.png" alt="在线展厅" width="92%" />
+</p>
+
+### 🔍 展品详情 · 3D 与互动
+
+详情页集成 **Google Model Viewer**，支持 **360° 旋转、缩放与光照**；展示 **浏览量、点赞、收藏、评论** 等互动数据，标题与标签采用渐变与圆角等细节，强化「单件展品」的阅读焦点。
+
+<p align="center">
+  <img src="README.assets/展品详情页.png" alt="展品详情与 3D" width="92%" />
+</p>
+
+<p align="center"><em>单件展品的「深度阅读」界面：模型交互与社交数据同屏呈现。</em></p>
+
+### 📜 传承图谱 · 3D 翻书入口
+
+以 **3D 翻书** 作为叙事载体，点击后进入传承主线：相比平铺列表，更易在文化类站点中形成记忆点。
+
+<p align="center">
+  <img src="README.assets/传承图谱.png" alt="传承图谱 3D 翻书" width="92%" />
+</p>
+
+### 🌳 传承关系网络
+
+展开后以 **力导向图** 呈现传承人、技艺分类、师承关系及级别标识；节点与连线帮助理解「人与技艺」的拓扑，悬停或侧栏可查看档案摘要。
+
+<p align="center">
+  <img src="README.assets/传承关系网络.png" alt="传承关系网络" width="92%" />
+</p>
+
+### 📸 纸上乾坤 · 瀑布流图集
+
+影像档案采用 **CSS 多列瀑布流**，卡片高度随内容伸缩，适合摄影作品与非统一竖横比的素材混排。
+
+<p align="center">
+  <img src="README.assets/纸上乾坤图集.png" alt="纸上乾坤瀑布流" width="92%" />
+</p>
+
+### 🖼️ 纸上乾坤 · 沉浸大图
+
+从瀑布流进入 **单图沉浸阅读**，突出画面主体与说明文案；可与排序规则、拍摄信息等元数据组合使用。
+
+<p align="center">
+  <img src="README.assets/纸上乾坤详情.png" alt="纸上乾坤大图阅读" width="92%" />
+</p>
+
+### 🎵 三道余音 · 声音档案
+
+音频页整合 **播放控制与波形可视化**，并与 **解说 / 唱词** 等内容同步展示，可与展品或 3D 资源形成视听一体的参观路径。
+
+<p align="center">
+  <img src="README.assets/三道余音.png" alt="三道余音" width="92%" />
+</p>
+
+### 🛠️ 后台与内容运营（双栏一览）
+
+面向管理员与内容编辑：**分类维护、展品录入、审核流转** 与用户侧 **我的收藏** 等能力衔接，形成「录入 → 审核 → 发布 → 反馈」闭环。此处采用 **双栏拼图**，节省纵向篇幅；若你主要关心前台体验，可跳过本节。
+
+| 🗂️ 分类管理 | 📦 展品管理 |
+|:--:|:--:|
+| ![分类管理](README.assets/分类管理.png) | ![展品管理](README.assets/展品管理.png) |
+
+| ✅ 审核中心 | ⭐ 我的收藏（管理侧） |
+|:--:|:--:|
+| ![审核中心](README.assets/审核中心.png) | ![我的收藏](README.assets/我的收藏.png) |
 
 ---
 
-### 🎪 在线展厅 - 3D 沉浸展陈
+## 技术栈
 
-> **"指尖旋转千年工艺，屏幕触摸历史温度"**
+### 前端
 
-基于 **Google Model Viewer** 构建的 3D 展品展示系统，支持：
-- 🔄 360° 自由旋转与缩放
-- 💡 真实光影渲染
-- 📱 移动端适配
-- ❤️ 点赞收藏与评论互动
-
-**展品详情页优化：**
-- 紧凑式统计数据展示（浏览量、点赞、收藏）
-- SVG 矢量图标（爱心❤️ / 星星⭐），点击填充动画
-- 渐变标题与圆角标签设计
-- 响应式布局适配多端
-
-![image-20260409102726156](README.assets/image-20260409102726156.png)
-
-![image-20260409103008253](README.assets/image-20260409103008253.png)
-
----
-
-### 📜 传承图谱 - 3D 翻书交互 🌟
-
-> **"翻开历史的书页，看见传承的脉络"**
-
-**创新亮点：** 采用 **3D 翻书模型** 作为交互载体，用户点击书本即可展开传承关系图谱，以力导向图形式呈现：
-- 🧑‍🎨 传承人与其所属技艺分类
-- 🌳 师徒传承关系链
-- 🏅 国家级/省级/市级传承人分级标识
-- 💬 悬浮信息卡片展示详细档案
-
-![image-20260409102845527](README.assets/image-20260409102845527.png)
-
-![image-20260405002122659](README.assets/image-20260405002122659.png)
-
----
-
-### 📸 纸上乾坤 - 影像档案馆
-
-> **"定格时光碎片，珍藏文化记忆"**
-
-采用 **CSS Columns 瀑布流布局** 展示非遗摄影作品，支持：
-- 🖼️ 自适应高度的卡片排列
-- 🔍 点击进入沉浸式看图模式
-- 📅 时间轴排序与元数据展示
-
-![image-20260409103045434](README.assets/image-20260409103045434.png)
-
-![image-20260409103123369](README.assets/image-20260409103123369.png)
-
----
-
-### 🎵 三道余音 - 声音档案
-
-> **"听见苍山洱海的回响"**
-
-整合音频播放器与 3D 模型展示，实现视听融合的非遗体验：
-- 🎧 自定义波形可视化
-- 📝 唱词/解说文本同步
-- 🎭 关联展品 3D 模型联动
-
-![image-20260405002328381](README.assets/image-20260405002328381.png)
-
----
-
-## 🛠️ 技术栈
-
-### 前端技术
 | 技术 | 版本 | 说明 |
 |------|------|------|
-| Vue.js | 3.x | 渐进式 JavaScript 框架 |
-| Vite | 4.x | 下一代前端构建工具 |
+| Vue.js | 3.x | 渐进式前端框架 |
+| Vite | 4.x | 构建工具 |
 | Element Plus | 2.x | Vue 3 组件库 |
-| Three.js | r150+ | 3D 渲染引擎 |
-| @google/model-viewer | latest | Web 3D 模型查看器 |
-| ECharts | 5.x | 数据可视化图表库 |
+| Three.js | r150+ | 三维渲染 |
+| @google/model-viewer | latest | Web 端 glTF/GLB 查看 |
+| ECharts | 5.x | 图表与可视化 |
 | Axios | 1.x | HTTP 客户端 |
-| SCSS | - | CSS 预处理器 |
+| SCSS | - | 样式预处理 |
 
-### 后端技术
+### 后端
+
 | 技术 | 版本 | 说明 |
 |------|------|------|
-| Spring Boot | 2.5.x | Java 微服务框架 |
-| MyBatis | 3.5.x | ORM 持久层框架 |
-| Druid | 1.2.x | 数据库连接池 |
-| JWT | 0.9.x | Token 认证 |
+| Spring Boot | 2.5.x | 应用框架 |
+| MyBatis | 3.5.x | ORM |
+| Druid | 1.2.x | 连接池 |
+| JWT | 0.9.x | 认证 Token |
 | MySQL | 8.0+ | 关系型数据库 |
-| Redis | 6.x | 缓存数据库（可选） |
+| Redis | 6.x | 缓存（可选） |
 
 ### 开发工具
-- **IDE**: IntelliJ IDEA / VS Code
-- **包管理**: Maven / npm
-- **API 测试**: Postman / Apifox
-- **版本控制**: Git
+
+- **IDE**：IntelliJ IDEA / VS Code  
+- **构建**：Maven / npm  
+- **接口**：Postman / Apifox  
+- **版本**：Git  
 
 ---
 
-## 📦 快速开始
+## 快速开始
 
 ### 环境要求
-- Node.js >= 16.0
-- JDK >= 1.8
-- MySQL >= 8.0
-- Maven >= 3.6
+
+- Node.js >= 16.0  
+- JDK >= 1.8  
+- MySQL >= 8.0  
+- Maven >= 3.6  
 
 ### 后端启动
 
@@ -215,8 +259,7 @@ git clone https://github.com/your-username/RuoYi-Vue.git
 mysql -u root -p < sql/all_table.sql
 
 # 3. 修改配置
-# 编辑 ruoyi-admin/src/main/resources/application.yml
-# 配置数据库连接信息
+# 编辑 ruoyi-admin/src/main/resources/application.yml，填写数据库等连接信息
 
 # 4. 启动后端
 cd RuoYi-Vue-master
@@ -227,140 +270,92 @@ java -jar ruoyi-admin/target/ruoyi-admin.jar
 ### 前端启动
 
 ```bash
-# 1. 进入前端目录
 cd ruoyi-ui
-
-# 2. 安装依赖
 npm install
-
-# 3. 启动开发服务器
 npm run dev
-
-# 4. 访问 http://localhost:80
+# 浏览器访问 http://localhost:80
 ```
 
 ### 默认账号
-- 管理员：`admin` / `admin123`
-- 普通用户：`user` / `admin123`
+
+- 管理员：`admin` / `admin123`  
+- 普通用户：`user` / `admin123`  
 
 ---
 
-## 📂 项目结构
+## 项目结构（节选）
 
 ```
 RuoYi-Vue-master/
-├── ruoyi-admin/          # 后端主模块
-│   ├── src/main/java/
-│   │   ├── com.ruoyi.heritage/   # 非遗业务模块
-│   │   │   ├── controller/       # 控制器
-│   │   │   ├── service/          # 服务层
-│   │   │   ├── mapper/           # 数据访问层
-│   │   │   └── domain/           # 实体类
-│   │   └── com.ruoyi.web/        # Web 配置
-│   └── src/main/resources/
-│       ├── mapper/heritage/      # MyBatis XML
-│       └── application.yml       # 配置文件
-│
-├── ruoyi-ui/             # 前端主模块
-│   ├── src/
-│   │   ├── api/                  # API 接口
-│   │   ├── views/                # 页面组件
-│   │   │   ├── display/          # 前台展示
-│   │   │   └── heritage/         # 后台管理
-│   │   ├── components/           # 公共组件
-│   │   └── router/               # 路由配置
-│   └── vite.config.js            # Vite 配置
-│
-├── sql/                  # 数据库脚本
-│   ├── current_all_table.sql     # 完整表结构
-│   └── exhibition.sql            # 示例数据
-│
-└── profile/              # 静态资源
-    ├── model/            # 3D 模型文件 (.glb)
-    ├── image/            # 图片资源
-    ├── audio/            # 音频文件
-    └── video/            # 视频文件
+├── ruoyi-admin/
+│   └── src/main/java/com/ruoyi/heritage/   # 非遗业务
+├── ruoyi-ui/
+│   ├── src/views/display/                  # 前台展示
+│   └── src/views/heritage/                 # 后台管理
+├── sql/
+├── profile/                                # 静态资源（模型、图音视频）
+└── README.assets/                          # 文档配图（中文文件名）
 ```
 
 ---
 
-## 🎨 设计亮点
+## 设计与性能要点
 
-### 1. 黑白极简美学
-遵循 **白族"尚白"文化传统**，界面以黑白灰为主色调，辅以渐变色点缀，营造素雅清新的视觉体验。
-
-### 2. 交互动画优化
-- ❤️ 点赞心跳动画
-- ⭐ 收藏闪烁效果
-- 📖 3D 翻书过渡
-- 🖼️ 图片懒加载与平滑滚动
-
-### 3. 响应式设计
-完美适配桌面端、平板、手机等多尺寸设备，确保最佳浏览体验。
-
-### 4. 性能优化
-- 3D 模型 GLB 格式压缩
-- 图片懒加载与 CDN 加速
-- 数据库索引优化
-- Redis 缓存热点数据
-- 数字驾驶舱等大屏接口可通过 JMeter 压测评估吞吐与延迟（详见上文「数字驾驶舱」配图说明）
+1. **视觉**：界面以黑白灰为主、点缀渐变，呼应白族尚白审美，同时保证数据与控件可读性。  
+2. **交互**：点赞、收藏、翻书转场、图集懒加载与平滑滚动等，控制在不干扰阅读的前提下增强反馈。  
+3. **响应式**：兼顾笔记本常见分辨率与大屏；复杂页面可参考仓库内门户与图集详情页的响应式约定。  
+4. **性能**：GLB 压缩、图片懒加载、数据库索引与可选 Redis；驾驶舱类接口建议配合压测与监控。  
 
 ---
 
-## 📊 数据库设计
+## 数据库（核心表）
 
-核心数据表：
-- `heritage_item` - 非遗展品表
-- `heritage_category` - 分类表
-- `heritage_inheritor` - 传承人表
-- `heritage_gallery` - 图集主表
-- `heritage_gallery_image` - 图集从表
-- `heritage_audio` - 音频档案表
-- `heritage_user_action` - 用户行为记录表
+- `heritage_item` — 非遗展品  
+- `heritage_category` — 分类  
+- `heritage_inheritor` — 传承人  
+- `heritage_gallery` / `heritage_gallery_image` — 图集  
+- `heritage_audio` — 音频档案  
+- `heritage_user_action` — 用户行为  
 
-详细 ER 图请参考 `sql/current_all_table.sql`
+完整定义见 `sql/current_all_table.sql`。
 
 ---
 
-## 🤝 贡献指南
+## 贡献指南
 
-欢迎提交 Issue 和 Pull Request！
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
+1. Fork 本仓库  
+2. 新建分支：`git checkout -b feature/YourFeature`  
+3. 提交：`git commit -m '说明本次改动'`  
+4. 推送并发起 Pull Request  
 
 ---
 
-## 📄 开源协议
+## 开源协议
 
 本项目基于 [MIT License](LICENSE) 开源。
 
 ---
 
-## 🙏 致谢
+## 致谢
 
-- [若依框架](http://www.ruoyi.vip/) - 优秀的后台管理系统脚手架
-- [Google Model Viewer](https://modelviewer.dev/) - 强大的 Web 3D 模型查看器
-- [ECharts](https://echarts.apache.org/) - 专业的数据可视化工具
-- 云南网、中国非物质文化遗产网... - 提供非遗资料支持
+- [若依](http://www.ruoyi.vip/) — 后台脚手架  
+- [Google Model Viewer](https://modelviewer.dev/) — Web 3D 模型展示  
+- [ECharts](https://echarts.apache.org/) — 数据可视化  
+- 云南网、中国非物质文化遗产网等公开资料  
 
 ---
 
-## 📮 联系方式
+## 联系方式
 
-如有问题或建议，欢迎通过以下方式联系：
-- 📧 Email: your-email@example.com
-- 💬 GitHub Issues: [提交问题](https://github.com/your-username/RuoYi-Vue/issues)
+- Email: your-email@example.com  
+- Issues: [GitHub Issues](https://github.com/your-username/RuoYi-Vue/issues)  
 
 ---
 
 <div align="center">
 
-**⭐ 如果这个项目对你有帮助，请给个 Star 支持一下！⭐**
+若本项目对你有帮助，欢迎 Star。
 
-Made with ❤️ by rcpawn
+Made with care by rcpawn
 
 </div>
